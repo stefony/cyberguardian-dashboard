@@ -218,28 +218,36 @@ export default function ThreatsPage() {
               <span className="text-sm text-muted-foreground">Filters:</span>
             </div>
 
-            <select
-              value={severityFilter}
-              onChange={(e) => setSeverityFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-card border border-border text-foreground"
-            >
-              <option value="all">All Severities</option>
-              <option value="critical">Critical</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+           <select
+  value={severityFilter}
+  onChange={(e) => setSeverityFilter(e.target.value)}
+  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground ml-auto transition-all duration-300 hover:border-purple-400 hover:bg-purple-500/5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer relative z-50"
+  style={{ 
+    pointerEvents: 'auto',
+    colorScheme: 'dark'
+  }}
+>
+  <option value="all" className="bg-[#0a0e27] text-white">All Severities</option>
+  <option value="critical" className="bg-[#0a0e27] text-white">Critical</option>
+  <option value="high" className="bg-[#0a0e27] text-white">High</option>
+  <option value="medium" className="bg-[#0a0e27] text-white">Medium</option>
+  <option value="low" className="bg-[#0a0e27] text-white">Low</option>
+</select>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-card border border-border text-foreground"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active</option>
-              <option value="blocked">Blocked</option>
-              <option value="dismissed">Dismissed</option>
-            </select>
+           <select
+  value={statusFilter}
+  onChange={(e) => setStatusFilter(e.target.value)}
+  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/5 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer relative z-50"
+  style={{ 
+    pointerEvents: 'auto',
+    colorScheme: 'dark'
+  }}
+>
+  <option value="all" className="bg-[#0a0e27] text-white">All Statuses</option>
+  <option value="active" className="bg-[#0a0e27] text-white">Active</option>
+  <option value="blocked" className="bg-[#0a0e27] text-white">Blocked</option>
+  <option value="dismissed" className="bg-[#0a0e27] text-white">Dismissed</option>
+</select>
 
             <div className="ml-auto text-sm text-muted-foreground">
               {threats.length} threats
