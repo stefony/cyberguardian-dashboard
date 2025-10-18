@@ -182,7 +182,7 @@ export default function DetectionPage() {
       {status && (
         <div className="section">
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="card-premium p-5">
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <Shield className={`h-5 w-5 ${status.engine_status === "active" ? "text-green-500" : "text-muted-foreground"}`} />
                 <div className="text-sm text-muted-foreground">Engine Status</div>
@@ -192,7 +192,7 @@ export default function DetectionPage() {
               </div>
             </div>
 
-            <div className="card-premium p-5">
+           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <Activity className="h-5 w-5 text-blue-500" />
                 <div className="text-sm text-muted-foreground">Active Scans</div>
@@ -202,7 +202,7 @@ export default function DetectionPage() {
               </div>
             </div>
 
-            <div className="card-premium p-5">
+           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <Search className="h-5 w-5 text-purple-500" />
                 <div className="text-sm text-muted-foreground">Scans Today</div>
@@ -212,7 +212,7 @@ export default function DetectionPage() {
               </div>
             </div>
 
-            <div className="card-premium p-5">
+           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
                 <div className="text-sm text-muted-foreground">Threats Found</div>
@@ -222,7 +222,7 @@ export default function DetectionPage() {
               </div>
             </div>
 
-            <div className="card-premium p-5">
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <Clock className="h-5 w-5 text-muted-foreground" />
                 <div className="text-sm text-muted-foreground">Last Scan</div>
@@ -243,26 +243,34 @@ export default function DetectionPage() {
             <h2 className="text-xl font-semibold">Scan History</h2>
 
             <select
-              value={scanTypeFilter}
-              onChange={(e) => setScanTypeFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-card border border-border text-foreground ml-auto"
-            >
-              <option value="all">All Types</option>
-              <option value="full">Full Scan</option>
-              <option value="quick">Quick Scan</option>
-              <option value="custom">Custom Scan</option>
-            </select>
+  value={scanTypeFilter}
+  onChange={(e) => setScanTypeFilter(e.target.value)}
+  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground ml-auto transition-all duration-300 hover:border-purple-400 hover:bg-purple-500/5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer relative z-50"
+  style={{ 
+    pointerEvents: 'auto',
+    colorScheme: 'dark'
+  }}
+>
+  <option value="all" className="bg-[#0a0e27] text-white">All Types</option>
+  <option value="full" className="bg-[#0a0e27] text-white">Full Scan</option>
+  <option value="quick" className="bg-[#0a0e27] text-white">Quick Scan</option>
+  <option value="custom" className="bg-[#0a0e27] text-white">Custom Scan</option>
+</select>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-4 py-2 rounded-lg bg-card border border-border text-foreground"
-            >
-              <option value="all">All Statuses</option>
-              <option value="running">Running</option>
-              <option value="completed">Completed</option>
-              <option value="failed">Failed</option>
-            </select>
+          <select
+  value={statusFilter}
+  onChange={(e) => setStatusFilter(e.target.value)}
+  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/5 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer relative z-50"
+  style={{ 
+    pointerEvents: 'auto',
+    colorScheme: 'dark'
+  }}
+>
+  <option value="all" className="bg-[#0a0e27] text-white">All Statuses</option>
+  <option value="running" className="bg-[#0a0e27] text-white">Running</option>
+  <option value="completed" className="bg-[#0a0e27] text-white">Completed</option>
+  <option value="failed" className="bg-[#0a0e27] text-white">Failed</option>
+</select>
 
             <div className="text-sm text-muted-foreground">
               {scans.length} scans

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, AlertTriangle, Filter, RefreshCw, Ban, X } from "lucide-react";
+import { Shield, AlertTriangle, TrendingUp, Filter, RefreshCw, Ban, X } from "lucide-react";
 
 // Types
 type Threat = {
@@ -177,33 +177,45 @@ export default function ThreatsPage() {
       {stats && (
         <div className="section">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="card-premium p-5">
-              <div className="text-sm text-muted-foreground">Total Threats</div>
-              <div className="text-3xl font-bold text-foreground mt-1">
-                {stats.total_threats}
-              </div>
-            </div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
+  <div className="flex items-center gap-3 mb-2">
+    <Shield className="h-5 w-5 text-blue-500" />
+    <div className="text-sm text-muted-foreground">Total Threats</div>
+  </div>
+  <div className="text-2xl font-bold">
+    {stats.total_threats}
+  </div>
+</div>
 
-            <div className="card-premium p-5">
-              <div className="text-sm text-muted-foreground">Critical</div>
-              <div className="text-3xl font-bold text-red-500 mt-1">
-                {stats.severity_breakdown.critical || 0}
-              </div>
-            </div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
+  <div className="flex items-center gap-3 mb-2">
+    <AlertTriangle className="h-5 w-5 text-red-500" />
+    <div className="text-sm text-muted-foreground">Critical</div>
+  </div>
+  <div className="text-2xl font-bold text-red-500">
+    {stats.severity_breakdown.critical || 0}
+  </div>
+</div>
 
-            <div className="card-premium p-5">
-              <div className="text-sm text-muted-foreground">Active</div>
-              <div className="text-3xl font-bold text-yellow-500 mt-1">
-                {stats.status_breakdown.active || 0}
-              </div>
-            </div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/30">
+  <div className="flex items-center gap-3 mb-2">
+    <TrendingUp className="h-5 w-5 text-yellow-500" />
+    <div className="text-sm text-muted-foreground">Active</div>
+  </div>
+  <div className="text-2xl font-bold text-yellow-500">
+    {stats.status_breakdown.active || 0}
+  </div>
+</div>
 
-            <div className="card-premium p-5">
-              <div className="text-sm text-muted-foreground">Blocked</div>
-              <div className="text-3xl font-bold text-green-500 mt-1">
-                {stats.status_breakdown.blocked || 0}
-              </div>
-            </div>
+           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
+  <div className="flex items-center gap-3 mb-2">
+    <Shield className="h-5 w-5 text-green-500" />
+    <div className="text-sm text-muted-foreground">Blocked</div>
+  </div>
+  <div className="text-2xl font-bold text-green-500">
+    {stats.status_breakdown.blocked || 0}
+  </div>
+</div>
           </div>
         </div>
       )}
