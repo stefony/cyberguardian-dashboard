@@ -47,9 +47,9 @@ const navItems: NavItem[] = [
     icon: Eye,
   },
   {
-    label: 'AI Insights',
-    href: '/ai-insights',
-    icon: Brain,
+   label: 'Insights',
+  href: '/insights', 
+  icon: Brain,
   },
   {
     label: 'Analytics',
