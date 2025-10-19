@@ -11,6 +11,7 @@ import {
   Brain, 
   BarChart3, 
   Settings,
+  Mail,
   ChevronLeft,
   ChevronRight,
   Zap,
@@ -51,10 +52,15 @@ const navItems: NavItem[] = [
   href: '/insights', 
   icon: Brain,
   },
-  {
+ {
     label: 'Analytics',
     href: '/analytics',
     icon: BarChart3,
+  },
+  {
+    label: 'Email Scanner',
+    href: '/emails',
+    icon: Mail,
   },
   {
     label: 'Settings',
