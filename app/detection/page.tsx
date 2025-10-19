@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Shield, Activity, Search, PlayCircle, Clock, AlertTriangle } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Shield, Activity, Search, Upload, File as FileIcon, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
 
 // Types
 type Scan = {
@@ -18,10 +18,39 @@ type Scan = {
 
 type DetectionStatus = {
   engine_status: string;
-  last_scan?: string;
-  active_scans: number;
-  total_scans_today: number;
-  threats_detected_today: number;
+  last_update: string;
+  signatures_count: number;
+  scans_today: number;
+  threats_blocked: number;
+};
+
+type UploadResult = {
+  success: boolean;
+  scan_id: number;
+  file_name: string;
+  file_size: number;
+  threat_score: number;
+  severity: string;
+  threats_found: number;
+  stats: {
+    malicious: number;
+    suspicious: number;
+    undetected: number;
+    harmless: number;
+    timeout: number;
+    total_engines: number;
+  };
+  detections: Array<{
+    engine: string;
+    category: string;
+    result: string;
+  }>;
+  vt_link: string;
+  hashes: {
+    md5: string;
+    sha1: string;
+    sha256: string;
+  };
 };
 
 export default function DetectionPage() {
@@ -29,11 +58,12 @@ export default function DetectionPage() {
   const [status, setStatus] = useState<DetectionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
   
-  // Filters
-  const [scanTypeFilter, setScanTypeFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  // File upload states
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Fetch detection status
   const fetchStatus = async () => {
@@ -51,16 +81,8 @@ export default function DetectionPage() {
   const fetchScans = async () => {
     try {
       setIsLoading(true);
-      
-      const params = new URLSearchParams();
-      if (scanTypeFilter !== "all") params.append("scan_type", scanTypeFilter);
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      
-      const url = `http://localhost:8000/api/detection/scans?${params.toString()}`;
-      const response = await fetch(url);
-      
+      const response = await fetch("http://localhost:8000/api/detection/scans?limit=10");
       if (!response.ok) throw new Error("Failed to fetch scans");
-      
       const data: Scan[] = await response.json();
       setScans(data);
       setError(null);
@@ -72,277 +94,420 @@ export default function DetectionPage() {
     }
   };
 
-  // Trigger manual scan
-  const triggerScan = async (scanType: string) => {
-    try {
-      setIsScanning(true);
-      
-      const response = await fetch("http://localhost:8000/api/detection/scan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scan_type: scanType }),
-      });
-      
-      if (!response.ok) throw new Error("Failed to trigger scan");
-      
-      // Refresh data
-      await fetchScans();
-      await fetchStatus();
-      
-      alert(`${scanType} scan started successfully!`);
-    } catch (err) {
-      console.error("Error triggering scan:", err);
-      alert("Failed to start scan");
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
   // Initial load
   useEffect(() => {
     fetchScans();
     fetchStatus();
-  }, [scanTypeFilter, statusFilter]);
+  }, []);
 
-  // Format timestamp
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString("en-US", { 
-      month: "short", 
-      day: "numeric", 
-      hour: "2-digit", 
-      minute: "2-digit" 
-    });
-  };
+  // File upload handler
+  const handleFileUpload = async (file: File) => {
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadResult(null);
 
-  // Format duration
-  const formatDuration = (seconds?: number) => {
-    if (!seconds) return "N/A";
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}m ${secs}s`;
-  };
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-  // Status badge class
-  const getStatusBadgeClass = (status: string) => {
-    switch (status) {
-      case "running": return "badge badge--info";
-      case "completed": return "badge badge--ok";
-      case "failed": return "badge badge--err";
-      default: return "badge";
+      const response = await fetch('http://localhost:8000/api/detection/scan/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Upload failed');
+      }
+
+      const result: UploadResult = await response.json();
+      setUploadResult(result);
+      
+      // Refresh scans list
+      fetchScans();
+      fetchStatus();
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload file');
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  // Scan type badge class
-  const getScanTypeBadgeClass = (type: string) => {
-    switch (type) {
-      case "full": return "badge badge--warn";
-      case "quick": return "badge badge--info";
-      case "custom": return "badge";
-      default: return "badge";
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFileUpload(files[0]);
     }
+  }, []);
+
+  // File input handler
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      handleFileUpload(files[0]);
+    }
+  };
+
+  // Get severity color
+  const getSeverityColor = (severity: string) => {
+    const colors: Record<string, string> = {
+      critical: 'text-red-500',
+      high: 'text-orange-500',
+      medium: 'text-yellow-500',
+      low: 'text-blue-500',
+      clean: 'text-green-500',
+      pending: 'text-gray-500'
+    };
+    return colors[severity] || 'text-gray-500';
+  };
+
+  const getSeverityBg = (severity: string) => {
+    const colors: Record<string, string> = {
+      critical: 'bg-red-500/10 border-red-500/30',
+      high: 'bg-orange-500/10 border-orange-500/30',
+      medium: 'bg-yellow-500/10 border-yellow-500/30',
+      low: 'bg-blue-500/10 border-blue-500/30',
+      clean: 'bg-green-500/10 border-green-500/30',
+      pending: 'bg-gray-500/10 border-gray-500/30'
+    };
+    return colors[severity] || 'bg-gray-500/10 border-gray-500/30';
   };
 
   return (
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
-              Detection Engine
-            </h1>
-            <p className="mt-2 text-muted-foreground">
-              Real-time threat detection and system scanning
-            </p>
-          </div>
-          
-          <div className="flex gap-2">
-            <button
-              onClick={() => triggerScan("quick")}
-              className="btn btn-ghost"
-              disabled={isScanning}
-            >
-              <Search className="h-4 w-4" />
-              Quick Scan
-            </button>
-            <button
-              onClick={() => triggerScan("full")}
-              className="btn btn-primary"
-              disabled={isScanning}
-            >
-              <PlayCircle className={`h-4 w-4 ${isScanning ? "animate-spin" : ""}`} />
-              Full Scan
-            </button>
-          </div>
+        <div>
+          <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
+            Threat Detection
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Advanced real-time file scanning with VirusTotal integration
+          </p>
         </div>
       </div>
 
       {/* Status Cards */}
       {status && (
         <div className="section">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
               <div className="flex items-center gap-3 mb-2">
-                <Shield className={`h-5 w-5 ${status.engine_status === "active" ? "text-green-500" : "text-muted-foreground"}`} />
+                <Shield className="h-5 w-5 text-green-500" />
                 <div className="text-sm text-muted-foreground">Engine Status</div>
               </div>
-              <div className={`text-2xl font-bold ${status.engine_status === "active" ? "text-green-500" : "text-muted-foreground"}`}>
+              <div className="text-2xl font-bold text-green-500">
                 {status.engine_status}
               </div>
             </div>
 
-           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <Activity className="h-5 w-5 text-blue-500" />
-                <div className="text-sm text-muted-foreground">Active Scans</div>
+                <div className="text-sm text-muted-foreground">Signatures</div>
               </div>
               <div className="text-2xl font-bold text-blue-500">
-                {status.active_scans}
+                {status.signatures_count.toLocaleString()}
               </div>
             </div>
 
-           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <Search className="h-5 w-5 text-purple-500" />
                 <div className="text-sm text-muted-foreground">Scans Today</div>
               </div>
               <div className="text-2xl font-bold text-purple-500">
-                {status.total_scans_today}
+                {status.scans_today}
               </div>
             </div>
 
-           <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
               <div className="flex items-center gap-3 mb-2">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
-                <div className="text-sm text-muted-foreground">Threats Found</div>
+                <div className="text-sm text-muted-foreground">Threats Blocked</div>
               </div>
               <div className="text-2xl font-bold text-red-500">
-                {status.threats_detected_today}
-              </div>
-            </div>
-
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock className="h-5 w-5 text-muted-foreground" />
-                <div className="text-sm text-muted-foreground">Last Scan</div>
-              </div>
-              <div className="text-sm font-mono text-muted-foreground truncate">
-                {status.last_scan ? formatTime(status.last_scan) : "Never"}
+                {status.threats_blocked}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Filters & Table */}
+      {/* File Upload Zone */}
       <div className="section">
-        <div className="card-premium p-6">
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-4 mb-6">
-            <h2 className="text-xl font-semibold">Scan History</h2>
+        <div className="card-premium p-8">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <Upload className="h-5 w-5 text-purple-500" />
+            Upload File for Scanning
+          </h2>
 
-            <select
-  value={scanTypeFilter}
-  onChange={(e) => setScanTypeFilter(e.target.value)}
-  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground ml-auto transition-all duration-300 hover:border-purple-400 hover:bg-purple-500/5 focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer relative z-50"
-  style={{ 
-    pointerEvents: 'auto',
-    colorScheme: 'dark'
-  }}
->
-  <option value="all" className="bg-[#0a0e27] text-white">All Types</option>
-  <option value="full" className="bg-[#0a0e27] text-white">Full Scan</option>
-  <option value="quick" className="bg-[#0a0e27] text-white">Quick Scan</option>
-  <option value="custom" className="bg-[#0a0e27] text-white">Custom Scan</option>
-</select>
-
-          <select
-  value={statusFilter}
-  onChange={(e) => setStatusFilter(e.target.value)}
-  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/5 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer relative z-50"
-  style={{ 
-    pointerEvents: 'auto',
-    colorScheme: 'dark'
-  }}
->
-  <option value="all" className="bg-[#0a0e27] text-white">All Statuses</option>
-  <option value="running" className="bg-[#0a0e27] text-white">Running</option>
-  <option value="completed" className="bg-[#0a0e27] text-white">Completed</option>
-  <option value="failed" className="bg-[#0a0e27] text-white">Failed</option>
-</select>
-
-            <div className="text-sm text-muted-foreground">
-              {scans.length} scans
-            </div>
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+              border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
+              ${isDragging 
+                ? 'border-purple-500 bg-purple-500/10 scale-105' 
+                : 'border-border hover:border-purple-400 hover:bg-purple-500/5'
+              }
+              ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            `}
+          >
+            {isUploading ? (
+              <div className="flex flex-col items-center gap-4">
+                <Activity className="h-12 w-12 text-purple-500 animate-spin" />
+                <p className="text-lg font-medium">Scanning file...</p>
+                <p className="text-sm text-muted-foreground">Please wait while we analyze your file</p>
+              </div>
+            ) : (
+              <>
+                <Upload className="h-12 w-12 mx-auto mb-4 text-purple-500" />
+                <p className="text-lg font-medium mb-2">
+                  Drag & drop a file here, or click to browse
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Maximum file size: 32MB
+                </p>
+                <label className="inline-block px-6 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer">
+                  <span className="flex items-center gap-2">
+                    <FileIcon className="h-4 w-4" />
+                    Select File
+                  </span>
+                  <input
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileInput}
+                    disabled={isUploading}
+                  />
+                </label>
+              </>
+            )}
           </div>
 
-          {/* Loading / Error */}
-          {isLoading && (
-            <div className="text-center py-12">
-              <Activity className="h-8 w-8 animate-spin mx-auto text-primary" />
-              <p className="mt-4 text-muted-foreground">Loading scans...</p>
+          {uploadError && (
+            <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <p className="text-red-500">{uploadError}</p>
             </div>
           )}
+        </div>
+      </div>
 
-          {error && (
+      {/* Upload Results */}
+      {uploadResult && (
+        <div className="section">
+          <div className="card-premium p-6">
+            <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+              <Shield className="h-5 w-5 text-cyan-500" />
+              Scan Results
+            </h2>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Threat Score Gauge */}
+              <div className="lg:col-span-1">
+                <div className={`p-6 rounded-lg border-2 ${getSeverityBg(uploadResult.severity)}`}>
+                  <div className="text-center">
+                    <div className={`text-6xl font-bold mb-2 ${getSeverityColor(uploadResult.severity)}`}>
+                      {uploadResult.threat_score}
+                    </div>
+                    <div className="text-sm text-muted-foreground mb-4">Threat Score</div>
+                    <div className={`inline-block px-4 py-2 rounded-full ${getSeverityBg(uploadResult.severity)} font-semibold uppercase text-sm ${getSeverityColor(uploadResult.severity)}`}>
+                      {uploadResult.severity}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">File:</span>
+                    <span className="font-medium">{uploadResult.file_name}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Size:</span>
+                    <span className="font-medium">{(uploadResult.file_size / 1024).toFixed(2)} KB</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Threats:</span>
+                    <span className={`font-bold ${uploadResult.threats_found > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                      {uploadResult.threats_found}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Detection Stats */}
+              <div className="lg:col-span-2 space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Detection Statistics</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                      <div className="text-2xl font-bold text-red-500">{uploadResult.stats.malicious}</div>
+                      <div className="text-sm text-muted-foreground">Malicious</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                      <div className="text-2xl font-bold text-orange-500">{uploadResult.stats.suspicious}</div>
+                      <div className="text-sm text-muted-foreground">Suspicious</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                      <div className="text-2xl font-bold text-green-500">{uploadResult.stats.harmless}</div>
+                      <div className="text-sm text-muted-foreground">Harmless</div>
+                    </div>
+                    <div className="p-4 rounded-lg bg-gray-500/10 border border-gray-500/30">
+                      <div className="text-2xl font-bold text-gray-400">{uploadResult.stats.undetected}</div>
+                      <div className="text-sm text-muted-foreground">Undetected</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Engines Scanned</span>
+                    <span className="font-bold">{uploadResult.stats.total_engines}</span>
+                  </div>
+                  <div className="h-2 bg-dark-bg rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500"
+                      style={{ width: '100%' }}
+                    />
+                  </div>
+                </div>
+
+                {/* File Hashes */}
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">File Hashes</h3>
+                  <div className="space-y-2 text-sm font-mono">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">MD5:</span>
+                      <span className="text-cyan-400">{uploadResult.hashes.md5}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">SHA1:</span>
+                      <span className="text-cyan-400">{uploadResult.hashes.sha1}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">SHA256:</span>
+                      <span className="text-cyan-400 text-xs">{uploadResult.hashes.sha256}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* VirusTotal Link */}
+                <a
+                  href={uploadResult.vt_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  View Full Report on VirusTotal
+                </a>
+              </div>
+            </div>
+
+            {/* Detections List */}
+            {uploadResult.detections.length > 0 && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold mb-3 text-red-500">⚠️ Detections Found</h3>
+                <div className="space-y-2">
+                  {uploadResult.detections.map((detection, index) => (
+                    <div key={index} className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{detection.engine}</div>
+                        <div className="text-sm text-muted-foreground">{detection.result}</div>
+                      </div>
+                      <span className="badge badge--err capitalize">{detection.category}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Recent Scans */}
+      <div className="section">
+        <div className="card-premium p-6">
+          <h2 className="text-xl font-semibold mb-6">Recent Scans</h2>
+
+          {isLoading ? (
+            <div className="text-center py-12">
+              <Activity className="h-8 w-8 animate-spin mx-auto text-purple-500" />
+              <p className="mt-4 text-muted-foreground">Loading scans...</p>
+            </div>
+          ) : error ? (
             <div className="text-center py-12">
               <AlertTriangle className="h-8 w-8 mx-auto text-red-500" />
               <p className="mt-4 text-red-500">{error}</p>
             </div>
-          )}
-
-          {/* Table */}
-          {!isLoading && !error && (
+          ) : scans.length === 0 ? (
+            <div className="text-center py-12">
+              <Search className="h-8 w-8 mx-auto text-gray-500" />
+              <p className="mt-4 text-muted-foreground">No scans yet. Upload a file to start!</p>
+            </div>
+          ) : (
             <div className="overflow-x-auto">
               <table className="table w-full">
                 <thead>
                   <tr>
                     <th>ID</th>
                     <th>Type</th>
+                    <th>Status</th>
                     <th>Started</th>
                     <th>Duration</th>
-                    <th>Items Scanned</th>
-                    <th>Threats Found</th>
-                    <th>Status</th>
+                    <th>Items</th>
+                    <th>Threats</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {scans.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No scans found
+                  {scans.map((scan) => (
+                    <tr key={scan.id}>
+                      <td>#{scan.id}</td>
+                      <td>
+                        <span className="badge badge--info">{scan.scan_type}</span>
+                      </td>
+                      <td>
+                        <span className={`badge ${
+                          scan.status === 'completed' ? 'badge--ok' : 
+                          scan.status === 'running' ? 'badge--warn' : 
+                          'badge--err'
+                        }`}>
+                          {scan.status}
+                        </span>
+                      </td>
+                      <td className="text-sm">
+                        {new Date(scan.started_at).toLocaleString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </td>
+                      <td>{scan.duration_seconds ? `${scan.duration_seconds.toFixed(2)}s` : '—'}</td>
+                      <td>{scan.items_scanned}</td>
+                      <td>
+                        <span className={scan.threats_found > 0 ? 'text-red-500 font-bold' : 'text-green-500'}>
+                          {scan.threats_found}
+                        </span>
                       </td>
                     </tr>
-                  ) : (
-                    scans.map((scan) => (
-                      <tr key={scan.id}>
-                        <td className="font-mono text-sm">#{scan.id}</td>
-                        <td>
-                          <span className={getScanTypeBadgeClass(scan.scan_type)}>
-                            {scan.scan_type}
-                          </span>
-                        </td>
-                        <td className="text-sm">{formatTime(scan.started_at)}</td>
-                        <td className="font-mono text-sm">
-                          {formatDuration(scan.duration_seconds)}
-                        </td>
-                        <td className="text-center font-semibold">
-                          {scan.items_scanned.toLocaleString()}
-                        </td>
-                        <td className="text-center">
-                          <span className={scan.threats_found > 0 ? "text-red-500 font-bold" : "text-muted-foreground"}>
-                            {scan.threats_found}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={getStatusBadgeClass(scan.status)}>
-                            {scan.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
-                  )}
+                  ))}
                 </tbody>
               </table>
             </div>
