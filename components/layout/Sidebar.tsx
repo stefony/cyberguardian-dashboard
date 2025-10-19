@@ -66,6 +66,7 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
+  console.log('Current pathname:', pathname) // DEBUG
 
   return (
     <aside
@@ -130,19 +131,19 @@ export function Sidebar() {
               className={cn(
                 'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
                 'hover:bg-dark-bg',
-                isActive && 'bg-dark-bg text-cyber-purple',
+                isActive && 'bg-dark-bg text-purple-500',
                 !isActive && 'text-muted-foreground hover:text-foreground'
               )}
             >
               {/* Active Indicator */}
               {isActive && (
-                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-cyber-purple" />
+                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-purple-500" />
               )}
 
               <Icon 
                 className={cn(
                   'h-5 w-5 flex-shrink-0 transition-colors',
-                  isActive && 'text-cyber-purple',
+                  isActive && 'text-purple-500',
                   !isActive && 'text-muted-foreground group-hover:text-foreground'
                 )} 
               />
