@@ -12,6 +12,7 @@ import {
   BarChart3, 
   Settings,
   Mail,
+  Target,
   ChevronLeft,
   ChevronRight,
   Zap,
@@ -61,6 +62,11 @@ const navItems: NavItem[] = [
     label: 'Email Scanner',
     href: '/emails',
     icon: Mail,
+  },
+  {
+    label: 'Honeypots',
+    href: '/honeypots',
+    icon: Target,
   },
   {
     label: 'Settings',
