@@ -53,7 +53,12 @@ const navItems: NavItem[] = [
   href: '/insights', 
   icon: Brain,
   },
- {
+  {
+    label: 'ML Models',
+    href: '/ml',
+    icon: Zap,
+  },
+  {
     label: 'Analytics',
     href: '/analytics',
     icon: BarChart3,
