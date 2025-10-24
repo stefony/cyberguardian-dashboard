@@ -614,7 +614,35 @@ export const honeypotApi = {
     return client.post<any>('/api/honeypots/stop-all')
   },
 }
+// ============================================
+// ML MODELS API
+// ============================================
 
+export const mlApi = {
+  /**
+   * Get ML model status
+   */
+  getStatus: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/ml/status')
+  },
+
+  /**
+   * Train ML models
+   */
+  train: async (params: {
+    n_clusters?: number
+    contamination?: number
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/ml/train', params)
+  },
+
+  /**
+   * Get threat score for a log entry
+   */
+  getThreatScore: async (log: any): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/ml/threat-score', log)
+  },
+}
 // ============================================
 // EXPORTS
 // ============================================
@@ -627,6 +655,7 @@ export const api = {
   deception: deceptionApi,
   ai: aiApi,
   honeypot: honeypotApi,
+   ml: mlApi,
 }
 
 export default api
