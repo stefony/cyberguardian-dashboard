@@ -243,18 +243,39 @@ export const detectionApi = {
   },
 
   /**
-   * Upload file for scanning
-   */
-  uploadFile: async (file: File): Promise<ApiResponse<any>> => {
+ * Upload file for scanning
+ */
+uploadFile: async (file: File): Promise<ApiResponse<any>> => {
+  try {
     const formData = new FormData()
     formData.append('file', file)
     
-    return client.fetch<any>('/api/detection/scan/upload', {
+    const response = await fetch(`${API_BASE_URL}/api/detection/scan/upload`, {
       method: 'POST',
       body: formData,
-      headers: {}, // Remove Content-Type to let browser set it with boundary
+      // Don't set Content-Type header - browser will set it with boundary
     })
-  },
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ message: 'Upload failed' }))
+      return {
+        success: false,
+        error: error.message || error.detail || `HTTP ${response.status}`,
+      }
+    }
+
+    const data = await response.json()
+    return {
+      success: true,
+      data,
+    }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error',
+    }
+  }
+},
 }
 
 // ============================================
