@@ -374,6 +374,33 @@ export const deceptionApi = {
   generateHoneypots: async (count: number): Promise<ApiResponse<Honeypot[]>> => {
     return client.post<Honeypot[]>('/api/deception/generate', { count })
   },
+
+  // ADD THESE 3 NEW FUNCTIONS BELOW:
+
+  /**
+   * Get deception layer status
+   */
+  getStatus: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/deception/status')
+  },
+
+  /**
+   * Get honeypot interaction logs
+   */
+  getLogs: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/deception/logs${limit ? `?limit=${limit}` : ''}`)
+  },
+
+  /**
+   * Toggle honeypot status (activate/deactivate)
+   */
+  toggleHoneypot: async (honeypotId: number, action: 'activate' | 'deactivate'): Promise<ApiResponse<any>> => {
+    const status = action === 'activate' ? 'active' : 'inactive'
+    return client.post<any>(`/api/deception/honeypots/${action}`, { 
+      honeypot_id: honeypotId, 
+      status 
+    })
+  },
 }
 
 // ============================================

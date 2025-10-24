@@ -2,43 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { Shield, Activity, AlertTriangle, Eye, Power, PowerOff, Filter } from "lucide-react";
+import { deceptionApi } from "@/lib/api";
+import type { Honeypot } from "@/lib/types";
 
-// Types
-type Honeypot = {
-  id: number;
-  name: string;
-  type: string;
-  status: string;
-  ip_address: string;
-  port: number;
-  description: string;
-  interactions: number;
-  last_interaction?: string;
-  created_at: string;
-  updated_at: string;
-};
 
-type HoneypotLog = {
-  id: number;
-  honeypot_id: number;
-  timestamp: string;
-  source_ip: string;
-  action: string;
-  details?: Record<string, any>;
-};
-
-type DeceptionStatus = {
-  total_honeypots: number;
-  active_honeypots: number;
-  total_interactions: number;
-  interactions_today: number;
-  compromised_honeypots: number;
-};
 
 export default function DeceptionPage() {
   const [honeypots, setHoneypots] = useState<Honeypot[]>([]);
-  const [logs, setLogs] = useState<HoneypotLog[]>([]);
-  const [status, setStatus] = useState<DeceptionStatus | null>(null);
+const [logs, setLogs] = useState<any[]>([]);
+const [status, setStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -47,78 +19,80 @@ export default function DeceptionPage() {
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
   // Fetch status
-  const fetchStatus = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/deception/status");
-      if (!response.ok) throw new Error("Failed to fetch status");
-      const data: DeceptionStatus = await response.json();
-      setStatus(data);
-    } catch (err) {
-      console.error("Error fetching status:", err);
+ const fetchStatus = async () => {
+  try {
+    const response = await deceptionApi.getStatus();
+    if (response.success && response.data) {
+      setStatus(response.data);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching status:", err);
+  }
+};
 
   // Fetch honeypots
-  const fetchHoneypots = async () => {
-    try {
-      setIsLoading(true);
+const fetchHoneypots = async () => {
+  try {
+    setIsLoading(true);
+    
+    const response = await deceptionApi.getHoneypots();
+    
+    if (response.success && response.data) {
+      // Apply filters on client side
+      let filtered = response.data;
+      if (statusFilter !== "all") {
+        filtered = filtered.filter((h: any) => h.status === statusFilter);
+      }
+      if (typeFilter !== "all") {
+        filtered = filtered.filter((h: any) => h.type === typeFilter);
+      }
       
-      const params = new URLSearchParams();
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      if (typeFilter !== "all") params.append("type", typeFilter);
-      
-      const url = `http://localhost:8000/api/deception/honeypots?${params.toString()}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) throw new Error("Failed to fetch honeypots");
-      
-      const data: Honeypot[] = await response.json();
-      setHoneypots(data);
+      setHoneypots(filtered || []);
       setError(null);
-    } catch (err) {
-      console.error("Error fetching honeypots:", err);
-      setError("Could not load honeypots");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(response.error || "Failed to fetch honeypots");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching honeypots:", err);
+    setError("Could not load honeypots");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Fetch logs
-  const fetchLogs = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/deception/logs?limit=20");
-      if (!response.ok) throw new Error("Failed to fetch logs");
-      const data: HoneypotLog[] = await response.json();
-      setLogs(data);
-    } catch (err) {
-      console.error("Error fetching logs:", err);
+const fetchLogs = async () => {
+  try {
+    const response = await deceptionApi.getLogs(20);
+    if (response.success && response.data) {
+      setLogs(response.data || []);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching logs:", err);
+  }
+};
 
   // Toggle honeypot status
   const toggleHoneypot = async (honeypot: Honeypot) => {
-    const newStatus = honeypot.status === "active" ? "inactive" : "active";
-    const endpoint = newStatus === "active" ? "activate" : "deactivate";
+  const action = honeypot.status === "active" ? "deactivate" : "activate";
+  
+  try {
+    const response = await deceptionApi.toggleHoneypot(honeypot.id, action);
     
-    try {
-      const response = await fetch(`http://localhost:8000/api/deception/honeypots/${endpoint}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ honeypot_id: honeypot.id, status: newStatus }),
-      });
-      
-      if (!response.ok) throw new Error(`Failed to ${endpoint} honeypot`);
-      
+    if (response.success) {
       // Refresh data
       await fetchHoneypots();
       await fetchStatus();
       
-      alert(`Honeypot ${honeypot.name} ${newStatus === "active" ? "activated" : "deactivated"} successfully!`);
-    } catch (err) {
-      console.error(`Error toggling honeypot:`, err);
-      alert(`Failed to toggle honeypot`);
+      alert(`Honeypot ${honeypot.name} ${action}d successfully!`);
+    } else {
+      alert(response.error || `Failed to ${action} honeypot`);
     }
-  };
+  } catch (err) {
+    console.error(`Error toggling honeypot:`, err);
+    alert(`Failed to toggle honeypot`);
+  }
+};
 
   // Initial load
   useEffect(() => {
