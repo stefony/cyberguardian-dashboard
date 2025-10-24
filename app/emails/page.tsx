@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { RefreshCw, Mail, AlertTriangle, Shield, CheckCircle, XCircle, Link as LinkIcon, Paperclip } from 'lucide-react'
-
+import { emailsApi } from '@/lib/api'
 
 interface EmailScanResult {
   email_id: string
@@ -42,45 +42,39 @@ export default function EmailsPage() {
     fetchStatus()
   }, [])
 
-  const fetchStatus = async () => {
-    try {
-      const response = await fetch('http://localhost:8000/api/emails/status')
-      const data = await response.json()
-      setStatus(data)
-    } catch (err) {
-      console.error('Failed to fetch status:', err)
+ const fetchStatus = async () => {
+  try {
+    const response = await emailsApi.getStatus()
+    if (response.success) {
+      setStatus(response.data || null)
     }
+  } catch (err) {
+    console.error('Failed to fetch status:', err)
+  }
+}
+const scanEmails = async () => {
+  if (!status?.configured) {
+    setError('Email scanner not configured. Please add credentials in Settings.')
+    return
   }
 
-  const scanEmails = async () => {
-    if (!status?.configured) {
-      setError('Email scanner not configured. Please add credentials in Settings.')
-      return
+  setScanning(true)
+  setError(null)
+
+  try {
+    const response = await emailsApi.scan({ folder, limit })
+
+    if (response.success) {
+      setEmails(response.data || [])
+    } else {
+      setError(response.error || 'Scan failed')
     }
-
-    setScanning(true)
-    setError(null)
-
-    try {
-      const response = await fetch('http://localhost:8000/api/emails/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ folder, limit })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Scan failed')
-      }
-
-      const data = await response.json()
-      setEmails(data)
-    } catch (err: any) {
-      setError(err.message || 'Failed to scan emails')
-    } finally {
-      setScanning(false)
-    }
+  } catch (err: any) {
+    setError(err.message || 'Failed to scan emails')
+  } finally {
+    setScanning(false)
   }
+}
 
   const getThreatColor = (level: string) => {
     switch (level) {

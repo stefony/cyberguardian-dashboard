@@ -684,6 +684,29 @@ export const analyticsApi = {
     return client.get<any[]>(`/api/analytics/top-threats${limit ? `?limit=${limit}` : ''}`)
   },
 }
+
+// ============================================
+// EMAILS API
+// ============================================
+
+export const emailsApi = {
+  /**
+   * Get email scanner status
+   */
+  getStatus: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/emails/status')
+  },
+
+  /**
+   * Scan emails for phishing
+   */
+  scan: async (params: {
+    folder?: string
+    limit?: number
+  }): Promise<ApiResponse<any[]>> => {
+    return client.post<any[]>('/api/emails/scan', params)
+  },
+}
 // ============================================
 // EXPORTS
 // ============================================
@@ -698,6 +721,7 @@ export const api = {
   honeypot: honeypotApi,
    ml: mlApi,
    analytics: analyticsApi,
+   emails: emailsApi,
 }
 
 export default api
