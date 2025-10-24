@@ -73,11 +73,11 @@ const fetchLogs = async () => {
 };
 
   // Toggle honeypot status
-  const toggleHoneypot = async (honeypot: Honeypot) => {
+const toggleHoneypot = async (honeypot: Honeypot) => {
   const action = honeypot.status === "active" ? "deactivate" : "activate";
   
   try {
-    const response = await deceptionApi.toggleHoneypot(honeypot.id, action);
+    const response = await deceptionApi.toggleHoneypot(Number(honeypot.id), action);
     
     if (response.success) {
       // Refresh data
