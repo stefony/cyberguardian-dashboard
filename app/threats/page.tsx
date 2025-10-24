@@ -29,10 +29,10 @@ const fetchThreats = async () => {
     
     const response = await threatsApi.getThreats(params);
     
-   if (response.success && response.data) {
-  setThreats(response.data.data);
+if (response.success && response.data) {
+  setThreats(response.data.data || []);  // Add fallback to empty array
   setError(null);
-} else {
+}else {
   setError(response.error || "Failed to fetch threats");
 }
   } catch (err) {
@@ -241,7 +241,7 @@ const fetchStats = async () => {
 </select>
 
             <div className="ml-auto text-sm text-muted-foreground">
-              {threats.length} threats
+              {threats?.length || 0} threats
             </div>
           </div>
 
@@ -276,14 +276,14 @@ const fetchStats = async () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {threats.length === 0 ? (
+                  {threats?.length === 0 ? (
                     <tr>
                       <td colSpan={7} className="text-center py-8 text-muted-foreground">
                         No threats found
                       </td>
                     </tr>
                   ) : (
-                    threats.map((threat) => (
+                    threats?.map((threat) => (
                       <tr key={threat.id}>
                         <td className="font-mono text-sm">
                           {formatTime(threat.timestamp)}
