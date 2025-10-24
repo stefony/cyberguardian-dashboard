@@ -440,6 +440,36 @@ export const aiApi = {
   }): Promise<ApiResponse<{ attack_detected: boolean; details: any }>> => {
     return client.post('/api/ai/adversarial/check', data)
   },
+
+  // ADD THESE 4 NEW FUNCTIONS:
+
+  /**
+   * Get AI engine status
+   */
+  getStatus: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/ai/status')
+  },
+
+  /**
+   * Get threat predictions
+   */
+  getPredictions: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/ai/predictions')
+  },
+
+  /**
+   * Get risk score
+   */
+  getRiskScore: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/ai/risk-score')
+  },
+
+  /**
+   * Get AI recommendations
+   */
+  getRecommendations: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/ai/recommendations')
+  },
 }
 
 // ============================================

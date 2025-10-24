@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Brain, TrendingUp, AlertCircle, Lightbulb, Activity, Shield } from "lucide-react";
+import { aiApi } from "@/lib/api"; 
 
 // Types
 type Prediction = {
@@ -42,27 +43,27 @@ export default function AIInsightsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        
-        const [statusRes, predictionsRes, riskRes, recsRes] = await Promise.all([
-          fetch("http://localhost:8000/api/ai/status"),
-          fetch("http://localhost:8000/api/ai/predictions"),
-          fetch("http://localhost:8000/api/ai/risk-score"),
-          fetch("http://localhost:8000/api/ai/recommendations")
-        ]);
+   const fetchData = async () => {
+  try {
+    setIsLoading(true);
+    
+    const [statusRes, predictionsRes, riskRes, recsRes] = await Promise.all([
+      aiApi.getStatus(),
+      aiApi.getPredictions(),
+      aiApi.getRiskScore(),
+      aiApi.getRecommendations()
+    ]);
 
-        setStatus(await statusRes.json());
-        setPredictions(await predictionsRes.json());
-        setRiskScore(await riskRes.json());
-        setRecommendations(await recsRes.json());
-      } catch (err) {
-        console.error("Error fetching AI data:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    if (statusRes.success) setStatus(statusRes.data || null);
+    if (predictionsRes.success) setPredictions(predictionsRes.data || []);
+    if (riskRes.success) setRiskScore(riskRes.data || null);
+    if (recsRes.success) setRecommendations(recsRes.data || []);
+  } catch (err) {
+    console.error("Error fetching AI data:", err);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     fetchData();
   }, []);
