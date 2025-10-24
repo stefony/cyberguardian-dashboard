@@ -643,6 +643,47 @@ export const mlApi = {
     return client.post<any>('/api/ml/threat-score', log)
   },
 }
+
+// ============================================
+// ANALYTICS API
+// ============================================
+
+export const analyticsApi = {
+  /**
+   * Get overview statistics
+   */
+  getOverview: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/analytics/overview')
+  },
+
+  /**
+   * Get threats timeline
+   */
+  getThreatsTimeline: async (days?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/analytics/threats-timeline${days ? `?days=${days}` : ''}`)
+  },
+
+  /**
+   * Get detection statistics breakdown
+   */
+  getDetectionStats: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/analytics/detection-stats')
+  },
+
+  /**
+   * Get honeypot activity
+   */
+  getHoneypotActivity: async (days?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/analytics/honeypot-activity${days ? `?days=${days}` : ''}`)
+  },
+
+  /**
+   * Get top threats
+   */
+  getTopThreats: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/analytics/top-threats${limit ? `?limit=${limit}` : ''}`)
+  },
+}
 // ============================================
 // EXPORTS
 // ============================================
@@ -656,6 +697,7 @@ export const api = {
   ai: aiApi,
   honeypot: honeypotApi,
    ml: mlApi,
+   analytics: analyticsApi,
 }
 
 export default api

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, Shield, Activity, RefreshCw, Calendar } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-
+import { analyticsApi } from "@/lib/api"; 
 // Types
 type OverviewStats = {
   total_threats: number;
@@ -63,48 +63,37 @@ export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState<number>(7);
 
   // Fetch all data
-  const fetchData = async (showRefreshIndicator = false) => {
-    try {
-      if (showRefreshIndicator) {
-        setIsRefreshing(true);
-      } else {
-        setIsLoading(true);
-      }
-
-      const overviewRes = await fetch("http://localhost:8000/api/analytics/overview");
-      if (!overviewRes.ok) throw new Error("Failed to fetch overview");
-      const overviewData: OverviewStats = await overviewRes.json();
-      setOverview(overviewData);
-
-      const timelineRes = await fetch(`http://localhost:8000/api/analytics/threats-timeline?days=${timeRange}`);
-      if (!timelineRes.ok) throw new Error("Failed to fetch timeline");
-      const timelineData: TimelinePoint[] = await timelineRes.json();
-      setThreatsTimeline(timelineData);
-
-      const detectionRes = await fetch("http://localhost:8000/api/analytics/detection-stats");
-      if (!detectionRes.ok) throw new Error("Failed to fetch detection stats");
-      const detectionData: DetectionBreakdown[] = await detectionRes.json();
-      setDetectionStats(detectionData);
-
-      const honeypotRes = await fetch(`http://localhost:8000/api/analytics/honeypot-activity?days=${timeRange}`);
-      if (!honeypotRes.ok) throw new Error("Failed to fetch honeypot activity");
-      const honeypotData: TimelinePoint[] = await honeypotRes.json();
-      setHoneypotActivity(honeypotData);
-
-      const threatsRes = await fetch("http://localhost:8000/api/analytics/top-threats?limit=5");
-      if (!threatsRes.ok) throw new Error("Failed to fetch top threats");
-      const threatsData: ThreatCategory[] = await threatsRes.json();
-      setTopThreats(threatsData);
-
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching analytics:", err);
-      setError("Could not load analytics data");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
+ const fetchData = async (showRefreshIndicator = false) => {
+  try {
+    if (showRefreshIndicator) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
     }
-  };
+
+    const [overviewRes, timelineRes, detectionRes, honeypotRes, threatsRes] = await Promise.all([
+      analyticsApi.getOverview(),
+      analyticsApi.getThreatsTimeline(timeRange),
+      analyticsApi.getDetectionStats(),
+      analyticsApi.getHoneypotActivity(timeRange),
+      analyticsApi.getTopThreats(5)
+    ]);
+
+    if (overviewRes.success) setOverview(overviewRes.data || null);
+    if (timelineRes.success) setThreatsTimeline(timelineRes.data || []);
+    if (detectionRes.success) setDetectionStats(detectionRes.data || []);
+    if (honeypotRes.success) setHoneypotActivity(honeypotRes.data || []);
+    if (threatsRes.success) setTopThreats(threatsRes.data || []);
+
+    setError(null);
+  } catch (err) {
+    console.error("Error fetching analytics:", err);
+    setError("Could not load analytics data");
+  } finally {
+    setIsLoading(false);
+    setIsRefreshing(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
