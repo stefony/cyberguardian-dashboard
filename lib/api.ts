@@ -137,9 +137,6 @@ export const dashboardApi = {
 // ============================================
 
 export const threatsApi = {
-  /**
-   * Get all active threats
-   */
   getThreats: async (params?: {
     level?: string
     type?: string
@@ -151,25 +148,45 @@ export const threatsApi = {
     )
   },
 
-  /**
-   * Get threat details by ID
-   */
   getThreatById: async (id: string): Promise<ApiResponse<Threat>> => {
     return client.get<Threat>(`/api/threats/${id}`)
   },
 
-  /**
-   * Get active alerts
-   */
   getAlerts: async (): Promise<ApiResponse<Alert[]>> => {
     return client.get<Alert[]>('/api/alerts')
   },
 
-  /**
-   * Dismiss alert
-   */
   dismissAlert: async (id: string): Promise<ApiResponse<void>> => {
     return client.post<void>(`/api/alerts/${id}/dismiss`)
+  },
+
+  // ADD THESE 3 NEW FUNCTIONS:
+  
+  /**
+   * Get threat statistics
+   */
+  getStats: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/threats/stats')
+  },
+
+  /**
+   * Block a threat
+   */
+  blockThreat: async (threatId: number): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/threats/block', { 
+      threat_id: threatId, 
+      action: 'block' 
+    })
+  },
+
+  /**
+   * Dismiss a threat
+   */
+  dismissThreat: async (threatId: number): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/threats/dismiss', { 
+      threat_id: threatId, 
+      action: 'dismiss' 
+    })
   },
 }
 

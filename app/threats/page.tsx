@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Shield, AlertTriangle, TrendingUp, Filter, RefreshCw, Ban, X } from "lucide-react";
+import { threatsApi } from "@/lib/api";
 
 // Types
 type Threat = {
@@ -35,82 +36,78 @@ export default function ThreatsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   // Fetch threats
-  const fetchThreats = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Build query params
-      const params = new URLSearchParams();
-      if (severityFilter !== "all") params.append("severity", severityFilter);
-      if (statusFilter !== "all") params.append("status", statusFilter);
-      
-      const url = `http://localhost:8000/api/threats?${params.toString()}`;
-      const response = await fetch(url);
-      
-      if (!response.ok) throw new Error("Failed to fetch threats");
-      
-      const data: Threat[] = await response.json();
-      setThreats(data);
+const fetchThreats = async () => {
+  try {
+    setIsLoading(true);
+    
+    // Build query params
+    const params: any = {};
+    if (severityFilter !== "all") params.level = severityFilter;
+    if (statusFilter !== "all") params.status = statusFilter;
+    
+    const response = await threatsApi.getThreats(params);
+    
+    if (response.success && response.data) {
+      setThreats(response.data.items || response.data);
       setError(null);
-    } catch (err) {
-      console.error("Error fetching threats:", err);
-      setError("Could not load threats");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(response.error || "Failed to fetch threats");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching threats:", err);
+    setError("Could not load threats");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Fetch stats
-  const fetchStats = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/threats/stats");
-      if (!response.ok) throw new Error("Failed to fetch stats");
-      const data: ThreatStats = await response.json();
-      setStats(data);
-    } catch (err) {
-      console.error("Error fetching stats:", err);
+const fetchStats = async () => {
+  try {
+    const response = await threatsApi.getStats();
+    if (response.success && response.data) {
+      setStats(response.data);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching stats:", err);
+  }
+};
 
   // Block threat
-  const blockThreat = async (threatId: number) => {
-    try {
-      const response = await fetch("http://localhost:8000/api/threats/block", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ threat_id: threatId, action: "block" }),
-      });
-      
-      if (!response.ok) throw new Error("Failed to block threat");
-      
+ const blockThreat = async (threatId: number) => {
+  try {
+    const response = await threatsApi.blockThreat(threatId);
+    
+    if (response.success) {
       // Refresh threats
       await fetchThreats();
       await fetchStats();
-    } catch (err) {
-      console.error("Error blocking threat:", err);
-      alert("Failed to block threat");
+    } else {
+      alert(response.error || "Failed to block threat");
     }
-  };
+  } catch (err) {
+    console.error("Error blocking threat:", err);
+    alert("Failed to block threat");
+  }
+};
 
   // Dismiss threat
-  const dismissThreat = async (threatId: number) => {
-    try {
-      const response = await fetch("http://localhost:8000/api/threats/dismiss", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ threat_id: threatId, action: "dismiss" }),
-      });
-      
-      if (!response.ok) throw new Error("Failed to dismiss threat");
-      
+ const dismissThreat = async (threatId: number) => {
+  try {
+    const response = await threatsApi.dismissThreat(threatId);
+    
+    if (response.success) {
       // Refresh threats
       await fetchThreats();
       await fetchStats();
-    } catch (err) {
-      console.error("Error dismissing threat:", err);
-      alert("Failed to dismiss threat");
+    } else {
+      alert(response.error || "Failed to dismiss threat");
     }
-  };
+  } catch (err) {
+    console.error("Error dismissing threat:", err);
+    alert("Failed to dismiss threat");
+  }
+};
 
   // Initial load
   useEffect(() => {
