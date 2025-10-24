@@ -106,6 +106,22 @@ export interface Honeypot {
   status: 'active' | 'triggered' | 'disabled'
 }
 
+// ADD THIS NEW TYPE:
+// Backend API Honeypot Response (different from the generic Honeypot type)
+export interface HoneypotResponse {
+  id: number
+  name: string
+  type: string
+  status: string
+  ip_address: string
+  port: number
+  description: string
+  interactions: number
+  last_interaction?: string
+  created_at: string
+  updated_at: string
+}
+
 export interface AttackerSession {
   id: string
   source_ip: string

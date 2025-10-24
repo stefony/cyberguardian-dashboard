@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react";
 import { Shield, Activity, AlertTriangle, Eye, Power, PowerOff, Filter } from "lucide-react";
 import { deceptionApi } from "@/lib/api";
-import type { Honeypot } from "@/lib/types";
+import type { HoneypotResponse } from "@/lib/types";
 
 
 
 export default function DeceptionPage() {
-  const [honeypots, setHoneypots] = useState<Honeypot[]>([]);
+  const [honeypots, setHoneypots] = useState<HoneypotResponse[]>([]);
 const [logs, setLogs] = useState<any[]>([]);
 const [status, setStatus] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +73,7 @@ const fetchLogs = async () => {
 };
 
   // Toggle honeypot status
-const toggleHoneypot = async (honeypot: Honeypot) => {
+const toggleHoneypot = async (honeypot: HoneypotResponse) => {
   const action = honeypot.status === "active" ? "deactivate" : "activate";
   
   try {
