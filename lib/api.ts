@@ -5,11 +5,12 @@
 
 import type {
   Threat,
-  ThreatResponse, 
+  ThreatResponse,
   Alert,
   DetectionResult,
   DetectionStats,
   Honeypot,
+  HoneypotResponse,  // ADD THIS LINE HERE
   AttackerSession,
   Prediction,
   RiskForecast,
@@ -339,9 +340,9 @@ export const deceptionApi = {
   /**
    * Get all honeypots
    */
-  getHoneypots: async (): Promise<ApiResponse<Honeypot[]>> => {
-    return client.get<Honeypot[]>('/api/deception/honeypots')
-  },
+ getHoneypots: async (): Promise<ApiResponse<HoneypotResponse[]>> => {
+  return client.get<HoneypotResponse[]>('/api/deception/honeypots')
+},
 
   /**
    * Create new honeypot
