@@ -3,30 +3,12 @@
 import { useEffect, useState } from "react";
 import { Shield, AlertTriangle, TrendingUp, Filter, RefreshCw, Ban, X } from "lucide-react";
 import { threatsApi } from "@/lib/api";
+import type { ThreatResponse, ThreatStats } from "@/lib/types";
 
-// Types
-type Threat = {
-  id: number;
-  timestamp: string;
-  source_ip: string;
-  threat_type: string;
-  severity: "critical" | "high" | "medium" | "low";
-  description: string;
-  status: "active" | "blocked" | "dismissed";
-  details?: Record<string, any>;
-  created_at: string;
-  updated_at: string;
-};
 
-type ThreatStats = {
-  total_threats: number;
-  severity_breakdown: Record<string, number>;
-  status_breakdown: Record<string, number>;
-  last_updated: string;
-};
 
 export default function ThreatsPage() {
-  const [threats, setThreats] = useState<Threat[]>([]);
+ const [threats, setThreats] = useState<ThreatResponse[]>([]);
   const [stats, setStats] = useState<ThreatStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,12 +29,12 @@ const fetchThreats = async () => {
     
     const response = await threatsApi.getThreats(params);
     
-    if (response.success && response.data) {
-      setThreats(response.data.items || response.data);
-      setError(null);
-    } else {
-      setError(response.error || "Failed to fetch threats");
-    }
+   if (response.success && response.data) {
+  setThreats(response.data.data);
+  setError(null);
+} else {
+  setError(response.error || "Failed to fetch threats");
+}
   } catch (err) {
     console.error("Error fetching threats:", err);
     setError("Could not load threats");

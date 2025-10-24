@@ -34,6 +34,27 @@ export interface Threat {
   indicators: string[]
   mitre_technique?: string
 }
+// Backend API Threat Response
+export interface ThreatResponse {
+  id: number
+  timestamp: string
+  source_ip: string
+  threat_type: string
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  description: string
+  status: 'active' | 'blocked' | 'dismissed'
+  details?: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+// ADD THIS AFTER ThreatResponse:
+export interface ThreatStats {
+  total_threats: number
+  severity_breakdown: Record<string, number>
+  status_breakdown: Record<string, number>
+  last_updated: string
+}
 
 export interface Alert {
   id: string

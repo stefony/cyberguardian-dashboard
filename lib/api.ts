@@ -5,6 +5,7 @@
 
 import type {
   Threat,
+  ThreatResponse, 
   Alert,
   DetectionResult,
   DetectionStats,
@@ -137,16 +138,16 @@ export const dashboardApi = {
 // ============================================
 
 export const threatsApi = {
-  getThreats: async (params?: {
-    level?: string
-    type?: string
-    limit?: number
-  }): Promise<ApiResponse<PaginatedResponse<Threat>>> => {
-    const query = new URLSearchParams(params as any).toString()
-    return client.get<PaginatedResponse<Threat>>(
-      `/api/threats${query ? `?${query}` : ''}`
-    )
-  },
+getThreats: async (params?: {
+  level?: string
+  type?: string
+  limit?: number
+}): Promise<ApiResponse<PaginatedResponse<ThreatResponse>>> => {
+  const query = new URLSearchParams(params as any).toString()
+  return client.get<PaginatedResponse<ThreatResponse>>(
+    `/api/threats${query ? `?${query}` : ''}`
+  )
+},
 
   getThreatById: async (id: string): Promise<ApiResponse<Threat>> => {
     return client.get<Threat>(`/api/threats/${id}`)
