@@ -173,6 +173,18 @@ export interface DashboardStats {
   uptime: string
 }
 
+export interface HealthData {
+  status: string
+  timestamp?: string
+  uptime_seconds: number
+  version?: string
+  system: {
+    platform: string
+    cpu_percent: number
+    memory_percent: number
+  }
+}
+
 export interface TimeSeriesData {
   timestamp: string
   value: number

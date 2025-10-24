@@ -15,6 +15,7 @@ import type {
   NLPAnalysis,
   SystemStatus,
   DashboardStats,
+  HealthData,
   ResponseAction,
   ApiResponse,
   PaginatedResponse,
@@ -117,18 +118,17 @@ const client = new ApiClient(API_BASE_URL)
 // ============================================
 
 export const dashboardApi = {
-  /**
-   * Get overall dashboard statistics
-   */
   getStats: async (): Promise<ApiResponse<DashboardStats>> => {
     return client.get<DashboardStats>('/api/dashboard/stats')
   },
 
-  /**
-   * Get system status
-   */
   getSystemStatus: async (): Promise<ApiResponse<SystemStatus>> => {
     return client.get<SystemStatus>('/api/dashboard/status')
+  },
+
+  // ADD THIS NEW FUNCTION:
+  getHealth: async (): Promise<ApiResponse<HealthData>> => {
+    return client.get<HealthData>('/api/health')
   },
 }
 

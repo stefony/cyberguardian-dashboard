@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Shield, Activity, AlertTriangle, Eye } from "lucide-react";
+import { dashboardApi } from "@/lib/api";
+import type { HealthData } from "@/lib/types";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -12,16 +14,8 @@ import {
   Tooltip,
 } from "recharts";
 
-/* ===== API Health Type ===== */
-type HealthData = {
-  status: string;
-  uptime_seconds: number;
-  system: {
-    platform: string;
-    cpu_percent: number;
-    memory_percent: number;
-  };
-};
+
+
 
 /* ===== CountUp: анимира „изкачване" на числата ===== */
 function CountUp({
@@ -146,19 +140,22 @@ export default function DashboardPage() {
   // Fetch API Health Data
   useEffect(() => {
     const fetchHealth = async () => {
-      try {
-        const response = await fetch("http://localhost:8000/api/health");
-        if (!response.ok) throw new Error("API connection failed");
-        const data: HealthData = await response.json();
-        setHealthData(data);
-        setApiError(null);
-      } catch (error) {
-        console.error("API Error:", error);
-        setApiError("Could not connect to backend");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  try {
+    const response = await dashboardApi.getHealth();
+    
+    if (response.success && response.data) {
+      setHealthData(response.data);
+      setApiError(null);
+    } else {
+      setApiError(response.error || "API connection failed");
+    }
+  } catch (error) {
+    console.error("API Error:", error);
+    setApiError("Could not connect to backend");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
     fetchHealth();
     // Refresh every 5 seconds
@@ -254,7 +251,7 @@ export default function DashboardPage() {
             {apiError ? (
               <>
                 <p className="text-red-400"><strong>Error:</strong> {apiError}</p>
-                <p>Make sure FastAPI backend is running on <code className="text-blue-400">http://localhost:8000</code></p>
+                <p>Unable to connect to the backend API. Please check if the backend service is running.</p>
               </>
             ) : (
               <>
