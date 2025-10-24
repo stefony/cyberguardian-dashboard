@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { Shield, Activity, Search, Upload, File as FileIcon, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
+import { detectionApi } from "@/lib/api";
 
 // Types
 type Scan = {
@@ -66,33 +67,35 @@ export default function DetectionPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Fetch detection status
-  const fetchStatus = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/detection/status");
-      if (!response.ok) throw new Error("Failed to fetch status");
-      const data: DetectionStatus = await response.json();
-      setStatus(data);
-    } catch (err) {
-      console.error("Error fetching status:", err);
+ const fetchStatus = async () => {
+  try {
+    const response = await detectionApi.getStatus();
+    if (response.success && response.data) {
+      setStatus(response.data);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching status:", err);
+  }
+};
 
   // Fetch scans
-  const fetchScans = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/detection/scans?limit=10");
-      if (!response.ok) throw new Error("Failed to fetch scans");
-      const data: Scan[] = await response.json();
-      setScans(data);
+ const fetchScans = async () => {
+  try {
+    setIsLoading(true);
+    const response = await detectionApi.getScans(10);
+    if (response.success && response.data) {
+      setScans(response.data);
       setError(null);
-    } catch (err) {
-      console.error("Error fetching scans:", err);
-      setError("Could not load scans");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(response.error || "Failed to fetch scans");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching scans:", err);
+    setError("Could not load scans");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Initial load
   useEffect(() => {
@@ -101,37 +104,29 @@ export default function DetectionPage() {
   }, []);
 
   // File upload handler
-  const handleFileUpload = async (file: File) => {
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadResult(null);
+ const handleFileUpload = async (file: File) => {
+  setIsUploading(true);
+  setUploadError(null);
+  setUploadResult(null);
 
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
+  try {
+    const response = await detectionApi.uploadFile(file);
 
-      const response = await fetch('http://localhost:8000/api/detection/scan/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Upload failed');
-      }
-
-      const result: UploadResult = await response.json();
-      setUploadResult(result);
+    if (response.success && response.data) {
+      setUploadResult(response.data);
       
       // Refresh scans list
       fetchScans();
       fetchStatus();
-    } catch (err: any) {
-      setUploadError(err.message || 'Failed to upload file');
-    } finally {
-      setIsUploading(false);
+    } else {
+      setUploadError(response.error || 'Upload failed');
     }
-  };
+  } catch (err: any) {
+    setUploadError(err.message || 'Failed to upload file');
+  } finally {
+    setIsUploading(false);
+  }
+};
 
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {

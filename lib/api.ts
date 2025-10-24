@@ -225,6 +225,36 @@ export const detectionApi = {
   }): Promise<ApiResponse<{ scan_id: string }>> => {
     return client.post<{ scan_id: string }>('/api/detection/scan', target)
   },
+
+  // ADD THESE 3 NEW FUNCTIONS BELOW:
+
+  /**
+   * Get detection engine status
+   */
+  getStatus: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/detection/status')
+  },
+
+  /**
+   * Get recent scans
+   */
+  getScans: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/detection/scans${limit ? `?limit=${limit}` : ''}`)
+  },
+
+  /**
+   * Upload file for scanning
+   */
+  uploadFile: async (file: File): Promise<ApiResponse<any>> => {
+    const formData = new FormData()
+    formData.append('file', file)
+    
+    return client.fetch<any>('/api/detection/scan/upload', {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Remove Content-Type to let browser set it with boundary
+    })
+  },
 }
 
 // ============================================
