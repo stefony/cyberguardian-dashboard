@@ -531,6 +531,61 @@ export class WebSocketClient {
 }
 
 // ============================================
+// HONEYPOTS API
+// ============================================
+
+export const honeypotApi = {
+  /**
+   * Get honeypot status
+   */
+  getStatus: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/honeypots/status')
+  },
+
+  /**
+   * Get recent attacks
+   */
+  getAttacks: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/honeypots/attacks${limit ? `?limit=${limit}` : ''}`)
+  },
+
+  /**
+   * Get statistics
+   */
+  getStatistics: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/honeypots/statistics')
+  },
+
+  /**
+   * Start honeypot
+   */
+  start: async (type: string): Promise<ApiResponse<any>> => {
+    return client.post<any>(`/api/honeypots/start/${type}`)
+  },
+
+  /**
+   * Stop honeypot
+   */
+  stop: async (type: string): Promise<ApiResponse<any>> => {
+    return client.post<any>(`/api/honeypots/stop/${type}`)
+  },
+
+  /**
+   * Start all honeypots
+   */
+  startAll: async (): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/honeypots/start-all')
+  },
+
+  /**
+   * Stop all honeypots
+   */
+  stopAll: async (): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/honeypots/stop-all')
+  },
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 
@@ -541,6 +596,7 @@ export const api = {
   response: responseApi,
   deception: deceptionApi,
   ai: aiApi,
+  honeypot: honeypotApi,
 }
 
 export default api

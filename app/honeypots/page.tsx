@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { RefreshCw, Activity, AlertTriangle, Shield, Globe, MapPin, Clock } from 'lucide-react'
+import { honeypotApi } from '@/lib/api'
 
 interface HoneypotStatus {
   name: string
@@ -42,77 +43,65 @@ export default function HoneypotsPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const fetchData = async () => {
-    try {
-      // Fetch honeypot status
-      const statusRes = await fetch('http://localhost:8000/api/honeypots/status')
-      const statusData = await statusRes.json()
-      setHoneypots(statusData)
+ const fetchData = async () => {
+  try {
+    const [statusRes, attacksRes, statsRes] = await Promise.all([
+      honeypotApi.getStatus(),
+      honeypotApi.getAttacks(20),
+      honeypotApi.getStatistics()
+    ])
 
-      // Fetch recent attacks
-      const attacksRes = await fetch('http://localhost:8000/api/honeypots/attacks?limit=20')
-      const attacksData = await attacksRes.json()
-      setAttacks(attacksData)
+    if (statusRes.success) setHoneypots(statusRes.data || [])
+    if (attacksRes.success) setAttacks(attacksRes.data || [])
+    if (statsRes.success) setStats(statsRes.data || null)
 
-      // Fetch statistics
-      const statsRes = await fetch('http://localhost:8000/api/honeypots/statistics')
-      const statsData = await statsRes.json()
-      setStats(statsData)
-
-      setLoading(false)
-      setError(null)
-    } catch (err) {
-      console.error('Failed to fetch data:', err)
-      setError('Failed to load honeypot data')
-      setLoading(false)
-    }
+    setLoading(false)
+    setError(null)
+  } catch (err) {
+    console.error('Failed to fetch data:', err)
+    setError('Failed to load honeypot data')
+    setLoading(false)
   }
+}
 
-  const startHoneypot = async (type: string) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/honeypots/start/${type}`, {
-        method: 'POST'
-      })
-      
-      if (response.ok) {
-        setTimeout(fetchData, 1000) // Refresh after 1 second
-      }
-    } catch (err) {
-      console.error('Failed to start honeypot:', err)
-    }
-  }
-
-  const stopHoneypot = async (type: string) => {
-    try {
-      const response = await fetch(`http://localhost:8000/api/honeypots/stop/${type}`, {
-        method: 'POST'
-      })
-      
-      if (response.ok) {
-        setTimeout(fetchData, 1000)
-      }
-    } catch (err) {
-      console.error('Failed to stop honeypot:', err)
-    }
-  }
-
-  const startAll = async () => {
-    try {
-      await fetch('http://localhost:8000/api/honeypots/start-all', { method: 'POST' })
+ const startHoneypot = async (type: string) => {
+  try {
+    const response = await honeypotApi.start(type)
+    if (response.success) {
       setTimeout(fetchData, 1000)
-    } catch (err) {
-      console.error('Failed to start all:', err)
     }
+  } catch (err) {
+    console.error('Failed to start honeypot:', err)
   }
-
-  const stopAll = async () => {
-    try {
-      await fetch('http://localhost:8000/api/honeypots/stop-all', { method: 'POST' })
+}
+ const stopHoneypot = async (type: string) => {
+  try {
+    const response = await honeypotApi.stop(type)
+    if (response.success) {
       setTimeout(fetchData, 1000)
-    } catch (err) {
-      console.error('Failed to stop all:', err)
     }
+  } catch (err) {
+    console.error('Failed to stop honeypot:', err)
   }
+}
+
+const startAll = async () => {
+  try {
+    await honeypotApi.startAll()
+    setTimeout(fetchData, 1000)
+  } catch (err) {
+    console.error('Failed to start all:', err)
+  }
+}
+
+const stopAll = async () => {
+  try {
+    await honeypotApi.stopAll()
+    setTimeout(fetchData, 1000)
+  } catch (err) {
+    console.error('Failed to stop all:', err)
+  }
+}
 
   const formatTimestamp = (timestamp: string) => {
     const date = new Date(timestamp)
