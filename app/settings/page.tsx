@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Settings as SettingsIcon, Bell, Palette, Shield, Info, Key, Save, RotateCcw, Check } from "lucide-react";
+import { settingsApi } from "@/lib/api"; 
 
 // Types
 type NotificationSettings = {
@@ -57,88 +58,88 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch settings
-  const fetchSettings = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch("http://localhost:8000/api/settings");
-      if (!response.ok) throw new Error("Failed to fetch settings");
-      const data: Settings = await response.json();
-      setSettings(data);
+ const fetchSettings = async () => {
+  try {
+    setIsLoading(true);
+    const response = await settingsApi.getSettings();
+    if (response.success) {
+      setSettings(response.data || null);
       setError(null);
-    } catch (err) {
-      console.error("Error fetching settings:", err);
-      setError("Could not load settings");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(response.error || "Could not load settings");
     }
-  };
+  } catch (err) {
+    console.error("Error fetching settings:", err);
+    setError("Could not load settings");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Fetch system info
-  const fetchSystemInfo = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/settings/system-info");
-      if (!response.ok) throw new Error("Failed to fetch system info");
-      const data: SystemInfo = await response.json();
-      setSystemInfo(data);
-    } catch (err) {
-      console.error("Error fetching system info:", err);
+const fetchSystemInfo = async () => {
+  try {
+    const response = await settingsApi.getSystemInfo();
+    if (response.success) {
+      setSystemInfo(response.data || null);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching system info:", err);
+  }
+};
 
   // Fetch license info
-  const fetchLicenseInfo = async () => {
-    try {
-      const response = await fetch("http://localhost:8000/api/settings/license");
-      if (!response.ok) throw new Error("Failed to fetch license info");
-      const data: LicenseInfo = await response.json();
-      setLicenseInfo(data);
-    } catch (err) {
-      console.error("Error fetching license info:", err);
+const fetchLicenseInfo = async () => {
+  try {
+    const response = await settingsApi.getLicense();
+    if (response.success) {
+      setLicenseInfo(response.data || null);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching license info:", err);
+  }
+};
 
   // Save settings
-  const handleSave = async () => {
-    if (!settings) return;
+const handleSave = async () => {
+  if (!settings) return;
+  
+  try {
+    setIsSaving(true);
+    const response = await settingsApi.saveSettings(settings);
     
-    try {
-      setIsSaving(true);
-      const response = await fetch("http://localhost:8000/api/settings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(settings),
-      });
-      
-      if (!response.ok) throw new Error("Failed to save settings");
-      
+    if (response.success) {
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err) {
-      console.error("Error saving settings:", err);
-      alert("Failed to save settings");
-    } finally {
-      setIsSaving(false);
+    } else {
+      alert(response.error || "Failed to save settings");
     }
-  };
+  } catch (err) {
+    console.error("Error saving settings:", err);
+    alert("Failed to save settings");
+  } finally {
+    setIsSaving(false);
+  }
+};
 
   // Reset settings
-  const handleReset = async () => {
-    if (!confirm("Are you sure you want to reset all settings to default?")) return;
+const handleReset = async () => {
+  if (!confirm("Are you sure you want to reset all settings to default?")) return;
+  
+  try {
+    const response = await settingsApi.resetSettings();
     
-    try {
-      const response = await fetch("http://localhost:8000/api/settings/reset", {
-        method: "POST",
-      });
-      
-      if (!response.ok) throw new Error("Failed to reset settings");
-      
+    if (response.success) {
       await fetchSettings();
       alert("Settings reset to default successfully!");
-    } catch (err) {
-      console.error("Error resetting settings:", err);
-      alert("Failed to reset settings");
+    } else {
+      alert(response.error || "Failed to reset settings");
     }
-  };
+  } catch (err) {
+    console.error("Error resetting settings:", err);
+    alert("Failed to reset settings");
+  }
+};
 
   // Initial load
   useEffect(() => {

@@ -707,6 +707,48 @@ export const emailsApi = {
     return client.post<any[]>('/api/emails/scan', params)
   },
 }
+
+// ============================================
+// SETTINGS API
+// ============================================
+
+export const settingsApi = {
+  /**
+   * Get application settings
+   */
+  getSettings: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/settings')
+  },
+
+  /**
+   * Save application settings
+   */
+  saveSettings: async (settings: any): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/settings', settings)
+  },
+
+  /**
+   * Reset settings to default
+   */
+  resetSettings: async (): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/settings/reset')
+  },
+
+  /**
+   * Get system information
+   */
+  getSystemInfo: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/settings/system-info')
+  },
+
+  /**
+   * Get license information
+   */
+  getLicense: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/settings/license')
+  },
+}
+
 // ============================================
 // EXPORTS
 // ============================================
@@ -722,6 +764,7 @@ export const api = {
    ml: mlApi,
    analytics: analyticsApi,
    emails: emailsApi,
+   settings: settingsApi, 
 }
 
 export default api
