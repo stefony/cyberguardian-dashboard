@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/lib/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -31,9 +33,8 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // Save token to localStorage
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Use AuthContext login
+      login(data.access_token, data.user);
 
       // Redirect to dashboard
       router.push('/');
