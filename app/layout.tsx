@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
-import { Sidebar } from '@/components/layout/Sidebar'
+import { ConditionalLayout } from '@/components/layout/ConditionalLayout'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -22,17 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased bg-dark-bg text-dark-text`}>
-        <div className="flex h-screen overflow-hidden">
-          {/* Sidebar */}
-          <Sidebar />
-          
-          {/* Main Content */}
-          <main className="flex-1 overflow-y-auto ml-64">
-            <div className="min-h-screen">
-              {children}
-            </div>
-          </main>
-        </div>
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   )
