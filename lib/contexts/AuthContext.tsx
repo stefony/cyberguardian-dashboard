@@ -43,14 +43,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('user', JSON.stringify(userData));
     setUser(userData);
   };
-
-  const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user');
-    setUser(null);
-    router.push('/auth/login');
-  };
-
+  
+const logout = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('user');
+  setUser(null);
+  // Use window.location for immediate redirect
+  window.location.href = '/auth/login';
+};
   const isAuthenticated = !!user;
 
   return (

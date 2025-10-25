@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/lib/contexts/AuthContext'
+
 import { 
   Shield, 
   Activity, 
@@ -16,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Zap,
+  LogOut,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -81,6 +84,7 @@ const navItems: NavItem[] = [
 ]
 
 export function Sidebar() {
+  const { logout } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
   const pathname = usePathname()
   console.log('Current pathname:', pathname) // DEBUG
@@ -196,37 +200,58 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* System Status */}
+     {/* System Status */}
       <div className={cn(
-        'border-t border-dark-border p-4',
-        collapsed && 'px-2'
+        'border-t border-dark-border',
+        collapsed ? 'p-2' : 'p-4'
       )}>
         {!collapsed && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">System Status</span>
-              <span className="flex items-center gap-1 text-cyber-green">
-                <span className="h-2 w-2 rounded-full bg-cyber-green animate-pulse" />
-                Protected
-              </span>
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">System Status</span>
+                <span className="flex items-center gap-1 text-cyber-green">
+                  <span className="h-2 w-2 rounded-full bg-cyber-green animate-pulse" />
+                  Protected
+                </span>
+              </div>
+              <div className="h-1.5 w-full rounded-full bg-dark-bg overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-cyber-blue to-cyber-green transition-all duration-500"
+                  style={{ width: '94%' }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                All systems operational
+              </p>
             </div>
-            <div className="h-1.5 w-full rounded-full bg-dark-bg overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-cyber-blue to-cyber-green transition-all duration-500"
-                style={{ width: '94%' }}
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              All systems operational
-            </p>
+
+            {/* Logout Button */}
+            <button
+              onClick={logout}
+              className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-red-500 hover:bg-dark-bg transition-all duration-200"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Logout</span>
+            </button>
           </div>
         )}
 
         {collapsed && (
-          <div className="flex justify-center">
-            <div className="h-8 w-8 rounded-full bg-cyber-green/20 flex items-center justify-center">
-              <Shield className="h-4 w-4 text-cyber-green" />
+          <div className="space-y-2">
+            <div className="flex justify-center">
+              <div className="h-8 w-8 rounded-full bg-cyber-green/20 flex items-center justify-center">
+                <Shield className="h-4 w-4 text-cyber-green" />
+              </div>
             </div>
+            {/* Logout Icon for collapsed */}
+            <button
+              onClick={logout}
+              className="w-full flex justify-center items-center py-2 text-muted-foreground hover:text-red-500 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="h-5 w-5" />
+            </button>
           </div>
         )}
       </div>
