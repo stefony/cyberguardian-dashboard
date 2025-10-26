@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ConditionalLayout } from '@/components/layout/ConditionalLayout'
 import { AuthProvider } from '@/lib/contexts/AuthContext'
+import { WebSocketProvider } from '@/lib/contexts/WebSocketContext'
 
 const inter = Inter({ 
   subsets: ['latin'],
@@ -24,7 +25,9 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased bg-dark-bg text-dark-text`}>
         <AuthProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
+          <WebSocketProvider>
+            <ConditionalLayout>{children}</ConditionalLayout>
+          </WebSocketProvider>
         </AuthProvider>
       </body>
     </html>
