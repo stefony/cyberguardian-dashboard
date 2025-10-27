@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Shield, Activity, AlertTriangle, Eye, Wifi, WifiOff } from "lucide-react";
-import { dashboardApi } from "@/lib/api";
+import { dashboardApi, threatsApi } from "@/lib/api";
 import type { HealthData } from "@/lib/types";
 import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
 import { LiveThreatNotification } from "@/components/LiveThreatNotification";
@@ -136,6 +136,12 @@ function ThreatActivityChart() {
 export default function DashboardPage() {
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
+  // Real stats from API
+  const [threatCount, setThreatCount] = useState(0);
+  const [honeypotCount, setHoneypotCount] = useState(0);
+  const [monitorCount, setMonitorCount] = useState(5); // Default monitors
+
+  
   
   // Threat notification state
   const [currentThreat, setCurrentThreat] = useState<{
@@ -145,7 +151,7 @@ export default function DashboardPage() {
     timestamp: string;
   } | null>(null);
   
-  // WebSocket integration
+  /// WebSocket integration
   const { isConnected, lastMessage } = useWebSocketContext();
 
   // Fetch initial data
@@ -162,9 +168,38 @@ export default function DashboardPage() {
     }
   };
 
+  // Fetch real threat count
+  const fetchThreatsCount = async () => {
+    try {
+      const response = await threatsApi.getStats();
+      if (response.success && response.data) {
+        setThreatCount(response.data.total_threats || 0);
+      }
+    } catch (err) {
+      console.error("Error fetching threat count:", err);
+    }
+  };
+
+  // Fetch real honeypot count
+const fetchHoneypotsCount = async () => {
+  try {
+    const response = await fetch('http://localhost:8000/api/honeypots/statistics');
+    const data = await response.json();
+    if (data && data.active_honeypots !== undefined) {
+      setHoneypotCount(data.active_honeypots);
+    }
+  } catch (err) {
+    console.error("Error fetching honeypot count:", err);
+    // Fallback to default
+    setHoneypotCount(0);
+  }
+};
+
   // Initial load
   useEffect(() => {
     fetchHealth();
+    fetchThreatsCount();
+    fetchHoneypotsCount();
   }, []);
 
   // Listen for WebSocket updates
@@ -185,34 +220,31 @@ export default function DashboardPage() {
         }
         break;
 
-      case "threat_update":
-        // Show notification for new threat
-        if (lastMessage.data) {
-          setCurrentThreat({
-            id: lastMessage.data.id || Date.now().toString(),
-            title: lastMessage.data.title || lastMessage.data.threat_type || "Unknown Threat",
-            severity: lastMessage.data.severity || lastMessage.data.level || "medium",
-            timestamp: lastMessage.data.timestamp || new Date().toISOString()
-          });
-          
-          // Play sound alert (optional)
-          if (typeof Audio !== 'undefined') {
-            try {
-              const audio = new Audio('/alert.mp3');
-              audio.volume = 0.3;
-              audio.play().catch(() => {}); // Ignore if sound fails
-            } catch (e) {}
-          }
-        }
-        
-        // Refresh health data when new threat detected
-        fetchHealth();
-        break;
-
-      case "honeypot_event":
-        // Refresh health data when honeypot triggered
-        fetchHealth();
-        break;
+case "threat_update":
+  // Show notification for new threat
+  if (lastMessage.data) {
+    setCurrentThreat({
+      id: lastMessage.data.id || Date.now().toString(),
+      title: lastMessage.data.title || lastMessage.data.threat_type || "Unknown Threat",
+      severity: lastMessage.data.severity || lastMessage.data.level || "medium",
+      timestamp: lastMessage.data.timestamp || new Date().toISOString()
+    });
+    
+    // Play sound alert (optional)
+    if (typeof Audio !== 'undefined') {
+      try {
+        const audio = new Audio('/alert.mp3');
+        audio.volume = 0.3;
+        audio.play().catch(() => {});
+      } catch (e) {}
+    }
+  }
+  
+  // Refresh all stats when new threat detected
+  fetchHealth();
+  fetchThreatsCount();
+  fetchHoneypotsCount();
+  break;
     }
   }, [lastMessage, health]);
 
@@ -316,7 +348,7 @@ export default function DashboardPage() {
               <span className="text-xs text-slate-400 uppercase tracking-wider">Monitors</span>
             </div>
             <h3 className="text-2xl font-bold mb-1">
-              <CountUp end={5} />
+              <CountUp end={monitorCount} />
             </h3>
             <p className="text-sm text-slate-400">Real-time scanning</p>
           </div>
@@ -331,7 +363,7 @@ export default function DashboardPage() {
               <span className="text-xs text-slate-400 uppercase tracking-wider">Threats</span>
             </div>
             <h3 className="text-2xl font-bold mb-1">
-              <CountUp end={12} />
+              <CountUp end={threatCount} />
             </h3>
             <p className="text-sm text-slate-400">Last 24 hours</p>
           </div>
@@ -346,7 +378,7 @@ export default function DashboardPage() {
               <span className="text-xs text-slate-400 uppercase tracking-wider">Honeypots</span>
             </div>
             <h3 className="text-2xl font-bold mb-1">
-              <CountUp end={8} />
+              <CountUp end={honeypotCount} />
             </h3>
             <p className="text-sm text-slate-400">Deception layer ready</p>
           </div>
