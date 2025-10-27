@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Shield, Activity, AlertTriangle, Eye } from "lucide-react";
+import { Shield, Activity, AlertTriangle, Eye, Wifi, WifiOff } from "lucide-react";
 import { dashboardApi } from "@/lib/api";
 import type { HealthData } from "@/lib/types";
+import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
+import { LiveThreatNotification } from "@/components/LiveThreatNotification";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -130,264 +132,305 @@ function ThreatActivityChart() {
   );
 }
 
-/* ===== PAGE ===== */
+/* ===== MAIN DASHBOARD PAGE WITH WEBSOCKET ===== */
 export default function DashboardPage() {
-  // API State
-  const [healthData, setHealthData] = useState<HealthData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [health, setHealth] = useState<HealthData | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  // Threat notification state
+  const [currentThreat, setCurrentThreat] = useState<{
+    id: string;
+    title: string;
+    severity: string;
+    timestamp: string;
+  } | null>(null);
+  
+  // WebSocket integration
+  const { isConnected, lastMessage } = useWebSocketContext();
 
-  // Fetch API Health Data
-  useEffect(() => {
-    const fetchHealth = async () => {
-  try {
-    const response = await dashboardApi.getHealth();
-    
-    if (response.success && response.data) {
-      setHealthData(response.data);
-      setApiError(null);
-    } else {
-      setApiError(response.error || "API connection failed");
+  // Fetch initial data
+  const fetchHealth = async () => {
+    try {
+      const response = await dashboardApi.getHealth();
+      if (response.success && response.data) {
+        setHealth(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch health:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("API Error:", error);
-    setApiError("Could not connect to backend");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
+  // Initial load
+  useEffect(() => {
     fetchHealth();
-    // Refresh every 5 seconds
-    const interval = setInterval(fetchHealth, 5000);
+  }, []);
+
+  // Listen for WebSocket updates
+  useEffect(() => {
+    if (!lastMessage) return;
+
+    console.log("📡 Dashboard received WebSocket message:", lastMessage);
+
+    // Handle different message types
+    switch (lastMessage.type) {
+      case "stats_update":
+        // Update stats from WebSocket
+        if (lastMessage.data && health) {
+          setHealth(prev => ({
+            ...prev!,
+            ...lastMessage.data
+          }));
+        }
+        break;
+
+      case "threat_update":
+        // Show notification for new threat
+        if (lastMessage.data) {
+          setCurrentThreat({
+            id: lastMessage.data.id || Date.now().toString(),
+            title: lastMessage.data.title || lastMessage.data.threat_type || "Unknown Threat",
+            severity: lastMessage.data.severity || lastMessage.data.level || "medium",
+            timestamp: lastMessage.data.timestamp || new Date().toISOString()
+          });
+          
+          // Play sound alert (optional)
+          if (typeof Audio !== 'undefined') {
+            try {
+              const audio = new Audio('/alert.mp3');
+              audio.volume = 0.3;
+              audio.play().catch(() => {}); // Ignore if sound fails
+            } catch (e) {}
+          }
+        }
+        
+        // Refresh health data when new threat detected
+        fetchHealth();
+        break;
+
+      case "honeypot_event":
+        // Refresh health data when honeypot triggered
+        fetchHealth();
+        break;
+    }
+  }, [lastMessage, health]);
+
+  // Auto-refresh every 30 seconds (fallback)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchHealth();
+    }, 30000);
+
     return () => clearInterval(interval);
   }, []);
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-slate-400">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <main className="pb-12">
-      {/* ================= HERO ================= */}
-      <div className="page-container page-hero pt-12 md:pt-20">
-        <h1 className="heading-accent gradient-cyber text-4xl md:text-5xl font-bold tracking-tight">
-          Welcome to <span className="text-primary">CyberGuardian AI</span>
-        </h1>
-        <p className="mt-4 text-lg md:text-xl text-muted-foreground max-w-2xl">
-          Your advanced, AI-powered security operations center — combining real-time threat detection,
-          behavioral analytics, deception layers, and predictive defense.
-        </p>
+    <div className="p-6 space-y-6">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-8 border border-primary/20">
+        <div className="relative z-10">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
+              Welcome to CyberGuardian AI
+            </h1>
+            
+            {/* WebSocket Status Indicator */}
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-full ${
+              isConnected 
+                ? 'bg-green-500/20 border border-green-500/50' 
+                : 'bg-red-500/20 border border-red-500/50'
+            }`}>
+              {isConnected ? (
+                <>
+                  <Wifi className="w-4 h-4 text-green-400" />
+                  <span className="text-sm text-green-400 font-medium">Live</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-4 h-4 text-red-400" />
+                  <span className="text-sm text-red-400 font-medium">Offline</span>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <p className="text-slate-300 max-w-2xl">
+            Your advanced, AI-powered security operations center — combining real-time threat detection, 
+            behavioral analytics, deception layers, and predictive defense.
+          </p>
 
-        <div className="mt-8 flex flex-wrap gap-4">
-          <button className="btn btn-primary motion-safe:transition-transform motion-safe:duration-300 will-change-transform hover:-translate-y-2 hover:scale-[1.04]" aria-label="Get Started">
-            🚀 Get Started
-          </button>
-          <button className="btn btn-ghost motion-safe:transition-transform motion-safe:duration-300 will-change-transform hover:-translate-y-2 hover:scale-[1.04]" aria-label="Learn More">
-            Learn More
-          </button>
-          <span className={`badge ${apiError ? "badge--err" : "badge--ok"} px-4 py-1 text-sm`}>
-            {isLoading ? "Connecting..." : apiError ? "API Offline" : "Live Beta"}
-          </span>
+          <div className="flex gap-4 mt-6">
+            <button className="btn btn--primary">
+              <Activity className="w-4 h-4" />
+              Get Started
+            </button>
+            <button className="btn btn--ghost">Learn More</button>
+            <button className="btn btn--success">
+              <Shield className="w-4 h-4" />
+              Live Beta
+            </button>
+          </div>
         </div>
+
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-purple-500/10 rounded-full blur-3xl"></div>
       </div>
 
-      {/* ================= KPI CARDS ================= */}
-      <div className="section">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <CardTilt className="card-premium card-hover kpi p-5">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <CardTilt>
+          <div className="stat-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Shield className="h-6 w-6 text-green-500" />
+              <div className="p-3 bg-green-500/20 rounded-xl">
+                <Shield className="w-6 h-6 text-green-400" />
               </div>
-              <span className="text-2xl font-bold text-green-500">
-                {healthData?.status === "healthy" ? "✓" : "⚠"}
-              </span>
+              <span className="text-xs text-slate-400 uppercase tracking-wider">System</span>
             </div>
-            <h3 className="text-lg font-semibold mb-1">System Protected</h3>
-            <p className="text-sm text-muted-foreground">
-              {healthData?.system.platform || "Loading..."}
-            </p>
-          </CardTilt>
+            <h3 className="text-2xl font-bold mb-1">
+              {health?.status === "healthy" ? "Protected" : "Warning"}
+            </h3>
+            <p className="text-sm text-slate-400">{health?.system?.platform || health?.platform || "Windows"}</p>
+          </div>
+        </CardTilt>
 
-          <CardTilt className="card-premium card-hover kpi p-5">
+        <CardTilt>
+          <div className="stat-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Activity className="h-6 w-6 text-blue-500" />
+              <div className="p-3 bg-blue-500/20 rounded-xl">
+                <Activity className="w-6 h-6 text-blue-400" />
               </div>
-              <span className="text-2xl font-bold text-blue-500"><CountUp end={5} /></span>
+              <span className="text-xs text-slate-400 uppercase tracking-wider">Monitors</span>
             </div>
-            <h3 className="text-lg font-semibold mb-1">Active Monitors</h3>
-            <p className="text-sm text-muted-foreground">Real-time scanning</p>
-          </CardTilt>
+            <h3 className="text-2xl font-bold mb-1">
+              <CountUp end={5} />
+            </h3>
+            <p className="text-sm text-slate-400">Real-time scanning</p>
+          </div>
+        </CardTilt>
 
-          <CardTilt className="card-premium card-hover kpi p-5">
+        <CardTilt>
+          <div className="stat-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-red-500" />
+              <div className="p-3 bg-red-500/20 rounded-xl">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
               </div>
-              <span className="text-2xl font-bold text-red-500"><CountUp end={12} /></span>
+              <span className="text-xs text-slate-400 uppercase tracking-wider">Threats</span>
             </div>
-            <h3 className="text-lg font-semibold mb-1">Threats Blocked</h3>
-            <p className="text-sm text-muted-foreground">Last 24 hours</p>
-          </CardTilt>
+            <h3 className="text-2xl font-bold mb-1">
+              <CountUp end={12} />
+            </h3>
+            <p className="text-sm text-slate-400">Last 24 hours</p>
+          </div>
+        </CardTilt>
 
-          <CardTilt className="card-premium card-hover kpi p-5">
+        <CardTilt>
+          <div className="stat-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="h-12 w-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Eye className="h-6 w-6 text-purple-500" />
+              <div className="p-3 bg-purple-500/20 rounded-xl">
+                <Eye className="w-6 h-6 text-purple-400" />
               </div>
-              <span className="text-2xl font-bold text-purple-500"><CountUp end={8} /></span>
+              <span className="text-xs text-slate-400 uppercase tracking-wider">Honeypots</span>
             </div>
-            <h3 className="text-lg font-semibold mb-1">Honeypots Active</h3>
-            <p className="text-sm text-muted-foreground">Deception layer ready</p>
-          </CardTilt>
-        </div>
-      </div>
-
-      {/* ================= INFO PANEL - API STATUS ================= */}
-      <div className="section">
-        <CardTilt className="card-premium card-hover p-8">
-          <h2 className="text-2xl font-bold mb-4">
-            {apiError ? "⚠️ Backend Connection Issue" : "✅ Dashboard Connected to API!"}
-          </h2>
-          <div className="space-y-3 text-muted-foreground">
-            {apiError ? (
-              <>
-                <p className="text-red-400"><strong>Error:</strong> {apiError}</p>
-                <p>Unable to connect to the backend API. Please check if the backend service is running.</p>
-              </>
-            ) : (
-              <>
-                <p><strong className="text-foreground">Live API Data:</strong> Frontend successfully connected to backend!</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-                  <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                    <div className="text-sm text-muted-foreground">CPU Usage</div>
-                    <div className="text-2xl font-bold text-blue-400">
-                      {healthData ? `${healthData.system.cpu_percent.toFixed(1)}%` : "..."}
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-purple-500/10 border border-purple-500/20">
-                    <div className="text-sm text-muted-foreground">Memory Usage</div>
-                    <div className="text-2xl font-bold text-purple-400">
-                      {healthData ? `${healthData.system.memory_percent.toFixed(1)}%` : "..."}
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
-                    <div className="text-sm text-muted-foreground">Uptime</div>
-                    <div className="text-2xl font-bold text-green-400">
-                      {healthData ? `${Math.floor(healthData.uptime_seconds / 60)}m` : "..."}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
+            <h3 className="text-2xl font-bold mb-1">
+              <CountUp end={8} />
+            </h3>
+            <p className="text-sm text-slate-400">Deception layer ready</p>
           </div>
         </CardTilt>
       </div>
 
-      {/* ================= METRICS ================= */}
-      <div className="section">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <CardTilt className="card-premium card-hover p-6 text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-1">99.8%</div>
-            <div className="text-sm text-muted-foreground">Detection Rate</div>
-          </CardTilt>
-
-          <CardTilt className="card-premium card-hover p-6 text-center">
-            <div className="text-3xl font-bold text-green-400 mb-1">&lt; 100ms</div>
-            <div className="text-sm text-muted-foreground">Response Time</div>
-          </CardTilt>
-
-          <CardTilt className="card-premium card-hover p-6 text-center">
-            <div className="text-3xl font-bold text-purple-400 mb-1">24/7</div>
-            <div className="text-sm text-muted-foreground">Protection</div>
-          </CardTilt>
+      {/* Dashboard Connected Indicator */}
+      <div className="flex items-center justify-center p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl border border-green-500/20">
+        <div className="flex items-center gap-3">
+          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
+          <span className="text-sm font-medium">
+            {isConnected 
+              ? "Dashboard Connected to API! Live API Data: Frontend successfully connected to backend!" 
+              : "Connecting to API..."}
+          </span>
         </div>
+        
+        {health && (
+          <div className="ml-auto flex gap-6 text-sm text-slate-400">
+            <div>CPU Usage: <span className="text-primary font-semibold">{((health.system?.cpu_percent ?? health.cpu_usage) || 0).toFixed(1)}%</span></div>
+            <div>Memory Usage: <span className="text-primary font-semibold">{((health.system?.memory_percent ?? health.memory_usage) || 0).toFixed(1)}%</span></div>
+            <div>Uptime: <span className="text-primary font-semibold">{health.uptime || "0m"}</span></div>
+          </div>
+        )}
       </div>
 
-      {/* ================= RECENT THREATS ================= */}
-      <div className="section">
-        <div className="card-premium p-6">
-          <div className="flex items-center justify-between">
-            <h3>Recent Threats</h3>
-            <div className="flex gap-2">
-              <span className="badge badge--err">Critical</span>
-              <span className="badge badge--warn">High</span>
-              <span className="badge badge--info">Info</span>
+      {/* Threat Activity Chart */}
+      <ThreatActivityChart />
+
+      {/* System Metrics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="stat-card p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+            Detection Rate
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Success Rate</span>
+              <span className="font-semibold text-green-400">99.8%</span>
+            </div>
+            <div className="w-full bg-slate-700/50 rounded-full h-2">
+              <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full" style={{ width: "99.8%" }}></div>
             </div>
           </div>
+        </div>
 
-          <div className="mt-4 overflow-x-auto">
-            <table className="table w-full">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>Source</th>
-                  <th>Type</th>
-                  <th>Severity</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>09:41</td>
-                  <td>198.51.100.42</td>
-                  <td>Brute Force</td>
-                  <td><span className="badge badge--err">Critical</span></td>
-                  <td><button className="btn btn-ghost relative z-10 motion-safe:transition-transform motion-safe:duration-300 will-change-transform hover:-translate-y-1 hover:scale-[1.03] hover:shadow-md">Details</button></td>
-                </tr>
-                <tr>
-                  <td>09:12</td>
-                  <td>203.0.113.11</td>
-                  <td>Phishing</td>
-                  <td><span className="badge badge--warn">High</span></td>
-                  <td><button className="btn btn-ghost relative z-10 motion-safe:transition-transform motion-safe:duration-300 will-change-transform hover:-translate-y-1 hover:scale-[1.03] hover:shadow-md">Details</button></td>
-                </tr>
-                <tr>
-                  <td>08:57</td>
-                  <td>malware.sig</td>
-                  <td>Malware</td>
-                  <td><span className="badge badge--info">Info</span></td>
-                  <td><button className="btn btn-ghost relative z-10 motion-safe:transition-transform motion-safe:duration-300 will-change-transform hover:-translate-y-1 hover:scale-[1.03] hover:shadow-md">Details</button></td>
-                </tr>
-              </tbody>
-            </table>
+        <div className="stat-card p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+            Response Time
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">Average</span>
+              <span className="font-semibold text-blue-400">&lt; 100ms</span>
+            </div>
+            <div className="w-full bg-slate-700/50 rounded-full h-2">
+              <div className="bg-gradient-to-r from-blue-400 to-cyan-500 h-2 rounded-full" style={{ width: "85%" }}></div>
+            </div>
+          </div>
+        </div>
+
+        <div className="stat-card p-6">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+            Protection
+          </h3>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-slate-400">24/7 Active</span>
+              <span className="font-semibold text-purple-400">Online</span>
+            </div>
+            <div className="w-full bg-slate-700/50 rounded-full h-2">
+              <div className="bg-gradient-to-r from-purple-400 to-pink-500 h-2 rounded-full" style={{ width: "100%" }}></div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ================= SYSTEM HEALTH ================= */}
-      <div className="section">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <CardTilt className="card-premium card-hover p-5">
-            <div className="flex items-center justify-between">
-              <span className="muted text-sm">Detection Engine</span>
-              <span className="badge badge--ok">OK</span>
-            </div>
-            <div className="mt-2 text-xl font-semibold">99.99% uptime</div>
-          </CardTilt>
-
-          <CardTilt className="card-premium card-hover p-5">
-            <div className="flex items-center justify-between">
-              <span className="muted text-sm">Deception Layer</span>
-              <span className="badge badge--ok">OK</span>
-            </div>
-            <div className="mt-2 text-xl font-semibold">8 traps live</div>
-          </CardTilt>
-
-          <CardTilt className="card-premium card-hover p-5">
-            <div className="flex items-center justify-between">
-              <span className="muted text-sm">API Latency</span>
-              <span className={`badge ${apiError ? "badge--err" : "badge--ok"}`}>
-                {apiError ? "Offline" : "Fast"}
-              </span>
-            </div>
-            <div className="mt-2 text-xl font-semibold">&lt; 90ms</div>
-          </CardTilt>
-        </div>
-      </div>
-
-      {/* ================= ANIMATED CHART ================= */}
-      <div className="section">
-        <ThreatActivityChart />
-      </div>
-    </main>
+      {/* Live Threat Notification */}
+      <LiveThreatNotification 
+        threat={currentThreat}
+        onClose={() => setCurrentThreat(null)}
+      />
+    </div>
   );
 }

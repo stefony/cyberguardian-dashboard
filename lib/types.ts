@@ -213,9 +213,14 @@ export interface DashboardStats {
 export interface HealthData {
   status: string
   timestamp?: string
-  uptime_seconds: number
+  uptime_seconds?: number
+  uptime?: string
   version?: string
-  system: {
+  platform?: string
+  cpu_usage?: number
+  memory_usage?: number
+  threats_blocked?: number
+  system?: {
     platform: string
     cpu_percent: number
     memory_percent: number
