@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+
 import { Shield, AlertTriangle, TrendingUp, Filter, RefreshCw, Ban, X } from "lucide-react";
 import { threatsApi } from "@/lib/api";
 import type { ThreatResponse, ThreatStats } from "@/lib/types";
+import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
+import { useEffect, useState, useCallback } from "react";
 
 
 
@@ -12,13 +14,15 @@ export default function ThreatsPage() {
   const [stats, setStats] = useState<ThreatStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  // WebSocket integration for live updates
+const { lastMessage } = useWebSocketContext();
   
   // Filters
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  // Fetch threats
-const fetchThreats = async () => {
+// Fetch threats
+const fetchThreats = useCallback(async () => {
   try {
     setIsLoading(true);
     
@@ -29,22 +33,22 @@ const fetchThreats = async () => {
     
     const response = await threatsApi.getThreats(params);
     
-if (response.success && response.data) {
-  setThreats(response.data.data || []);  // Add fallback to empty array
-  setError(null);
-}else {
-  setError(response.error || "Failed to fetch threats");
-}
+    if (response.success && response.data) {
+      setThreats(response.data.data || []);
+      setError(null);
+    } else {
+      setError(response.error || "Failed to fetch threats");
+    }
   } catch (err) {
     console.error("Error fetching threats:", err);
     setError("Could not load threats");
   } finally {
     setIsLoading(false);
   }
-};
+}, [severityFilter, statusFilter]);
 
   // Fetch stats
-const fetchStats = async () => {
+const fetchStats = useCallback(async () => {
   try {
     const response = await threatsApi.getStats();
     if (response.success && response.data) {
@@ -53,7 +57,7 @@ const fetchStats = async () => {
   } catch (err) {
     console.error("Error fetching stats:", err);
   }
-};
+}, []);
 
   // Block threat
  const blockThreat = async (threatId: number) => {
@@ -96,6 +100,21 @@ const fetchStats = async () => {
     fetchThreats();
     fetchStats();
   }, [severityFilter, statusFilter]);
+
+  // Listen for live threat updates via WebSocket
+// Listen for live threat updates via WebSocket
+useEffect(() => {
+  if (!lastMessage) return;
+  
+  if (lastMessage.type === 'threat_update') {
+    console.log('🚨 New threat received via WebSocket!', lastMessage.data);
+    
+    // Refresh threats list
+    fetchThreats();
+    fetchStats();
+  }
+// eslint-disable-next-line react-hooks/exhaustive-deps
+}, [lastMessage]);
 
   // Format timestamp
   const formatTime = (timestamp: string) => {

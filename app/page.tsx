@@ -282,6 +282,7 @@ export default function DashboardPage() {
               Live Beta
             </button>
           </div>
+          
         </div>
 
         {/* Decorative elements */}
