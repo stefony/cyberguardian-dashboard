@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Shield, Activity, AlertTriangle, Eye, Wifi, WifiOff } from "lucide-react";
 import { dashboardApi, threatsApi } from "@/lib/api";
 import type { HealthData } from "@/lib/types";
@@ -15,6 +16,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
+
 
 
 
@@ -134,6 +136,7 @@ function ThreatActivityChart() {
 
 /* ===== MAIN DASHBOARD PAGE WITH WEBSOCKET ===== */
 export default function DashboardPage() {
+  const router = useRouter();
   const [health, setHealth] = useState<HealthData | null>(null);
   const [loading, setLoading] = useState(true);
   // Real stats from API
@@ -194,6 +197,14 @@ const fetchHoneypotsCount = async () => {
     setHoneypotCount(0);
   }
 };
+
+ // Check authentication
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/auth/login");
+    }
+  }, [router]);
 
   // Initial load
   useEffect(() => {

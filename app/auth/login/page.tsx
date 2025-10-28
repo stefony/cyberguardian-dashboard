@@ -33,8 +33,12 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // Use AuthContext login
-      login(data.access_token, data.user);
+      // Save token to localStorage
+localStorage.setItem("token", data.access_token);
+localStorage.setItem("user", JSON.stringify(data.user));
+
+login(data.access_token, data.user);
+      
 
       // Redirect to dashboard
       router.push('/');
