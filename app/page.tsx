@@ -183,7 +183,7 @@ export default function DashboardPage() {
   // Fetch real honeypot count
 const fetchHoneypotsCount = async () => {
   try {
-    const response = await fetch('http://localhost:8000/api/honeypots/statistics');
+   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/honeypots/statistics`);
     const data = await response.json();
     if (data && data.active_honeypots !== undefined) {
       setHoneypotCount(data.active_honeypots);
