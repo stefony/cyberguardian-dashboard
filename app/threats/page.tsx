@@ -7,7 +7,15 @@ import type { ThreatResponse, ThreatStats } from "@/lib/types";
 import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
 import { useEffect, useState, useCallback } from "react";
 
-
+// ✅ Add here
+function normalizeThreatList(resp: any): ThreatResponse[] {
+  if (Array.isArray(resp)) return resp as ThreatResponse[];
+  if (Array.isArray(resp?.data)) return resp.data as ThreatResponse[];
+  if (Array.isArray(resp?.data?.data)) return resp.data.data as ThreatResponse[];
+  if (Array.isArray(resp?.items)) return resp.items as ThreatResponse[];
+  if (Array.isArray(resp?.data?.items)) return resp.data.items as ThreatResponse[];
+  return [];
+}
 
 export default function ThreatsPage() {
  const [threats, setThreats] = useState<ThreatResponse[]>([]);
@@ -25,27 +33,27 @@ const { lastMessage } = useWebSocketContext();
 const fetchThreats = useCallback(async () => {
   try {
     setIsLoading(true);
-    
+
     // Build query params
-    const params: any = {};
-    if (severityFilter !== "all") params.level = severityFilter;
+    const params: Record<string, string> = {};
+    if (severityFilter !== "all") params.severity = severityFilter;
     if (statusFilter !== "all") params.status = statusFilter;
-    
+
     const response = await threatsApi.getThreats(params);
-    
-    if (response.success && response.data) {
-      setThreats(response.data.data || []);
-      setError(null);
-    } else {
-      setError(response.error || "Failed to fetch threats");
-    }
+
+    // ✅ Normalize response shape (raw array / wrapped)
+    const items = normalizeThreatList(response);
+    setThreats(items);
+    setError(null);
+
   } catch (err) {
     console.error("Error fetching threats:", err);
     setError("Could not load threats");
   } finally {
     setIsLoading(false);
   }
-}, [severityFilter, statusFilter]);
+}, [severityFilter, statusFilter]);  // ← важно: затваряща скоба и ; накрая
+
 
   // Fetch stats
 const fetchStats = useCallback(async () => {

@@ -55,28 +55,32 @@ export function useWebSocket(url: string, autoConnect: boolean = true): WebSocke
         }
       };
 
-      ws.onerror = (error) => {
-        console.error('❌ WebSocket error:', error);
-      };
+      ws.onerror = (event) => {
+  console.warn('⚠️ WebSocket error (non-fatal):', {
+    type: event?.type ?? 'error',
+    url: ws.url,
+    readyState: ws.readyState // 0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED
+  });
+};
 
-      ws.onclose = () => {
-        console.log('🔌 WebSocket disconnected');
-        setIsConnected(false);
-        wsRef.current = null;
+ws.onclose = () => {
+  console.warn('🔌 WebSocket disconnected');
+  setIsConnected(false);
+  wsRef.current = null;
 
-        // Auto-reconnect
-        if (reconnectAttempts.current < maxReconnectAttempts) {
-          reconnectAttempts.current++;
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
-          console.log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current})`);
-          
-          reconnectTimeoutRef.current = setTimeout(() => {
-            connect();
-          }, delay);
-        } else {
-          console.log('❌ Max reconnect attempts reached');
-        }
-      };
+  // Auto-reconnect
+  if (reconnectAttempts.current < maxReconnectAttempts) {
+    reconnectAttempts.current++;
+    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 30000);
+    console.log(`🔄 Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current})`);
+
+    reconnectTimeoutRef.current = setTimeout(() => {
+      connect();
+    }, delay);
+  } else {
+    console.error('⛔ Max reconnect attempts reached — WS stopped trying.');
+  }
+};
 
       wsRef.current = ws;
     } catch (error) {

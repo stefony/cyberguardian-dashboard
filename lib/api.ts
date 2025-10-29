@@ -27,7 +27,8 @@ import type {
 // CONFIGURATION
 // ============================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '${process.env.NEXT_PUBLIC_API_URL}'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
+
 const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
 
 // ============================================
@@ -139,16 +140,20 @@ export const dashboardApi = {
 // ============================================
 
 export const threatsApi = {
-getThreats: async (params?: {
-  level?: string
-  type?: string
-  limit?: number
-}): Promise<ApiResponse<PaginatedResponse<ThreatResponse>>> => {
-  const query = new URLSearchParams(params as any).toString()
-  return client.get<PaginatedResponse<ThreatResponse>>(
-    `/api/threats${query ? `?${query}` : ''}`
-  )
-},
+  getThreats: async (params?: {
+    severity?: string;
+    status?: string;
+    type?: string;
+    limit?: number;
+  }): Promise<ApiResponse<PaginatedResponse<ThreatResponse>>> => {
+    const query = new URLSearchParams(params as any).toString();
+    // ✅ Add this log line
+    console.log("➡️ FETCH_THREATS URL:", `/api/threats${query ? `?${query}` : ''}`);
+    return client.get<PaginatedResponse<ThreatResponse>>(
+      `/api/threats${query ? `?${query}` : ''}`
+    );
+  },
+
 
   getThreatById: async (id: string): Promise<ApiResponse<Threat>> => {
     return client.get<Threat>(`/api/threats/${id}`)
