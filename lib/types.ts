@@ -296,6 +296,71 @@ export interface PaginatedResponse<T> {
   total_pages: number
 }
 
+// ==== ML types ====
+export interface MLStatus {
+  model_trained: boolean;
+  training_date: string | null;
+  training_samples: number;
+  anomaly_detector_available: boolean;
+  behavior_clusterer_available: boolean;
+  feature_count: number;
+  features: string[];
+
+  // diagnostics
+  training_data_present?: boolean;
+  training_data_lines?: number | null;
+  training_data_size?: number | null;
+  training_data_path?: string | null;
+}
+
+export interface MLTrainingResponse {
+  success: boolean;
+  training_samples?: number;
+  n_clusters?: number;
+  silhouette_score?: number | null;
+  mean_anomaly_score?: number | null;
+  training_date?: string | null;
+  error?: string | null;
+}
+
+export interface MLThreatScore {
+  threat_score: number;
+  threat_level: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  is_anomaly: boolean;
+  anomaly_score: number;
+  behavior_cluster: string;
+  confidence: number;
+}
+
+export interface MLAnomalyPrediction {
+  is_anomaly: boolean;
+  anomaly_score: number;
+  confidence: number;
+  threshold?: number;
+}
+
+export interface MLBehaviorAnalysis {
+  cluster: number;
+  cluster_name: string;
+  n_clusters?: number;
+}
+
+export interface MLMetrics {
+  trained: boolean;
+  samples: number;
+  n_clusters?: number | null;
+  silhouette?: number | null;
+  mean_anomaly?: number | null;
+  labeled_count: number;
+  classifier_available: boolean;
+  training_date?: string | null;
+}
+
+export interface MLThresholds {
+  anomaly_threshold: number;
+}
+
+
 // ============================================
 // NOTIFICATION TYPES
 // ============================================

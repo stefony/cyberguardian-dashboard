@@ -633,21 +633,96 @@ export const mlApi = {
 
   /**
    * Train ML models
+   * - pass { sync: true } ако искаш да върне реалните метрики в отговора
    */
   train: async (params: {
     n_clusters?: number
     contamination?: number
+    sync?: boolean
   }): Promise<ApiResponse<any>> => {
-    return client.post<any>('/api/ml/train', params)
+    const { sync, ...body } = params || {}
+    const suffix = sync ? '?sync=1' : ''
+    return client.post<any>(`/api/ml/train${suffix}`, body)
   },
 
   /**
-   * Get threat score for a log entry
+   * Persist current trained models to disk
+   */
+  save: async (): Promise<ApiResponse<{ ok: boolean; saved_as: string }>> => {
+    return client.post<{ ok: boolean; saved_as: string }>('/api/ml/save')
+  },
+
+  /**
+   * Load latest persisted models (LATEST)
+   */
+  load: async (): Promise<ApiResponse<{
+    ok: boolean
+    model_trained: boolean
+    training_date: string
+    samples: number
+    n_clusters: number
+  }>> => {
+    return client.post('/api/ml/load')
+  },
+
+  /**
+   * Get live metrics (silhouette, mean anomaly, labeled_count, etc.)
+   */
+  getMetrics: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/ml/metrics')
+  },
+
+  /**
+   * ✅ Get anomaly threshold
+   */
+  getThresholds: async (): Promise<ApiResponse<{ anomaly_threshold: number }>> => {
+  return client.get<{ anomaly_threshold: number }>('/api/ml/thresholds')
+},
+
+  /**
+   * ✅ Set anomaly threshold
+   */
+ setThresholds: async (
+  data: { anomaly_threshold: number }
+): Promise<ApiResponse<{ anomaly_threshold: number }>> => {
+  return client.post<{ anomaly_threshold: number }>('/api/ml/thresholds', data)
+},
+
+
+  /**
+   * Predict: anomaly only
+   */
+  predictAnomaly: async (log: any): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/ml/predict/anomaly', log)
+  },
+
+  /**
+   * Analyze behavior (cluster label)
+   */
+  analyzeBehavior: async (log: any): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/ml/analyze/behavior', log)
+  },
+
+  /**
+   * Hybrid threat score
    */
   getThreatScore: async (log: any): Promise<ApiResponse<any>> => {
     return client.post<any>('/api/ml/threat-score', log)
   },
+
+  /**
+   * Batch threat scores
+   */
+  batchThreatScores: async (
+    logs: any[]
+  ): Promise<ApiResponse<{ total: number; scores: any[] }>> => {
+    return client.post<{ total: number; scores: any[] }>(
+      '/api/ml/batch/threat-scores',
+      logs
+    )
+  },
 }
+
 
 // ============================================
 // ANALYTICS API
