@@ -35,16 +35,23 @@ export default function ProtectionPage() {
     }
   };
 
-  const loadEvents = async () => {
-    try {
-      const res = await protectionApi.getEvents(100);
-      if (res.success && res.data) {
-        setEvents(res.data);
-      }
-    } catch (err) {
-      console.error("Error loading events:", err);
+const loadEvents = async () => {
+  try {
+    const res = await protectionApi.getEvents(100);
+    if (res.success && res.data) {
+      // Handle response format - backend returns {success, data: [...]}
+      const eventsData = Array.isArray(res.data) 
+        ? res.data 
+        : [];
+      setEvents(eventsData);
+    } else {
+      setEvents([]);
     }
-  };
+  } catch (err) {
+    console.error("Error loading events:", err);
+    setEvents([]); // Set empty array on error
+  }
+};
 
   const refresh = async () => {
     setRefreshing(true);
