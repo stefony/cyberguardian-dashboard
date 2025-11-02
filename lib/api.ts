@@ -140,20 +140,18 @@ export const dashboardApi = {
 // ============================================
 
 export const threatsApi = {
-  getThreats: async (params?: {
-    severity?: string;
-    status?: string;
-    type?: string;
-    limit?: number;
-  }): Promise<ApiResponse<PaginatedResponse<ThreatResponse>>> => {
-    const query = new URLSearchParams(params as any).toString();
-    // ✅ Add this log line
-    console.log("➡️ FETCH_THREATS URL:", `/api/threats${query ? `?${query}` : ''}`);
-    return client.get<PaginatedResponse<ThreatResponse>>(
-      `/api/threats${query ? `?${query}` : ''}`
-    );
-  },
-
+getThreats: async (params?: {
+  severity?: string;
+  status?: string;
+  type?: string;
+  limit?: number;
+}): Promise<ApiResponse<ThreatResponse[]>> => {  // ← Changed from PaginatedResponse!
+  const query = new URLSearchParams(params as any).toString();
+  console.log("➡️ FETCH_THREATS URL:", `/api/threats${query ? `?${query}` : ''}`);
+  return client.get<ThreatResponse[]>(  // ← Changed from PaginatedResponse!
+    `/api/threats${query ? `?${query}` : ''}`
+  );
+},
 
   getThreatById: async (id: string): Promise<ApiResponse<Threat>> => {
     return client.get<Threat>(`/api/threats/${id}`)

@@ -41,18 +41,28 @@ const fetchThreats = useCallback(async () => {
 
     const response = await threatsApi.getThreats(params);
 
-    // ✅ Normalize response shape (raw array / wrapped)
-    const items = normalizeThreatList(response);
-    setThreats(items);
-    setError(null);
+    // ✅ NEW: Handle ApiResponse wrapper
+    if (response.success && response.data) {
+      // Backend returns array directly
+      const items = Array.isArray(response.data) 
+        ? response.data 
+        : normalizeThreatList(response.data);
+      
+      setThreats(items);
+      setError(null);
+    } else {
+      setError(response.error || "Failed to load threats");
+      setThreats([]);
+    }
 
   } catch (err) {
     console.error("Error fetching threats:", err);
     setError("Could not load threats");
+    setThreats([]);
   } finally {
     setIsLoading(false);
   }
-}, [severityFilter, statusFilter]);  // ← важно: затваряща скоба и ; накрая
+}, [severityFilter, statusFilter]);
 
 
   // Fetch stats
