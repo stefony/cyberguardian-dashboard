@@ -59,29 +59,35 @@ const loadEvents = async () => {
     setRefreshing(false);
   };
 
-  const toggle = async () => {
-    setToggling(true);
-    try {
-      const pathList = paths.split(";").map(s => s.trim()).filter(Boolean);
-      const res = await protectionApi.toggle(
-        !enabled,
-        pathList,
-        autoQuarantine,
-        threatThreshold
-      );
-      if (res.success && res.data) {
-        setEnabled(res.data.enabled);
-        if (res.data.enabled) {
-          // Start polling for events
-          setTimeout(refresh, 2000);
-        }
+const toggle = async () => {
+  console.log("🔵 TOGGLE CLICKED!", { enabled, paths, autoQuarantine, threatThreshold });
+  
+  setToggling(true);
+  try {
+    const pathList = paths.split(";").map(s => s.trim()).filter(Boolean);
+    console.log("🔵 PATH LIST:", pathList);
+    
+    const res = await protectionApi.toggle(
+      !enabled,
+      pathList,
+      autoQuarantine,
+      threatThreshold
+    );
+    
+    console.log("🔵 API RESPONSE:", res);
+    
+    if (res.success && res.data) {
+      setEnabled(res.data.enabled);
+      if (res.data.enabled) {
+        setTimeout(refresh, 2000);
       }
-    } catch (err) {
-      console.error("Error toggling protection:", err);
-    } finally {
-      setToggling(false);
     }
-  };
+  } catch (err) {
+    console.error("❌ Error toggling protection:", err);
+  } finally {
+    setToggling(false);
+  }
+};
 
   const getSeverityColor = (level: string) => {
     switch (level?.toLowerCase()) {
