@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Shield, ToggleLeft, ToggleRight, FolderOpen, RefreshCw, AlertTriangle, CheckCircle } from "lucide-react";
+import {
+  Shield,
+  ToggleLeft,
+  ToggleRight,
+  FolderOpen,
+  RefreshCw,
+  AlertTriangle,
+  CheckCircle,
+} from "lucide-react";
 import { protectionApi } from "@/lib/api";
 
 export default function ProtectionPage() {
@@ -22,90 +30,118 @@ export default function ProtectionPage() {
   const loadStatus = async () => {
     try {
       const res = await protectionApi.getStatus();
-      if (res.success && res.data) {
-        setEnabled(res.data.enabled);
-        setPaths(res.data.paths?.join("; ") || "");
-        setAutoQuarantine(res.data.auto_quarantine || false);
-        setThreatThreshold(res.data.threat_threshold || 80);
+      console.log("🟣 STATUS RESPONSE:", res);
+
+      const ok =
+        (typeof res?.success === "boolean" ? res.success : true) && (res?.data || res);
+      const data = res?.data ?? res;
+
+      if (ok && data) {
+        setEnabled(!!data.enabled);
+        const pathStr = Array.isArray(data.paths) ? data.paths.join("; ") : (data.paths || "");
+        setPaths(pathStr);
+        setAutoQuarantine(!!(data.auto_quarantine ?? data.autoQuarantine));
+        setThreatThreshold(Number(data.threat_threshold ?? data.threatThreshold ?? 80));
       }
     } catch (err) {
-      console.error("Error loading status:", err);
+      console.error("❌ Error loading status:", err);
     } finally {
       setLoading(false);
     }
   };
 
-const loadEvents = async () => {
-  try {
-    const res = await protectionApi.getEvents(100);
-    if (res.success && res.data) {
-      // Handle response format - backend returns {success, data: [...]}
-      const eventsData = Array.isArray(res.data) 
-        ? res.data 
+  const loadEvents = async (limit = 100) => {
+    try {
+      const res = await protectionApi.getEvents(limit);
+      console.log("🟣 EVENTS RESPONSE:", res);
+
+      const data = Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res)
+        ? res
         : [];
-      setEvents(eventsData);
-    } else {
+
+      setEvents(data);
+    } catch (err) {
+      console.error("❌ Error loading events:", err);
       setEvents([]);
     }
-  } catch (err) {
-    console.error("Error loading events:", err);
-    setEvents([]); // Set empty array on error
-  }
-};
+  };
 
   const refresh = async () => {
+    console.log("🔄 REFRESH CLICKED");
     setRefreshing(true);
     await loadEvents();
     setRefreshing(false);
   };
 
-const toggle = async () => {
-  console.log("🔵 TOGGLE CLICKED!", { enabled, paths, autoQuarantine, threatThreshold });
-  
-  setToggling(true);
-  try {
-    const pathList = paths.split(";").map(s => s.trim()).filter(Boolean);
-    console.log("🔵 PATH LIST:", pathList);
-    
-    const res = await protectionApi.toggle(
-      !enabled,
-      pathList,
+  const toggle = async () => {
+    console.log("🔵 TOGGLE CLICKED!", {
+      enabled,
+      paths,
       autoQuarantine,
-      threatThreshold
-    );
-    
-    console.log("🔵 API RESPONSE:", res);
-    
-    if (res.success && res.data) {
-      setEnabled(res.data.enabled);
-      if (res.data.enabled) {
-        setTimeout(refresh, 2000);
+      threatThreshold,
+    });
+
+    setToggling(true);
+    try {
+      const pathList = paths
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      console.log("🔵 PATH LIST:", pathList);
+
+      const res = await protectionApi.toggle(
+        !enabled,
+        pathList,
+        autoQuarantine,
+        threatThreshold
+      );
+
+      console.log("🔵 API RESPONSE:", res);
+
+      const data = res?.data ?? res;
+      if (data && typeof data.enabled === "boolean") {
+        setEnabled(data.enabled);
+        if (data.enabled) {
+          setTimeout(refresh, 2000);
+        }
       }
+    } catch (err) {
+      console.error("❌ Error toggling protection:", err);
+    } finally {
+      setToggling(false);
     }
-  } catch (err) {
-    console.error("❌ Error toggling protection:", err);
-  } finally {
-    setToggling(false);
-  }
-};
+  };
 
   const getSeverityColor = (level: string) => {
     switch (level?.toLowerCase()) {
-      case "critical": return "text-red-500";
-      case "high": return "text-orange-500";
-      case "medium": return "text-yellow-500";
-      case "low": return "text-green-500";
-      default: return "text-gray-500";
+      case "critical":
+        return "text-red-500";
+      case "high":
+        return "text-orange-500";
+      case "medium":
+        return "text-yellow-500";
+      case "low":
+        return "text-green-500";
+      default:
+        return "text-gray-500";
     }
   };
 
   const getSeverityBg = (level: string) => {
     switch (level?.toLowerCase()) {
-      case "critical": return "bg-red-500/10 border-red-500/30";
-      case "high": return "bg-orange-500/10 border-orange-500/30";
-      case "medium": return "bg-yellow-500/10 border-yellow-500/30";
-      case "low": return "bg-green-500/10 border-green-500/30";
-      default: return "bg-gray-500/10 border-gray-500/30";
+      case "critical":
+        return "bg-red-500/10 border-red-500/30";
+      case "high":
+        return "bg-orange-500/10 border-orange-500/30";
+      case "medium":
+        return "bg-yellow-500/10 border-yellow-500/30";
+      case "low":
+        return "bg-green-500/10 border-green-500/30";
+      default:
+        return "bg-gray-500/10 border-gray-500/30";
     }
   };
 
@@ -136,7 +172,7 @@ const toggle = async () => {
           <button
             onClick={refresh}
             disabled={refreshing}
-            className="btn btn-primary"
+            className="btn btn-primary relative z-10 pointer-events-auto"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
@@ -148,16 +184,20 @@ const toggle = async () => {
       <div className="section">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Protection Status */}
-          <div className="card-premium p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
+          <div className="card-premium p-6 transition-all duration-300 relative">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <Shield className={`h-6 w-6 ${enabled ? "text-green-500" : "text-orange-500"}`} />
+                <Shield
+                  className={`h-6 w-6 ${
+                    enabled ? "text-green-500" : "text-orange-500"
+                  }`}
+                />
                 <span className="font-semibold text-lg">Protection Status</span>
               </div>
               <button
                 onClick={toggle}
                 disabled={toggling}
-                className={`p-2 rounded-lg transition-all ${
+                className={`p-2 rounded-lg transition-all relative z-10 pointer-events-auto ${
                   enabled
                     ? "bg-green-500/10 hover:bg-green-500/20"
                     : "bg-orange-500/10 hover:bg-orange-500/20"
@@ -170,16 +210,22 @@ const toggle = async () => {
                 )}
               </button>
             </div>
-            <div className={`text-2xl font-bold ${enabled ? "text-green-500" : "text-orange-500"}`}>
+            <div
+              className={`text-2xl font-bold ${
+                enabled ? "text-green-500" : "text-orange-500"
+              }`}
+            >
               {enabled ? "ACTIVE" : "DISABLED"}
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              {enabled ? "File system is being monitored" : "Click to enable protection"}
+              {enabled
+                ? "File system is being monitored"
+                : "Click to enable protection"}
             </p>
           </div>
 
           {/* Watch Paths */}
-          <div className="card-premium p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
+          <div className="card-premium p-6 transition-all duration-300 relative">
             <div className="flex items-center gap-3 mb-4">
               <FolderOpen className="h-6 w-6 text-blue-500" />
               <span className="font-semibold text-lg">Watch Paths</span>
@@ -188,7 +234,7 @@ const toggle = async () => {
               type="text"
               value={paths}
               onChange={(e) => setPaths(e.target.value)}
-              placeholder="C:\Users\Downloads; D:\Projects"
+              placeholder="C:\\Users\\Downloads; D:\\Projects"
               className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-blue-500 focus:outline-none"
               disabled={enabled}
             />
@@ -198,7 +244,7 @@ const toggle = async () => {
           </div>
 
           {/* Settings */}
-          <div className="card-premium p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30">
+          <div className="card-premium p-6 transition-all duration-300 relative">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="h-6 w-6 text-cyan-500" />
               <span className="font-semibold text-lg">Settings</span>
@@ -219,10 +265,12 @@ const toggle = async () => {
                 <input
                   type="number"
                   value={threatThreshold}
-                  onChange={(e) => setThreatThreshold(Number(e.target.value))}
+                  onChange={(e) =>
+                    setThreatThreshold(Number(e.target.value))
+                  }
                   disabled={enabled}
-                  min="0"
-                  max="100"
+                  min={0}
+                  max={100}
                   className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none"
                 />
               </div>
@@ -254,7 +302,10 @@ const toggle = async () => {
               <tbody>
                 {events.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-8 text-muted-foreground">
+                    <td
+                      colSpan={6}
+                      className="text-center py-8 text-muted-foreground"
+                    >
                       {enabled
                         ? "No events yet. Create or modify a file in watched directories."
                         : "Enable protection to start monitoring files."}
@@ -267,19 +318,34 @@ const toggle = async () => {
                         {new Date(ev.timestamp).toLocaleTimeString()}
                       </td>
                       <td>
-                        <span className="badge badge--info">{ev.event_type}</span>
+                        <span className="badge badge--info">
+                          {ev.event_type}
+                        </span>
                       </td>
-                      <td className="font-mono text-xs truncate max-w-xs" title={ev.file_path}>
+                      <td
+                        className="font-mono text-xs truncate max-w-xs"
+                        title={ev.file_path}
+                      >
                         {ev.file_path}
                       </td>
                       <td className="text-sm">
-                        {ev.file_size ? `${(ev.file_size / 1024).toFixed(1)} KB` : "—"}
+                        {ev.file_size
+                          ? `${(ev.file_size / 1024).toFixed(1)} KB`
+                          : "—"}
                       </td>
-                      <td className={`font-bold ${getSeverityColor(ev.threat_level)}`}>
+                      <td
+                        className={`font-bold ${getSeverityColor(
+                          ev.threat_level
+                        )}`}
+                      >
                         {Math.round(ev.threat_score || 0)}
                       </td>
                       <td>
-                        <span className={`badge border-2 ${getSeverityBg(ev.threat_level)}`}>
+                        <span
+                          className={`badge border-2 ${getSeverityBg(
+                            ev.threat_level
+                          )}`}
+                        >
                           {ev.threat_level?.toUpperCase() || "UNKNOWN"}
                         </span>
                       </td>
