@@ -827,9 +827,50 @@ export const settingsApi = {
   },
 }
 
+
+// ============================================
+// PROTECTION API
+// ============================================
+
+export const protectionApi = {
+  /**
+   * Get protection status
+   */
+  getStatus: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/protection/status')
+  },
+
+  /**
+   * Toggle protection
+   */
+  toggle: async (
+    enabled: boolean,
+    paths: string[],
+    autoQuarantine?: boolean,
+    threatThreshold?: number
+  ): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/protection/toggle', {
+      enabled,
+      paths,
+      auto_quarantine: autoQuarantine,
+      threat_threshold: threatThreshold,
+    })
+  },
+
+  /**
+   * Get file system events
+   */
+  getEvents: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(
+      `/api/protection/events${limit ? `?limit=${limit}` : ''}`
+    )
+  },
+}
+
 // ============================================
 // EXPORTS
 // ============================================
+
 
 export const api = {
   dashboard: dashboardApi,
@@ -843,6 +884,7 @@ export const api = {
    analytics: analyticsApi,
    emails: emailsApi,
    settings: settingsApi, 
+   protection: protectionApi,
 }
 
 export default api

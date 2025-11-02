@@ -47,6 +47,11 @@ const navItems: NavItem[] = [
     icon: Zap,
   },
   {
+    label: 'Protection',      
+    href: '/protection',       
+    icon: Shield,              
+  },       
+  {
     label: 'Deception',
     href: '/deception',
     icon: Eye,
