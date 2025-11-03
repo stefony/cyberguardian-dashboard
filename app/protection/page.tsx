@@ -170,13 +170,13 @@ export default function ProtectionPage() {
           </div>
 
           <button
-            onClick={refresh}
-            disabled={refreshing}
-            className="btn btn-primary relative z-10 pointer-events-auto"
-          >
-            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </button>
+  onClick={refresh}
+  disabled={refreshing}
+  className="btn btn-primary relative z-10 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/50"
+>
+  <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+  Refresh
+</button>
         </div>
       </div>
 
@@ -184,7 +184,7 @@ export default function ProtectionPage() {
       <div className="section">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Protection Status */}
-          <div className="card-premium p-6 transition-all duration-300 relative">
+          <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/20 relative">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <Shield
@@ -194,26 +194,26 @@ export default function ProtectionPage() {
                 />
                 <span className="font-semibold text-lg">Protection Status</span>
               </div>
-            <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  console.log("🟢 BUTTON CLICKED - EVENT FIRED!");
-                  toggle();
-                }}
-                disabled={toggling}
-                className={`p-2 rounded-lg transition-all z-50 pointer-events-auto cursor-pointer ${
-                  enabled
-                    ? "bg-green-500/10 hover:bg-green-500/20"
-                    : "bg-orange-500/10 hover:bg-orange-500/20"
-                }`}
-                style={{ position: 'relative', zIndex: 9999 }}
-              >
-                {enabled ? (
-                  <ToggleRight className="h-6 w-6 text-green-500" />
-                ) : (
-                  <ToggleLeft className="h-6 w-6 text-orange-500" />
-                )}
-              </button>
+           <button
+  onClick={(e) => {
+    e.stopPropagation();
+    console.log("🟢 BUTTON CLICKED - EVENT FIRED!");
+    toggle();
+  }}
+  disabled={toggling}
+  className={`p-2 rounded-lg transition-all duration-200 z-50 pointer-events-auto cursor-pointer transform hover:scale-110 active:scale-95 ${
+    enabled
+      ? "bg-green-500/10 hover:bg-green-500/20 hover:shadow-lg hover:shadow-green-500/50"
+      : "bg-orange-500/10 hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-500/50"
+  }`}
+  style={{ position: 'relative', zIndex: 9999 }}
+>
+  {enabled ? (
+    <ToggleRight className="h-6 w-6 text-green-500" />
+  ) : (
+    <ToggleLeft className="h-6 w-6 text-orange-500" />
+  )}
+</button>
             </div>
             <div
               className={`text-2xl font-bold ${
@@ -230,7 +230,7 @@ export default function ProtectionPage() {
           </div>
 
           {/* Watch Paths */}
-          <div className="card-premium p-6 transition-all duration-300 relative">
+          <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/20 relative">
             <div className="flex items-center gap-3 mb-4">
               <FolderOpen className="h-6 w-6 text-blue-500" />
               <span className="font-semibold text-lg">Watch Paths</span>
@@ -250,21 +250,21 @@ export default function ProtectionPage() {
           </div>
 
           {/* Settings */}
-          <div className="card-premium p-6 transition-all duration-300 relative">
+          <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-cyan-500/20 relative">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="h-6 w-6 text-cyan-500" />
               <span className="font-semibold text-lg">Settings</span>
             </div>
             <div className="space-y-3">
-              <label className="flex items-center justify-between">
-                <span className="text-sm">Auto-Quarantine</span>
-                <input
-                  type="checkbox"
-                  checked={autoQuarantine}
-                  onChange={(e) => setAutoQuarantine(e.target.checked)}
-                  disabled={enabled}
-                  className="w-4 h-4 rounded border-border"
-                />
+             <label className="flex items-center justify-between cursor-pointer">
+  <span className="text-sm">Auto-Quarantine</span>
+  <input
+    type="checkbox"
+    checked={autoQuarantine}
+    onChange={(e) => setAutoQuarantine(e.target.checked)}
+    disabled={enabled}
+    className="w-5 h-5 rounded border-2 border-border bg-card checked:bg-purple-600 checked:border-purple-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+  />
               </label>
               <div>
                 <label className="text-sm block mb-1">Threat Threshold</label>
