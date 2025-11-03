@@ -865,6 +865,13 @@ export const protectionApi = {
       `/api/protection/events${limit ? `?limit=${limit}` : ''}`
     )
   },
+
+  /**
+   * Get protection statistics
+   */
+  getStats: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/protection/stats')
+  },
 }
 
 // ============================================
