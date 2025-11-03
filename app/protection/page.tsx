@@ -9,6 +9,9 @@ import {
   RefreshCw,
   AlertTriangle,
   CheckCircle,
+  BarChart3,
+  Clock,
+  FileSearch,
 } from "lucide-react";
 import { protectionApi } from "@/lib/api";
 
@@ -21,10 +24,17 @@ export default function ProtectionPage() {
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [stats, setStats] = useState({
+    files_scanned: 0,
+    threats_detected: 0,
+    uptime_seconds: 0,
+    last_scan: null,
+  });
 
   useEffect(() => {
     loadStatus();
     loadEvents();
+    loadStats();
   }, []);
 
   const loadStatus = async () => {
@@ -68,11 +78,30 @@ export default function ProtectionPage() {
     }
   };
 
+  const loadStats = async () => {
+    try {
+      const res = await protectionApi.getStats();
+      if (res.success && res.data) {
+        setStats(res.data);
+      }
+    } catch (err) {
+      console.error("❌ Error loading stats:", err);
+    }
+  };
+
   const refresh = async () => {
     console.log("🔄 REFRESH CLICKED");
     setRefreshing(true);
     await loadEvents();
+    await loadStats();
     setRefreshing(false);
+  };
+
+  const formatUptime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   const toggle = async () => {
@@ -105,7 +134,17 @@ export default function ProtectionPage() {
       if (data && typeof data.enabled === "boolean") {
         setEnabled(data.enabled);
         if (data.enabled) {
-          setTimeout(refresh, 2000);
+          setTimeout(() => {
+            refresh();
+          }, 2000);
+        } else {
+          // Reset stats when disabled
+          setStats({
+            files_scanned: 0,
+            threats_detected: 0,
+            uptime_seconds: 0,
+            last_scan: null,
+          });
         }
       }
     } catch (err) {
@@ -170,13 +209,13 @@ export default function ProtectionPage() {
           </div>
 
           <button
-  onClick={refresh}
-  disabled={refreshing}
-  className="btn btn-primary relative z-10 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/50"
->
-  <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-  Refresh
-</button>
+            onClick={refresh}
+            disabled={refreshing}
+            className="btn btn-primary relative z-10 pointer-events-auto transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-lg hover:shadow-purple-500/50"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            Refresh
+          </button>
         </div>
       </div>
 
@@ -194,26 +233,26 @@ export default function ProtectionPage() {
                 />
                 <span className="font-semibold text-lg">Protection Status</span>
               </div>
-           <button
-  onClick={(e) => {
-    e.stopPropagation();
-    console.log("🟢 BUTTON CLICKED - EVENT FIRED!");
-    toggle();
-  }}
-  disabled={toggling}
-  className={`p-2 rounded-lg transition-all duration-200 z-50 pointer-events-auto cursor-pointer transform hover:scale-110 active:scale-95 ${
-    enabled
-      ? "bg-green-500/10 hover:bg-green-500/20 hover:shadow-lg hover:shadow-green-500/50"
-      : "bg-orange-500/10 hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-500/50"
-  }`}
-  style={{ position: 'relative', zIndex: 9999 }}
->
-  {enabled ? (
-    <ToggleRight className="h-6 w-6 text-green-500" />
-  ) : (
-    <ToggleLeft className="h-6 w-6 text-orange-500" />
-  )}
-</button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("🟢 BUTTON CLICKED - EVENT FIRED!");
+                  toggle();
+                }}
+                disabled={toggling}
+                className={`p-2 rounded-lg transition-all duration-200 z-50 pointer-events-auto cursor-pointer transform hover:scale-110 active:scale-95 ${
+                  enabled
+                    ? "bg-green-500/10 hover:bg-green-500/20 hover:shadow-lg hover:shadow-green-500/50"
+                    : "bg-orange-500/10 hover:bg-orange-500/20 hover:shadow-lg hover:shadow-orange-500/50"
+                }`}
+                style={{ position: 'relative', zIndex: 9999 }}
+              >
+                {enabled ? (
+                  <ToggleRight className="h-6 w-6 text-green-500" />
+                ) : (
+                  <ToggleLeft className="h-6 w-6 text-orange-500" />
+                )}
+              </button>
             </div>
             <div
               className={`text-2xl font-bold ${
@@ -235,15 +274,15 @@ export default function ProtectionPage() {
               <FolderOpen className="h-6 w-6 text-blue-500" />
               <span className="font-semibold text-lg">Watch Paths</span>
             </div>
-         <input
-  type="text"
-  value={paths}
-  onChange={(e) => setPaths(e.target.value)}
-  placeholder="C:\\Users\\Downloads; D:\\Projects"
-  className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-blue-500 focus:outline-none relative z-50"
-  style={{ pointerEvents: 'auto' }}
-  disabled={enabled}
-/>
+            <input
+              type="text"
+              value={paths}
+              onChange={(e) => setPaths(e.target.value)}
+              placeholder="C:\\Users\\Downloads; D:\\Projects"
+              className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-blue-500 focus:outline-none relative z-50"
+              style={{ pointerEvents: 'auto' }}
+              disabled={enabled}
+            />
             <p className="text-xs text-muted-foreground mt-2">
               Separate multiple paths with semicolon (;)
             </p>
@@ -256,7 +295,7 @@ export default function ProtectionPage() {
               <span className="font-semibold text-lg">Settings</span>
             </div>
             <div className="space-y-3">
-           <label className="flex items-center justify-between cursor-pointer group">
+              <label className="flex items-center justify-between cursor-pointer group">
                 <span className="text-sm">Auto-Quarantine</span>
                 <div className="relative">
                   <input
@@ -297,16 +336,74 @@ export default function ProtectionPage() {
               </label>
               <div>
                 <label className="text-sm block mb-1">Threat Threshold</label>
-              <input
-  type="number"
-  value={threatThreshold}
-  onChange={(e) => setThreatThreshold(Number(e.target.value))}
-  disabled={enabled}
-  min={0}
-  max={100}
-  className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none relative z-50"
-  style={{ pointerEvents: 'auto' }}
-/>
+                <input
+                  type="number"
+                  value={threatThreshold}
+                  onChange={(e) => setThreatThreshold(Number(e.target.value))}
+                  disabled={enabled}
+                  min={0}
+                  max={100}
+                  className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none relative z-50"
+                  style={{ pointerEvents: 'auto' }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics Card */}
+      <div className="section">
+        <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:shadow-purple-500/20">
+          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-purple-500" />
+            Protection Statistics
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Files Scanned */}
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <FileSearch className="h-4 w-4 text-blue-400" />
+                <span className="text-sm text-muted-foreground">Files Scanned</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-400">
+                {stats.files_scanned.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Threats Detected */}
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertTriangle className="h-4 w-4 text-red-400" />
+                <span className="text-sm text-muted-foreground">Threats Detected</span>
+              </div>
+              <div className="text-2xl font-bold text-red-400">
+                {stats.threats_detected.toLocaleString()}
+              </div>
+            </div>
+
+            {/* Uptime */}
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <Clock className="h-4 w-4 text-green-400" />
+                <span className="text-sm text-muted-foreground">Uptime</span>
+              </div>
+              <div className="text-2xl font-bold font-mono text-green-400">
+                {enabled ? formatUptime(stats.uptime_seconds) : "00:00:00"}
+              </div>
+            </div>
+
+            {/* Last Scan */}
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <div className="flex items-center gap-2 mb-2">
+                <CheckCircle className="h-4 w-4 text-purple-400" />
+                <span className="text-sm text-muted-foreground">Last Scan</span>
+              </div>
+              <div className="text-sm font-mono text-purple-400">
+                {stats.last_scan 
+                  ? new Date(stats.last_scan).toLocaleTimeString() 
+                  : "—"}
               </div>
             </div>
           </div>
