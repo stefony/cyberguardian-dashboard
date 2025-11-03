@@ -107,6 +107,16 @@ class ApiClient {
   }
 
   /**
+   * PATCH request
+   */
+  async patch<T>(endpoint: string, body?: any): Promise<ApiResponse<T>> {
+    return this.fetch<T>(endpoint, {
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    })
+  }
+
+  /**
    * DELETE request
    */
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
@@ -874,6 +884,77 @@ export const protectionApi = {
   },
 }
 
+
+// ============================================
+// SCANS API
+// ============================================
+
+export const scansApi = {
+  /**
+   * Get all scan schedules
+   */
+  getSchedules: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/scans/schedules')
+  },
+
+  /**
+   * Get single schedule
+   */
+  getSchedule: async (id: number): Promise<ApiResponse<any>> => {
+    return client.get<any>(`/api/scans/schedules/${id}`)
+  },
+
+  /**
+   * Create scan schedule
+   */
+  createSchedule: async (data: {
+    name: string
+    scan_type: string
+    target_path: string
+    schedule_type: string
+    interval_days?: number
+    enabled?: boolean
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/scans/schedules', data)
+  },
+
+  /**
+   * Update scan schedule
+   */
+  updateSchedule: async (
+    id: number,
+    data: { name?: string; enabled?: boolean }
+  ): Promise<ApiResponse<any>> => {
+    return client.patch<any>(`/api/scans/schedules/${id}`, data)
+  },
+
+  /**
+   * Delete scan schedule
+   */
+  deleteSchedule: async (id: number): Promise<ApiResponse<any>> => {
+    return client.delete<any>(`/api/scans/schedules/${id}`)
+  },
+
+  /**
+   * Get scan history
+   */
+  getHistory: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(
+      `/api/scans/history${limit ? `?limit=${limit}` : ''}`
+    )
+  },
+
+  /**
+   * Run manual scan
+   */
+  runScan: async (data: {
+    scan_type: string
+    target_path: string
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/scans/run', data)
+  },
+}
+
 // ============================================
 // EXPORTS
 // ============================================
@@ -892,6 +973,7 @@ export const api = {
    emails: emailsApi,
    settings: settingsApi, 
    protection: protectionApi,
+   scans: scansApi,
 }
 
 export default api

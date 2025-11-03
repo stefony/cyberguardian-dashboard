@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Zap,
   LogOut,
+  Calendar,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -50,7 +51,12 @@ const navItems: NavItem[] = [
     label: 'Protection',      
     href: '/protection',       
     icon: Shield,              
-  },       
+  },    
+  {
+    label: 'Scans',           // ← ADD THIS
+    href: '/scans',           // ← ADD THIS
+    icon: Calendar,           // ← ADD THIS (need to import)
+  },   
   {
     label: 'Deception',
     href: '/deception',
