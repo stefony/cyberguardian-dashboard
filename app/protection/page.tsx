@@ -235,14 +235,15 @@ export default function ProtectionPage() {
               <FolderOpen className="h-6 w-6 text-blue-500" />
               <span className="font-semibold text-lg">Watch Paths</span>
             </div>
-            <input
-              type="text"
-              value={paths}
-              onChange={(e) => setPaths(e.target.value)}
-              placeholder="C:\\Users\\Downloads; D:\\Projects"
-              className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-blue-500 focus:outline-none"
-              disabled={enabled}
-            />
+         <input
+  type="text"
+  value={paths}
+  onChange={(e) => setPaths(e.target.value)}
+  placeholder="C:\\Users\\Downloads; D:\\Projects"
+  className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-blue-500 focus:outline-none relative z-50"
+  style={{ pointerEvents: 'auto' }}
+  disabled={enabled}
+/>
             <p className="text-xs text-muted-foreground mt-2">
               Separate multiple paths with semicolon (;)
             </p>
@@ -267,17 +268,16 @@ export default function ProtectionPage() {
               </label>
               <div>
                 <label className="text-sm block mb-1">Threat Threshold</label>
-                <input
-                  type="number"
-                  value={threatThreshold}
-                  onChange={(e) =>
-                    setThreatThreshold(Number(e.target.value))
-                  }
-                  disabled={enabled}
-                  min={0}
-                  max={100}
-                  className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none"
-                />
+              <input
+  type="number"
+  value={threatThreshold}
+  onChange={(e) => setThreatThreshold(Number(e.target.value))}
+  disabled={enabled}
+  min={0}
+  max={100}
+  className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none relative z-50"
+  style={{ pointerEvents: 'auto' }}
+/>
               </div>
             </div>
           </div>
