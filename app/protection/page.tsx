@@ -256,15 +256,44 @@ export default function ProtectionPage() {
               <span className="font-semibold text-lg">Settings</span>
             </div>
             <div className="space-y-3">
-             <label className="flex items-center justify-between cursor-pointer">
-  <span className="text-sm">Auto-Quarantine</span>
-  <input
-    type="checkbox"
-    checked={autoQuarantine}
-    onChange={(e) => setAutoQuarantine(e.target.checked)}
-    disabled={enabled}
-    className="w-5 h-5 rounded border-2 border-border bg-card checked:bg-purple-600 checked:border-purple-600 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-  />
+           <label className="flex items-center justify-between cursor-pointer group">
+                <span className="text-sm">Auto-Quarantine</span>
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={autoQuarantine}
+                    onChange={(e) => setAutoQuarantine(e.target.checked)}
+                    disabled={enabled}
+                    className="peer sr-only"
+                  />
+                  <div className={`
+                    w-5 h-5 rounded border-2 flex items-center justify-center
+                    transition-all duration-200
+                    ${enabled 
+                      ? 'border-border/50 bg-card/50 cursor-not-allowed' 
+                      : 'border-border bg-card cursor-pointer hover:border-purple-500'
+                    }
+                    ${autoQuarantine 
+                      ? 'bg-purple-600 border-purple-600' 
+                      : ''
+                    }
+                    peer-focus:ring-2 peer-focus:ring-purple-500/50
+                  `}>
+                    {autoQuarantine && (
+                      <svg 
+                        className="w-3 h-3 text-white" 
+                        fill="none" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="3" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    )}
+                  </div>
+                </div>
               </label>
               <div>
                 <label className="text-sm block mb-1">Threat Threshold</label>
