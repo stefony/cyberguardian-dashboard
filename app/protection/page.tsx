@@ -194,14 +194,19 @@ export default function ProtectionPage() {
                 />
                 <span className="font-semibold text-lg">Protection Status</span>
               </div>
-              <button
-                onClick={toggle}
+            <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("🟢 BUTTON CLICKED - EVENT FIRED!");
+                  toggle();
+                }}
                 disabled={toggling}
-                className={`p-2 rounded-lg transition-all relative z-10 pointer-events-auto ${
+                className={`p-2 rounded-lg transition-all z-50 pointer-events-auto cursor-pointer ${
                   enabled
                     ? "bg-green-500/10 hover:bg-green-500/20"
                     : "bg-orange-500/10 hover:bg-orange-500/20"
                 }`}
+                style={{ position: 'relative', zIndex: 9999 }}
               >
                 {enabled ? (
                   <ToggleRight className="h-6 w-6 text-green-500" />
