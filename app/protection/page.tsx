@@ -368,8 +368,8 @@ export default function ProtectionPage() {
                 <span className="text-sm text-muted-foreground">Files Scanned</span>
               </div>
               <div className="text-2xl font-bold text-blue-400">
-                {stats.files_scanned.toLocaleString()}
-              </div>
+  {(stats.files_scanned || 0).toLocaleString()}
+</div>
             </div>
 
             {/* Threats Detected */}
@@ -378,9 +378,9 @@ export default function ProtectionPage() {
                 <AlertTriangle className="h-4 w-4 text-red-400" />
                 <span className="text-sm text-muted-foreground">Threats Detected</span>
               </div>
-              <div className="text-2xl font-bold text-red-400">
-                {stats.threats_detected.toLocaleString()}
-              </div>
+             <div className="text-2xl font-bold text-red-400">
+  {(stats.threats_detected || 0).toLocaleString()}
+</div>
             </div>
 
             {/* Uptime */}
