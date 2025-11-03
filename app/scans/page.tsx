@@ -42,27 +42,33 @@ export default function ScansPage() {
     setLoading(false);
   };
 
-  const loadSchedules = async () => {
-    try {
-      const res = await scansApi.getSchedules();
-      if (res.success && res.data) {
-        setSchedules(res.data);
-      }
-    } catch (err) {
-      console.error("Error loading schedules:", err);
+ const loadSchedules = async () => {
+  try {
+    const res = await scansApi.getSchedules();
+    if (res.success && res.data) {
+      setSchedules(Array.isArray(res.data) ? res.data : []);
+    } else {
+      setSchedules([]);
     }
-  };
+  } catch (err) {
+    console.error("Error loading schedules:", err);
+    setSchedules([]);
+  }
+};
 
-  const loadHistory = async () => {
-    try {
-      const res = await scansApi.getHistory(20);
-      if (res.success && res.data) {
-        setHistory(res.data);
-      }
-    } catch (err) {
-      console.error("Error loading history:", err);
+const loadHistory = async () => {
+  try {
+    const res = await scansApi.getHistory(20);
+    if (res.success && res.data) {
+      setHistory(Array.isArray(res.data) ? res.data : []);
+    } else {
+      setHistory([]);
     }
-  };
+  } catch (err) {
+    console.error("Error loading history:", err);
+    setHistory([]);
+  }
+};
 
   const refresh = async () => {
     setRefreshing(true);
