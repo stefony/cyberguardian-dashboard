@@ -27,9 +27,29 @@ import type {
 // CONFIGURATION
 // ============================================
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-const WS_BASE_URL = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
+
+ /**
+ * WS URL builder:
+ * 1) If NEXT_PUBLIC_WS_URL is set → use it (full URL)
+ * 2) Otherwise build it from API_BASE_URL + /api/ws/connect
+ *    using wss:// when API is https, otherwise ws://
+ */
+const buildWsUrl = () => {
+  if (process.env.NEXT_PUBLIC_WS_URL) {
+    return process.env.NEXT_PUBLIC_WS_URL;
+  }
+  const api = API_BASE_URL;
+  const wsScheme = api.startsWith('https://') ? 'wss://' : 'ws://';
+  const host = api.replace(/^https?:\/\//, '');
+  return `${wsScheme}${host}/api/ws/connect`;
+};
+
+const WS_BASE_URL = buildWsUrl();
+
+
+
 
 // ============================================
 // HTTP CLIENT
@@ -500,7 +520,8 @@ export class WebSocketClient {
    */
   connect(onMessage: (data: any) => void, onError?: (error: Event) => void) {
     try {
-      this.ws = new WebSocket(`${WS_BASE_URL}/ws`)
+      this.ws = new WebSocket(WS_BASE_URL as string)
+
 
       this.ws.onopen = () => {
         console.log('✅ WebSocket connected')
