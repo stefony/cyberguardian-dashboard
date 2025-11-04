@@ -216,21 +216,22 @@ export default function QuarantinePage() {
       )}
 
       {/* Search */}
-      <div className="section">
-        <div className="card-premium p-4">
-          <div className="flex items-center gap-2">
-            <Search className="h-5 w-5 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by filename or path..."
-              className="flex-1 px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
-               style={{ pointerEvents: 'auto' }}
-            />
-          </div>
-        </div>
-      </div>
+      {/* Search */}
+<div className="section">
+  <div className="card-premium p-4">
+    <div className="relative">
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search by filename or path..."
+        className="w-full pl-10 pr-4 py-3 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none transition-colors"
+        autoComplete="off"
+      />
+    </div>
+  </div>
+</div>
 
       {/* Files Table */}
       <div className="section">
