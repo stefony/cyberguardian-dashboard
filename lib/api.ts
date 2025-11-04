@@ -956,10 +956,63 @@ export const scansApi = {
 }
 
 // ============================================
-// EXPORTS
+// QUARANTINE API
 // ============================================
 
+export const quarantineApi = {
+  /**
+   * Get all quarantined files
+   */
+  getFiles: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/quarantine')
+  },
 
+  /**
+   * Get quarantine statistics
+   */
+  getStats: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/quarantine/stats')
+  },
+
+  /**
+   * Get single quarantined file
+   */
+  getFile: async (id: string): Promise<ApiResponse<any>> => {
+    return client.get<any>(`/api/quarantine/${id}`)
+  },
+
+  /**
+   * Quarantine a file
+   */
+  quarantineFile: async (data: {
+    file_path: string
+    reason?: string
+    threat_score?: number
+    threat_level?: string
+    detection_method?: string
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/quarantine', data)
+  },
+
+  /**
+   * Restore file from quarantine
+   */
+  restoreFile: async (id: string): Promise<ApiResponse<any>> => {
+    return client.post<any>(`/api/quarantine/${id}/restore`, {})
+  },
+
+  /**
+   * Permanently delete quarantined file
+   */
+  deleteFile: async (id: string): Promise<ApiResponse<any>> => {
+    return client.delete<any>(`/api/quarantine/${id}`)
+  },
+}
+
+
+// ============================================
+// EXPORTS
+// ============================================
 export const api = {
   dashboard: dashboardApi,
   threats: threatsApi,
@@ -974,6 +1027,7 @@ export const api = {
    settings: settingsApi, 
    protection: protectionApi,
    scans: scansApi,
+   quarantine: quarantineApi,
 }
 
 export default api

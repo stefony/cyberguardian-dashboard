@@ -20,6 +20,7 @@ import {
   Zap,
   LogOut,
   Calendar,
+  Lock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -57,6 +58,11 @@ const navItems: NavItem[] = [
     href: '/scans',           // ← ADD THIS
     icon: Calendar,           // ← ADD THIS (need to import)
   },   
+  {
+    label: 'Quarantine',      // ← ADD THIS
+    href: '/quarantine',      // ← ADD THIS
+    icon: Lock,             // ← ADD THIS (we can use Shield or import new icon)
+  },
   {
     label: 'Deception',
     href: '/deception',
