@@ -20,7 +20,6 @@ import type {
   HealthData,
   ResponseAction,
   ApiResponse,
-  PaginatedResponse,
 } from './types'
 
 // ============================================
