@@ -226,6 +226,7 @@ export default function QuarantinePage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by filename or path..."
               className="flex-1 px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
+               style={{ pointerEvents: 'auto' }}
             />
           </div>
         </div>
