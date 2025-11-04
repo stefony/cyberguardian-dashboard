@@ -69,35 +69,48 @@ class ApiClient {
     endpoint: string,
     options?: RequestInit
   ): Promise<ApiResponse<T>> {
+    // 🔎 DEBUG (временен): ако е към quarantine, логни реалния URL
+    if (endpoint.startsWith("/api/quarantine")) {
+      // eslint-disable-next-line no-console
+      console.log("QUAR FETCH →", this.baseUrl, endpoint);
+    }
+
     try {
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           ...options?.headers,
         },
-      })
+      });
 
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: 'Unknown error' }))
+        // 🔎 DEBUG (временен): логни статуса при грешка
+        // eslint-disable-next-line no-console
+        console.warn("FETCH ERROR →", `${this.baseUrl}${endpoint}`, response.status);
+        const error = await response.json().catch(() => ({ message: "Unknown error" }));
         return {
           success: false,
           error: error.message || `HTTP ${response.status}`,
-        }
+        };
       }
 
-      const data = await response.json()
+      const data = await response.json();
       return {
         success: true,
         data,
-      }
+      };
     } catch (error) {
+      // 🔎 DEBUG (временен): логни мрежова грешка
+     
+      console.error("NETWORK ERROR →", `${this.baseUrl}${endpoint}`, error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Network error',
-      }
+        error: error instanceof Error ? error.message : "Network error",
+      };
     }
   }
+
 
   /**
    * GET request
