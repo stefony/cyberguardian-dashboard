@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Settings as SettingsIcon, Bell, Palette, Shield, Info, Key, Save, RotateCcw, Check, Mail, Plus, Trash2, Loader2 } from "lucide-react";
 import { settingsApi, emailsApi } from "@/lib/api"; 
+ 
 
 // Types
 type NotificationSettings = {
@@ -568,139 +569,215 @@ export default function SettingsPage() {
               )}
 
               {/* Add Email Account Button */}
-              <button
-                onClick={() => setShowAddEmailForm(!showAddEmailForm)}
-                className="w-full px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-2 border-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                {showAddEmailForm ? 'Cancel' : 'Add Email Account'}
-              </button>
+             <button
+  onClick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowAddEmailForm(!showAddEmailForm);
+  }}
+  className="w-full px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-2 border-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2 relative z-50 cursor-pointer"
+  style={{ pointerEvents: 'auto' }}
+>
+  <Plus className="h-4 w-4" />
+  {showAddEmailForm ? 'Cancel' : 'Add Email Account'}
+</button>
 
-              {/* Add Email Form */}
-              {showAddEmailForm && (
-                <div className="mt-4 p-4 rounded-lg bg-card/50 border border-blue-500/30 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Email Provider</label>
-                    <select
-                      value={newEmailForm.provider}
-                      onChange={(e) => {
-                        const provider = e.target.value;
-                        setNewEmailForm({
-                          ...newEmailForm,
-                          provider,
-                          imap_host: provider === 'gmail' ? 'imap.gmail.com' : 
-                                    provider === 'outlook' ? 'outlook.office365.com' : '',
-                          imap_port: 993
-                        });
-                      }}
-                      className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      style={{ colorScheme: 'dark' }}
-                    >
-                      <option value="">Select provider</option>
-                      <option value="gmail">Gmail</option>
-                      <option value="outlook">Outlook / Office 365</option>
-                      <option value="yahoo">Yahoo Mail</option>
-                      <option value="other">Other (Custom)</option>
-                    </select>
-                  </div>
+{/* Add Email Form */}
+{showAddEmailForm && (
+  <div className="mt-4 p-4 rounded-lg bg-card/50 border border-blue-500/30 space-y-4 relative z-50">
+    
+    {/* Instructions Banner */}
+    <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30 text-sm">
+      <div className="flex items-start gap-2">
+        <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
+        <div>
+          <div className="font-semibold text-blue-500 mb-1">Setup Instructions:</div>
+          <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
+            <li>Enable 2-Factor Authentication on your email account</li>
+            <li>Generate an App Password (not your regular password)</li>
+            <li>Use the App Password below to connect</li>
+          </ol>
+        </div>
+      </div>
+    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      value={newEmailForm.email_address}
-                      onChange={(e) => setNewEmailForm({ ...newEmailForm, email_address: e.target.value })}
-                      placeholder="your.email@example.com"
-                      className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+    <div>
+      <label className="block text-sm font-medium mb-2">Email Provider</label>
+      <select
+        value={newEmailForm.provider}
+        onChange={(e) => {
+          const provider = e.target.value;
+          setNewEmailForm({
+            ...newEmailForm,
+            provider,
+            imap_host: provider === 'gmail' ? 'imap.gmail.com' : 
+                      provider === 'outlook' ? 'outlook.office365.com' : 
+                      provider === 'yahoo' ? 'imap.mail.yahoo.com' : '',
+            imap_port: 993
+          });
+        }}
+        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50 cursor-pointer"
+        style={{ 
+          colorScheme: 'dark',
+          pointerEvents: 'auto',
+          backgroundColor: 'rgb(15, 23, 42)',
+          color: 'white'
+        }}
+      >
+        <option value="" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Select provider</option>
+        <option value="gmail" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Gmail</option>
+        <option value="outlook" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Outlook / Office 365</option>
+        <option value="yahoo" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Yahoo Mail</option>
+        <option value="other" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Other (Custom)</option>
+      </select>
+    </div>
 
-                  {newEmailForm.provider === 'other' && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">IMAP Host</label>
-                        <input
-                          type="text"
-                          value={newEmailForm.imap_host}
-                          onChange={(e) => setNewEmailForm({ ...newEmailForm, imap_host: e.target.value })}
-                          placeholder="imap.example.com"
-                          className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">IMAP Port</label>
-                        <input
-                          type="number"
-                          value={newEmailForm.imap_port}
-                          onChange={(e) => setNewEmailForm({ ...newEmailForm, imap_port: parseInt(e.target.value) })}
-                          placeholder="993"
-                          className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </>
-                  )}
+    <div>
+      <label className="block text-sm font-medium mb-2">Email Address</label>
+      <input
+        type="email"
+        value={newEmailForm.email_address}
+        onChange={(e) => setNewEmailForm({ ...newEmailForm, email_address: e.target.value })}
+        placeholder="your.email@example.com"
+        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50"
+        style={{ pointerEvents: 'auto' }}
+      />
+    </div>
 
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      App Password
-                      {newEmailForm.provider === 'gmail' && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          (Generate at: myaccount.google.com/apppasswords)
-                        </span>
-                      )}
-                    </label>
-                    <input
-                      type="password"
-                      value={newEmailForm.password}
-                      onChange={(e) => setNewEmailForm({ ...newEmailForm, password: e.target.value })}
-                      placeholder="Enter app password"
-                      className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+    {newEmailForm.provider === 'other' && (
+      <>
+        <div>
+          <label className="block text-sm font-medium mb-2">IMAP Host</label>
+          <input
+            type="text"
+            value={newEmailForm.imap_host}
+            onChange={(e) => setNewEmailForm({ ...newEmailForm, imap_host: e.target.value })}
+            placeholder="imap.example.com"
+            className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50"
+            style={{ pointerEvents: 'auto' }}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium mb-2">IMAP Port</label>
+          <input
+            type="number"
+            value={newEmailForm.imap_port}
+            onChange={(e) => setNewEmailForm({ ...newEmailForm, imap_port: parseInt(e.target.value) })}
+            placeholder="993"
+            className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50"
+            style={{ pointerEvents: 'auto' }}
+          />
+        </div>
+      </>
+    )}
 
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium mb-2">Auto-scan every (hours)</label>
-                      <input
-                        type="number"
-                        value={newEmailForm.scan_interval_hours}
-                        onChange={(e) => setNewEmailForm({ ...newEmailForm, scan_interval_hours: parseInt(e.target.value) })}
-                        min="1"
-                        max="168"
-                        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium mb-2">Folders to scan</label>
-                      <input
-                        type="text"
-                        value={newEmailForm.folders_to_scan}
-                        onChange={(e) => setNewEmailForm({ ...newEmailForm, folders_to_scan: e.target.value })}
-                        placeholder="INBOX"
-                        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
+    <div>
+      <label className="block text-sm font-medium mb-2">
+        App Password
+        {newEmailForm.provider === 'gmail' && (
+          <span className="text-xs text-blue-400 ml-2">
+            (16-character code, not your Gmail password)
+          </span>
+        )}
+        {newEmailForm.provider === 'outlook' && (
+          <span className="text-xs text-blue-400 ml-2">
+            (Not your Microsoft account password)
+          </span>
+        )}
+      </label>
+      <input
+        type="password"
+        value={newEmailForm.password}
+        onChange={(e) => setNewEmailForm({ ...newEmailForm, password: e.target.value })}
+        placeholder="Enter app password"
+        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50"
+        style={{ pointerEvents: 'auto' }}
+      />
+      
+      {/* Provider-specific instructions */}
+      {newEmailForm.provider === 'gmail' && (
+        <div className="mt-2 p-2 rounded bg-green-500/10 border border-green-500/30 text-xs">
+          <div className="font-semibold text-green-500 mb-1">📧 Gmail Setup:</div>
+          <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground">
+            <li>Go to <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-green-400 hover:underline">Google App Passwords</a></li>
+            <li>Select "Mail" and your device</li>
+            <li>Copy the 16-character password (format: xxxx xxxx xxxx xxxx)</li>
+            <li>Paste it above (remove spaces)</li>
+          </ol>
+        </div>
+      )}
+      
+      {newEmailForm.provider === 'outlook' && (
+        <div className="mt-2 p-2 rounded bg-blue-500/10 border border-blue-500/30 text-xs">
+          <div className="font-semibold text-blue-500 mb-1">📧 Outlook Setup:</div>
+          <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground">
+            <li>Go to <a href="https://account.microsoft.com/security" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Microsoft Security Settings</a></li>
+            <li>Enable 2-step verification if not already enabled</li>
+            <li>Create an App Password under "Advanced security options"</li>
+            <li>Use that password above</li>
+          </ol>
+        </div>
+      )}
+      
+      {newEmailForm.provider === 'yahoo' && (
+        <div className="mt-2 p-2 rounded bg-purple-500/10 border border-purple-500/30 text-xs">
+          <div className="font-semibold text-purple-500 mb-1">📧 Yahoo Setup:</div>
+          <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground">
+            <li>Go to <a href="https://login.yahoo.com/account/security" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:underline">Yahoo Account Security</a></li>
+            <li>Click "Generate app password"</li>
+            <li>Select "Other app" and enter "CyberGuardian"</li>
+            <li>Copy the generated password and paste above</li>
+          </ol>
+        </div>
+      )}
+    </div>
 
-                  <button
-                    onClick={handleAddEmailAccount}
-                    disabled={isAddingEmail || !newEmailForm.email_address || !newEmailForm.password || !newEmailForm.provider}
-                    className="w-full px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2"
-                  >
-                    {isAddingEmail ? (
-                      <>
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Testing connection...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="h-4 w-4" />
-                        Add Account
-                      </>
-                    )}
-                  </button>
-                </div>
-              )}
+    <div className="flex items-center gap-4">
+      <div className="flex-1">
+        <label className="block text-sm font-medium mb-2">Auto-scan every (hours)</label>
+        <input
+          type="number"
+          value={newEmailForm.scan_interval_hours}
+          onChange={(e) => setNewEmailForm({ ...newEmailForm, scan_interval_hours: parseInt(e.target.value) })}
+          min="1"
+          max="168"
+          className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50"
+          style={{ pointerEvents: 'auto' }}
+        />
+      </div>
+      <div className="flex-1">
+        <label className="block text-sm font-medium mb-2">Folders to scan</label>
+        <input
+          type="text"
+          value={newEmailForm.folders_to_scan}
+          onChange={(e) => setNewEmailForm({ ...newEmailForm, folders_to_scan: e.target.value })}
+          placeholder="INBOX"
+          className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500 relative z-50"
+          style={{ pointerEvents: 'auto' }}
+        />
+      </div>
+    </div>
+
+    <button
+      onClick={handleAddEmailAccount}
+      disabled={isAddingEmail || !newEmailForm.email_address || !newEmailForm.password || !newEmailForm.provider}
+      className="w-full px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2 relative z-50"
+      style={{ pointerEvents: 'auto' }}
+    >
+      {isAddingEmail ? (
+        <>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Testing connection...
+        </>
+      ) : (
+        <>
+          <Check className="h-4 w-4" />
+          Add Account
+        </>
+      )}
+    </button>
+  </div>
+)}
             </div>
           </div>
 
