@@ -1,372 +1,368 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { RefreshCw, Mail, AlertTriangle, Shield, CheckCircle, XCircle, Link as LinkIcon, Paperclip } from 'lucide-react'
-import { emailsApi } from '@/lib/api'
-
-interface EmailScanResult {
-  email_id: string
-  subject: string
-  sender: string
-  date: string
-  is_phishing: boolean
-  phishing_score: number
-  threat_level: string
-  indicators: string[]
-  urls: string[]
-  attachments: string[]
-  recommendations: string[]
-}
-
-interface EmailStatus {
-  scanner_available: boolean
-  configured: boolean
-  server: string
-  username: string
-  status: string
-  message: string
-}
+import { useEffect, useState } from "react";
+import { Mail, Shield, AlertTriangle, RefreshCw, Trash2, Settings } from "lucide-react";
+import { emailsApi } from "@/lib/api";
+import Link from "next/link";
 
 export default function EmailsPage() {
-  const [status, setStatus] = useState<EmailStatus | null>(null)
-  const [emails, setEmails] = useState<EmailScanResult[]>([])
-  const [loading, setLoading] = useState(false)
-  const [scanning, setScanning] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [selectedEmail, setSelectedEmail] = useState<EmailScanResult | null>(null)
-  
-  const [folder, setFolder] = useState('INBOX')
-  const [limit, setLimit] = useState(10)
+  const [emailAccounts, setEmailAccounts] = useState<any[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null);
+  const [status, setStatus] = useState<any>(null);
+  const [emails, setEmails] = useState<any[]>([]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [folder, setFolder] = useState("INBOX");
+  const [limit, setLimit] = useState(10);
+
+  // Fetch email accounts
+  const fetchEmailAccounts = async () => {
+    try {
+      const response = await emailsApi.getAccounts();
+      if (response.success && response.data) {
+        setEmailAccounts(response.data);
+        // Auto-select first account if available
+        if (response.data.length > 0 && !selectedAccountId) {
+          setSelectedAccountId(response.data[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Error fetching email accounts:", err);
+    }
+  };
+
+  // Fetch status
+  const fetchStatus = async () => {
+    try {
+      const response = await emailsApi.getStatus();
+      if (response.success) {
+        setStatus(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching status:", err);
+    }
+  };
+
+  // Scan emails
+  const scanEmails = async () => {
+    if (!selectedAccountId) {
+      setError("Please select an email account first");
+      return;
+    }
+
+    setIsScanning(true);
+    setError(null);
+
+    try {
+      const response = await emailsApi.scan({ 
+        account_id: selectedAccountId,
+        folder, 
+        limit 
+      });
+
+      if (response.success) {
+        setEmails(response.data || []);
+        // Refresh accounts to update stats
+        await fetchEmailAccounts();
+        await fetchStatus();
+      } else {
+        setError(response.error || "Failed to scan emails");
+      }
+    } catch (err) {
+      console.error("Error scanning emails:", err);
+      setError("Failed to scan emails");
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   useEffect(() => {
-    fetchStatus()
-  }, [])
+    fetchEmailAccounts();
+    fetchStatus();
+  }, []);
 
- const fetchStatus = async () => {
-  try {
-    const response = await emailsApi.getStatus()
-    if (response.success) {
-      setStatus(response.data || null)
-    }
-  } catch (err) {
-    console.error('Failed to fetch status:', err)
-  }
-}
-const scanEmails = async () => {
-  if (!status?.configured) {
-    setError('Email scanner not configured. Please add credentials in Settings.')
-    return
-  }
+  // Get selected account details
+  const selectedAccount = emailAccounts.find(acc => acc.id === selectedAccountId);
 
-  setScanning(true)
-  setError(null)
-
-  try {
-    const response = await emailsApi.scan({ folder, limit })
-
-    if (response.success) {
-      setEmails(response.data || [])
-    } else {
-      setError(response.error || 'Scan failed')
-    }
-  } catch (err: any) {
-    setError(err.message || 'Failed to scan emails')
-  } finally {
-    setScanning(false)
-  }
-}
-
-  const getThreatColor = (level: string) => {
-    switch (level) {
-      case 'dangerous': return 'text-red-500'
-      case 'suspicious': return 'text-orange-500'
-      case 'safe': return 'text-green-500'
-      default: return 'text-gray-500'
-    }
-  }
-
-  const getThreatBg = (level: string) => {
-    switch (level) {
-      case 'dangerous': return 'bg-red-500/10 border-red-500/20'
-      case 'suspicious': return 'bg-orange-500/10 border-orange-500/20'
-      case 'safe': return 'bg-green-500/10 border-green-500/20'
-      default: return 'bg-gray-500/10 border-gray-500/20'
-    }
-  }
-
-  const phishingCount = emails.filter(e => e.is_phishing).length
-  const suspiciousCount = emails.filter(e => e.threat_level === 'suspicious').length
-  const safeCount = emails.filter(e => e.threat_level === 'safe').length
+  // Calculate stats
+  const totalScanned = status?.total_scanned || 0;
+  const phishingDetected = status?.phishing_detected || 0;
+  const safeEmails = status?.safe_emails || 0;
 
   return (
-    <div className="min-h-screen bg-dark-bg p-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">
-          <span className="gradient-cyber">Email & Phishing Scanner</span>
-        </h1>
-        <p className="text-dark-text/70">
-          Scan your inbox for phishing attempts and malicious emails
-        </p>
-      </div>
-
-      {/* Status Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        {/* Scanner Status */}
-        <div className={`p-6 rounded-xl border transition-all duration-300 hover:scale-105 ${
-          status?.configured 
-            ? 'bg-green-500/10 border-green-500/20' 
-            : 'bg-orange-500/10 border-orange-500/20'
-        }`}>
-          <div className="flex items-center justify-between mb-4">
-            <Mail className={`w-8 h-8 ${status?.configured ? 'text-green-500' : 'text-orange-500'}`} />
-            <span className={`text-sm font-semibold px-3 py-1 rounded-full ${
-              status?.configured 
-                ? 'bg-green-500/20 text-green-400' 
-                : 'bg-orange-500/20 text-orange-400'
-            }`}>
-              {status?.configured ? 'Connected' : 'Not Configured'}
-            </span>
-          </div>
-          <h3 className="text-sm text-dark-text/70 mb-1">Scanner Status</h3>
-          <p className="text-2xl font-bold text-dark-text">
-            {status?.configured ? status.username : 'Not Setup'}
-          </p>
-        </div>
-
-        {/* Total Scanned */}
-        <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl hover:scale-105 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <Mail className="w-8 h-8 text-blue-500" />
-          </div>
-          <h3 className="text-sm text-dark-text/70 mb-1">Total Scanned</h3>
-          <p className="text-2xl font-bold text-dark-text">{emails.length}</p>
-        </div>
-
-        {/* Phishing Detected */}
-        <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl hover:scale-105 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <AlertTriangle className="w-8 h-8 text-red-500" />
-          </div>
-          <h3 className="text-sm text-dark-text/70 mb-1">Phishing Detected</h3>
-          <p className="text-2xl font-bold text-red-500">{phishingCount}</p>
-        </div>
-
-        {/* Safe Emails */}
-        <div className="p-6 bg-green-500/10 border border-green-500/20 rounded-xl hover:scale-105 transition-all">
-          <div className="flex items-center justify-between mb-4">
-            <Shield className="w-8 h-8 text-green-500" />
-          </div>
-          <h3 className="text-sm text-dark-text/70 mb-1">Safe Emails</h3>
-          <p className="text-2xl font-bold text-green-500">{safeCount}</p>
-        </div>
-      </div>
-
-      {/* Scan Controls */}
-      <div className="mb-8 p-6 bg-dark-card border border-dark-border rounded-xl">
-        <h2 className="text-xl font-bold mb-4 text-dark-text">Scan Configuration</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          {/* Folder Select */}
+    <main className="pb-12">
+      {/* Hero */}
+      <div className="page-container page-hero pt-12 md:pt-16">
+        <div className="flex items-center justify-between">
           <div>
-            <label className="block text-sm text-dark-text/70 mb-2">Email Folder</label>
-            <select
-  value={folder}
-  onChange={(e) => setFolder(e.target.value)}
-  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:border-purple-500 focus:outline-none"
-  style={{ colorScheme: 'dark' }}
->
-  <option value="INBOX" style={{ background: '#1e293b', color: '#fff' }}>Inbox</option>
-  <option value="Spam" style={{ background: '#1e293b', color: '#fff' }}>Spam</option>
-  <option value="Sent" style={{ background: '#1e293b', color: '#fff' }}>Sent</option>
-  <option value="Drafts" style={{ background: '#1e293b', color: '#fff' }}>Drafts</option>
-</select>
+            <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
+              Email & Phishing Scanner
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              Scan your inbox for phishing attempts and malicious emails
+            </p>
           </div>
-
-          {/* Limit */}
-          <div>
-            <label className="block text-sm text-dark-text/70 mb-2">Email Limit</label>
-            <select
-  value={limit}
-  onChange={(e) => setLimit(Number(e.target.value))}
-  className="w-full px-4 py-2 bg-dark-bg border border-dark-border rounded-lg text-white focus:border-purple-500 focus:outline-none"
-  style={{ colorScheme: 'dark' }}
->
-  <option value={5} style={{ background: '#1e293b', color: '#fff' }}>5 emails</option>
-  <option value={10} style={{ background: '#1e293b', color: '#fff' }}>10 emails</option>
-  <option value={20} style={{ background: '#1e293b', color: '#fff' }}>20 emails</option>
-  <option value={50} style={{ background: '#1e293b', color: '#fff' }}>50 emails</option>
-</select>
-          </div>
-
-          {/* Scan Button */}
-          <div className="flex items-end">
-            <button
-              onClick={scanEmails}
-              disabled={scanning || !status?.configured}
-              className={`w-full px-6 py-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-2 ${
-                scanning || !status?.configured
-                  ? 'bg-gray-600 cursor-not-allowed'
-                  : 'bg-purple-600 hover:bg-purple-700 hover:shadow-lg hover:shadow-purple-500/20'
-              }`}
-            >
-              <RefreshCw className={`w-5 h-5 ${scanning ? 'animate-spin' : ''}`} />
-              {scanning ? 'Scanning...' : 'Scan Emails'}
-            </button>
-          </div>
+          <Link 
+            href="/settings"
+            className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-2 border-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Manage Accounts
+          </Link>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
-            ⚠️ {error}
-          </div>
-        )}
-
-        {/* Not Configured Warning */}
-        {!status?.configured && (
-          <div className="p-4 bg-orange-500/10 border border-orange-500/20 rounded-lg text-orange-400">
-            ℹ️ Email scanner not configured. Add your email credentials in the .env file to enable scanning.
-          </div>
-        )}
       </div>
 
-      {/* Email List */}
-      {emails.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-dark-text mb-4">
-            Scan Results ({emails.length} emails)
-          </h2>
-
-          {emails.map((email, index) => (
-            <div
-              key={index}
-              className={`p-6 rounded-xl border transition-all duration-300 hover:scale-[1.02] cursor-pointer ${getThreatBg(email.threat_level)}`}
-              onClick={() => setSelectedEmail(selectedEmail?.email_id === email.email_id ? null : email)}
-            >
-              {/* Email Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-bold text-dark-text">{email.subject}</h3>
-                    {email.is_phishing && (
-                      <span className="px-3 py-1 bg-red-500/20 text-red-400 text-sm font-semibold rounded-full">
-                        ⛔ PHISHING
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm text-dark-text/70">From: {email.sender}</p>
-                  <p className="text-xs text-dark-text/50">{email.date}</p>
+      <div className="section">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Scanner Status */}
+          <div className="stat-card group hover:scale-105 transition-all duration-300">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="stat-label">Scanner Status</div>
+                <div className="stat-value text-2xl">
+                  {status?.configured ? (
+                    <span className="text-green-500">Connected</span>
+                  ) : (
+                    <span className="text-red-500">Not Setup</span>
+                  )}
                 </div>
-
-                {/* Threat Score */}
-                <div className="text-right">
-                  <p className={`text-3xl font-bold ${getThreatColor(email.threat_level)}`}>
-                    {email.phishing_score.toFixed(0)}
-                  </p>
-                  <p className="text-sm text-dark-text/70">Risk Score</p>
-                  <p className={`text-sm font-semibold uppercase ${getThreatColor(email.threat_level)}`}>
-                    {email.threat_level}
-                  </p>
-                </div>
-              </div>
-
-              {/* Quick Info */}
-              <div className="flex gap-4 text-sm text-dark-text/70 mb-4">
-                {email.urls.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <LinkIcon className="w-4 h-4" />
-                    {email.urls.length} URL{email.urls.length !== 1 ? 's' : ''}
-                  </div>
-                )}
-                {email.attachments.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Paperclip className="w-4 h-4" />
-                    {email.attachments.length} attachment{email.attachments.length !== 1 ? 's' : ''}
-                  </div>
-                )}
-                {email.indicators.length > 0 && (
-                  <div className="flex items-center gap-1">
-                    <AlertTriangle className="w-4 h-4" />
-                    {email.indicators.length} indicator{email.indicators.length !== 1 ? 's' : ''}
+                {selectedAccount && (
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {selectedAccount.email_address}
                   </div>
                 )}
               </div>
+              <Mail className={`h-8 w-8 ${status?.configured ? 'text-green-500' : 'text-red-500'}`} />
+            </div>
+          </div>
 
-              {/* Expanded Details */}
-              {selectedEmail?.email_id === email.email_id && (
-                <div className="mt-4 pt-4 border-t border-dark-border space-y-4">
-                  {/* Indicators */}
-                  {email.indicators.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2 text-dark-text">⚠️ Threat Indicators:</h4>
-                      <ul className="space-y-1">
-                        {email.indicators.map((indicator, i) => (
-                          <li key={i} className="text-sm text-dark-text/70 flex items-start gap-2">
-                            <span className="text-orange-400">•</span>
-                            {indicator}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+          {/* Total Scanned */}
+          <div className="stat-card stat-card--info group hover:scale-105 transition-all duration-300">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="stat-label">Total Scanned</div>
+                <div className="stat-value">{totalScanned}</div>
+              </div>
+              <Mail className="h-8 w-8 text-blue-500" />
+            </div>
+          </div>
 
-                  {/* URLs */}
-                  {email.urls.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2 text-dark-text">🔗 URLs Found:</h4>
-                      <ul className="space-y-1">
-                        {email.urls.map((url, i) => (
-                          <li key={i} className="text-sm text-blue-400 truncate">
-                            {url}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+          {/* Phishing Detected */}
+          <div className="stat-card stat-card--error group hover:scale-105 transition-all duration-300">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="stat-label">Phishing Detected</div>
+                <div className="stat-value text-red-500">{phishingDetected}</div>
+              </div>
+              <AlertTriangle className="h-8 w-8 text-red-500" />
+            </div>
+          </div>
 
-                  {/* Attachments */}
-                  {email.attachments.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2 text-dark-text">📎 Attachments:</h4>
-                      <ul className="space-y-1">
-                        {email.attachments.map((attachment, i) => (
-                          <li key={i} className="text-sm text-dark-text/70">
-                            {attachment}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+          {/* Safe Emails */}
+          <div className="stat-card stat-card--ok group hover:scale-105 transition-all duration-300">
+            <div className="flex items-start justify-between">
+              <div>
+                <div className="stat-label">Safe Emails</div>
+                <div className="stat-value text-green-500">{safeEmails}</div>
+              </div>
+              <Shield className="h-8 w-8 text-green-500" />
+            </div>
+          </div>
+        </div>
 
-                  {/* Recommendations */}
-                  {email.recommendations.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2 text-dark-text">💡 Recommendations:</h4>
-                      <ul className="space-y-1">
-                        {email.recommendations.map((rec, i) => (
-                          <li key={i} className="text-sm text-dark-text/70">
-                            {rec}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+        {/* No Accounts Warning */}
+        {emailAccounts.length === 0 ? (
+          <div className="card-premium p-8 text-center">
+            <Mail className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+            <h3 className="text-xl font-semibold mb-2">No Email Accounts Configured</h3>
+            <p className="text-muted-foreground mb-4">
+              Add an email account in Settings to start scanning for phishing emails
+            </p>
+            <Link
+              href="/settings"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50"
+            >
+              <Settings className="h-5 w-5" />
+              Go to Settings
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Scan Configuration */}
+            <div className="card-premium p-6 mb-8">
+              <h3 className="text-lg font-semibold mb-4">Scan Configuration</h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                {/* Email Account Selection */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email Account</label>
+                  <select
+                    value={selectedAccountId || ''}
+                    onChange={(e) => setSelectedAccountId(Number(e.target.value))}
+                    className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    style={{ colorScheme: 'dark' }}
+                  >
+                    {emailAccounts.map((account) => (
+                      <option key={account.id} value={account.id}>
+                        {account.email_address} ({account.total_scanned} scanned)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Email Folder */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email Folder</label>
+                  <select
+                    value={folder}
+                    onChange={(e) => setFolder(e.target.value)}
+                    className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    style={{ colorScheme: 'dark' }}
+                  >
+                    <option value="INBOX">Inbox</option>
+                    <option value="Spam">Spam</option>
+                    <option value="Sent">Sent</option>
+                    <option value="Drafts">Drafts</option>
+                  </select>
+                </div>
+
+                {/* Email Limit */}
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email Limit</label>
+                  <select
+                    value={limit}
+                    onChange={(e) => setLimit(Number(e.target.value))}
+                    className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                    style={{ colorScheme: 'dark' }}
+                  >
+                    <option value={10}>10 emails</option>
+                    <option value={20}>20 emails</option>
+                    <option value={50}>50 emails</option>
+                    <option value={100}>100 emails</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Scan Button */}
+              <button
+                onClick={scanEmails}
+                disabled={isScanning || !selectedAccountId}
+                className="w-full px-6 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:from-purple-600 hover:to-pink-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 flex items-center justify-center gap-2"
+              >
+                <RefreshCw className={`h-5 w-5 ${isScanning ? 'animate-spin' : ''}`} />
+                {isScanning ? 'Scanning...' : 'Scan Emails'}
+              </button>
+
+              {error && (
+                <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 text-red-500">
+                  {error}
                 </div>
               )}
             </div>
-          ))}
-        </div>
-      )}
 
-      {/* Empty State */}
-      {emails.length === 0 && !scanning && (
-        <div className="text-center py-16 text-dark-text/50">
-          <Mail className="w-16 h-16 mx-auto mb-4 opacity-50" />
-          <p className="text-lg">No emails scanned yet</p>
-          <p className="text-sm">Configure your email credentials and click "Scan Emails" to start</p>
-        </div>
-      )}
-    </div>
-  )
+            {/* Scan Results */}
+            <div className="card-premium p-6">
+              <h3 className="text-lg font-semibold mb-4">
+                Scan Results ({emails.length} emails)
+              </h3>
+
+              {emails.length === 0 ? (
+                <div className="text-center py-12 text-muted-foreground">
+                  <Mail className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                  <p>No emails scanned yet</p>
+                  <p className="text-sm">Configure your email credentials and click "Scan Emails" to start</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {emails.map((email, index) => (
+                    <div
+                      key={index}
+                      className={`p-4 rounded-lg border-2 transition-all hover:scale-[1.02] ${
+                        email.threat_level === 'dangerous'
+                          ? 'bg-red-500/5 border-red-500/30 hover:border-red-500/50'
+                          : email.threat_level === 'suspicious'
+                          ? 'bg-yellow-500/5 border-yellow-500/30 hover:border-yellow-500/50'
+                          : 'bg-green-500/5 border-green-500/30 hover:border-green-500/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-foreground">{email.subject}</h4>
+                          <div className="text-sm text-muted-foreground">
+                            From: {email.sender}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {email.date}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              email.threat_level === 'dangerous'
+                                ? 'bg-red-500/20 text-red-500'
+                                : email.threat_level === 'suspicious'
+                                ? 'bg-yellow-500/20 text-yellow-500'
+                                : 'bg-green-500/20 text-green-500'
+                            }`}
+                          >
+                            {Math.round(email.phishing_score)}/100
+                          </div>
+                          <span className={`badge ${
+                            email.threat_level === 'dangerous'
+                              ? 'badge--error'
+                              : email.threat_level === 'suspicious'
+                              ? 'badge--warning'
+                              : 'badge--ok'
+                          }`}>
+                            {email.threat_level.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Indicators */}
+                      {email.indicators && email.indicators.length > 0 && (
+                        <div className="mt-3 space-y-1">
+                          {email.indicators.slice(0, 3).map((indicator: string, i: number) => (
+                            <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                              {indicator}
+                            </div>
+                          ))}
+                          {email.indicators.length > 3 && (
+                            <div className="text-sm text-muted-foreground">
+                              +{email.indicators.length - 3} more indicators
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* URLs */}
+                      {email.urls && email.urls.length > 0 && (
+                        <div className="mt-2 text-sm text-muted-foreground">
+                          🔗 {email.urls.length} URL(s) detected
+                        </div>
+                      )}
+
+                      {/* Recommendations */}
+                      {email.is_phishing && email.recommendations && (
+                        <div className="mt-3 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                          <div className="font-semibold text-red-500 mb-2">⚠️ Recommendations:</div>
+                          <ul className="text-sm space-y-1 text-red-400">
+                            {email.recommendations.slice(0, 2).map((rec: string, i: number) => (
+                              <li key={i}>• {rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </main>
+  );
 }
