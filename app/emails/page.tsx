@@ -102,13 +102,14 @@ export default function EmailsPage() {
               Scan your inbox for phishing attempts and malicious emails
             </p>
           </div>
-          <Link 
-            href="/settings"
-            className="px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-2 border-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center gap-2"
-          >
-            <Settings className="h-4 w-4" />
-            Manage Accounts
-          </Link>
+       <Link
+  href="/settings"
+  className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 relative z-50 cursor-pointer"
+  style={{ pointerEvents: 'auto' }}
+>
+  <Settings className="h-5 w-5" />
+  Go to Settings
+</Link>
         </div>
       </div>
 
@@ -171,22 +172,24 @@ export default function EmailsPage() {
           </div>
         </div>
 
-        {/* No Accounts Warning */}
-        {emailAccounts.length === 0 ? (
-          <div className="card-premium p-8 text-center">
-            <Mail className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h3 className="text-xl font-semibold mb-2">No Email Accounts Configured</h3>
-            <p className="text-muted-foreground mb-4">
-              Add an email account in Settings to start scanning for phishing emails
-            </p>
-            <Link
-              href="/settings"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50"
-            >
-              <Settings className="h-5 w-5" />
-              Go to Settings
-            </Link>
-          </div>
+        
+       {/* No Accounts Warning */}
+{emailAccounts.length === 0 ? (
+  <div className="card-premium p-8 text-center relative z-50" style={{ pointerEvents: 'auto' }}>
+    <Mail className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+    <h3 className="text-xl font-semibold mb-2">No Email Accounts Configured</h3>
+    <p className="text-muted-foreground mb-4">
+      Add an email account in Settings to start scanning for phishing emails
+    </p>
+    <Link
+      href="/settings"
+      className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 relative z-50 cursor-pointer"
+      style={{ pointerEvents: 'auto' }}
+    >
+      <Settings className="h-5 w-5" />
+      Go to Settings
+    </Link>
+  </div>
         ) : (
           <>
             {/* Scan Configuration */}
