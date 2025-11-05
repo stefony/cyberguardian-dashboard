@@ -378,117 +378,123 @@ const loadHistory = async () => {
         </div>
       </div>
 
-      {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="card-premium p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold mb-4">Create Scan Schedule</h3>
+{/* Create Modal */}
+{showCreateModal && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" style={{ pointerEvents: 'auto' }}>
+    <div className="card-premium p-6 max-w-md w-full relative z-50" style={{ pointerEvents: 'auto' }}>
+      <h3 className="text-xl font-bold mb-4">Create Scan Schedule</h3>
 
-            <form onSubmit={handleCreateSchedule} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
-                  placeholder="Daily system scan"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Scan Type
-                </label>
-                <select
-                  value={formData.scan_type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, scan_type: e.target.value })
-                  }
-                  className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="quick">Quick Scan</option>
-                  <option value="full">Full Scan</option>
-                  <option value="custom">Custom Scan</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Target Path
-                </label>
-                <input
-                  type="text"
-                  value={formData.target_path}
-                  onChange={(e) =>
-                    setFormData({ ...formData, target_path: e.target.value })
-                  }
-                  className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
-                  placeholder="/tmp"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">
-                  Schedule Type
-                </label>
-                <select
-                  value={formData.schedule_type}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      schedule_type: e.target.value,
-                    })
-                  }
-                  className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
-                >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                  <option value="interval">Custom Interval</option>
-                </select>
-              </div>
-
-              {formData.schedule_type === "interval" && (
-                <div>
-                  <label className="block text-sm font-medium mb-1">
-                    Interval (days)
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.interval_days}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        interval_days: Number(e.target.value),
-                      })
-                    }
-                    className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none"
-                  />
-                </div>
-              )}
-
-              <div className="flex gap-2 pt-4">
-                <button type="submit" className="btn btn-primary flex-1">
-                  Create Schedule
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="btn btn-secondary flex-1"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
+      <form onSubmit={handleCreateSchedule} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium mb-1">Name</label>
+          <input
+            type="text"
+            value={formData.name}
+            onChange={(e) =>
+              setFormData({ ...formData, name: e.target.value })
+            }
+            className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none relative z-50"
+            placeholder="Daily system scan"
+            required
+            style={{ pointerEvents: 'auto' }}
+          />
         </div>
-      )}
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Scan Type
+          </label>
+          <select
+            value={formData.scan_type}
+            onChange={(e) =>
+              setFormData({ ...formData, scan_type: e.target.value })
+            }
+            className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none relative z-50 cursor-pointer"
+            style={{ pointerEvents: 'auto', colorScheme: 'dark', backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}
+          >
+            <option value="quick" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Quick Scan</option>
+            <option value="full" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Full Scan</option>
+            <option value="custom" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Custom Scan</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Target Path
+          </label>
+          <input
+            type="text"
+            value={formData.target_path}
+            onChange={(e) =>
+              setFormData({ ...formData, target_path: e.target.value })
+            }
+            className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none relative z-50"
+            placeholder="/tmp"
+            required
+            style={{ pointerEvents: 'auto' }}
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium mb-1">
+            Schedule Type
+          </label>
+          <select
+            value={formData.schedule_type}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                schedule_type: e.target.value,
+              })
+            }
+            className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none relative z-50 cursor-pointer"
+            style={{ pointerEvents: 'auto', colorScheme: 'dark', backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}
+          >
+            <option value="daily" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Daily</option>
+            <option value="weekly" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Weekly</option>
+            <option value="monthly" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Monthly</option>
+            <option value="interval" style={{ backgroundColor: 'rgb(15, 23, 42)', color: 'white' }}>Custom Interval</option>
+          </select>
+        </div>
+
+        {formData.schedule_type === "interval" && (
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              Interval (days)
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={formData.interval_days}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  interval_days: Number(e.target.value),
+                })
+              }
+              className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none relative z-50"
+              style={{ pointerEvents: 'auto' }}
+            />
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-4">
+          <button type="submit" className="btn btn-primary flex-1 relative z-50 cursor-pointer" style={{ pointerEvents: 'auto' }}>
+            Create Schedule
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowCreateModal(false)}
+            className="btn btn-secondary flex-1 relative z-50 cursor-pointer"
+            style={{ pointerEvents: 'auto' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </main>
   );
 }
