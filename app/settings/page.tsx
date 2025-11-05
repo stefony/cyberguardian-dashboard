@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings as SettingsIcon, Bell, Palette, Shield, Info, Key, Save, RotateCcw, Check } from "lucide-react";
-import { settingsApi } from "@/lib/api"; 
+import { Settings as SettingsIcon, Bell, Palette, Shield, Info, Key, Save, RotateCcw, Check, Mail, Plus, Trash2, Loader2 } from "lucide-react";
+import { settingsApi, emailsApi } from "@/lib/api"; 
 
 // Types
 type NotificationSettings = {
@@ -57,95 +57,205 @@ export default function SettingsPage() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Email Accounts State
+  const [emailAccounts, setEmailAccounts] = useState<any[]>([]);
+  const [showAddEmailForm, setShowAddEmailForm] = useState(false);
+  const [isAddingEmail, setIsAddingEmail] = useState(false);
+  const [newEmailForm, setNewEmailForm] = useState({
+    provider: '',
+    email_address: '',
+    imap_host: '',
+    imap_port: 993,
+    password: '',
+    auto_scan_enabled: true,
+    scan_interval_hours: 24,
+    folders_to_scan: 'INBOX'
+  });
+
   // Fetch settings
- const fetchSettings = async () => {
-  try {
-    setIsLoading(true);
-    const response = await settingsApi.getSettings();
-    if (response.success) {
-      setSettings(response.data || null);
-      setError(null);
-    } else {
-      setError(response.error || "Could not load settings");
+  const fetchSettings = async () => {
+    try {
+      setIsLoading(true);
+      const response = await settingsApi.getSettings();
+      if (response.success) {
+        setSettings(response.data || null);
+        setError(null);
+      } else {
+        setError(response.error || "Could not load settings");
+      }
+    } catch (err) {
+      console.error("Error fetching settings:", err);
+      setError("Could not load settings");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching settings:", err);
-    setError("Could not load settings");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
 
   // Fetch system info
-const fetchSystemInfo = async () => {
-  try {
-    const response = await settingsApi.getSystemInfo();
-    if (response.success) {
-      setSystemInfo(response.data || null);
+  const fetchSystemInfo = async () => {
+    try {
+      const response = await settingsApi.getSystemInfo();
+      if (response.success) {
+        setSystemInfo(response.data || null);
+      }
+    } catch (err) {
+      console.error("Error fetching system info:", err);
     }
-  } catch (err) {
-    console.error("Error fetching system info:", err);
-  }
-};
+  };
 
   // Fetch license info
-const fetchLicenseInfo = async () => {
-  try {
-    const response = await settingsApi.getLicense();
-    if (response.success) {
-      setLicenseInfo(response.data || null);
+  const fetchLicenseInfo = async () => {
+    try {
+      const response = await settingsApi.getLicense();
+      if (response.success) {
+        setLicenseInfo(response.data || null);
+      }
+    } catch (err) {
+      console.error("Error fetching license info:", err);
     }
-  } catch (err) {
-    console.error("Error fetching license info:", err);
-  }
-};
+  };
+
+  // Fetch email accounts
+  const fetchEmailAccounts = async () => {
+    try {
+      const response = await emailsApi.getAccounts();
+      if (response.success) {
+        setEmailAccounts(response.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching email accounts:", err);
+    }
+  };
+
+  // Add email account
+  const handleAddEmailAccount = async () => {
+    if (!newEmailForm.email_address || !newEmailForm.password || !newEmailForm.provider) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      setIsAddingEmail(true);
+      const response = await emailsApi.addAccount({
+        email_address: newEmailForm.email_address,
+        provider: newEmailForm.provider,
+        imap_host: newEmailForm.imap_host,
+        imap_port: newEmailForm.imap_port,
+        password: newEmailForm.password,
+        auto_scan_enabled: newEmailForm.auto_scan_enabled,
+        scan_interval_hours: newEmailForm.scan_interval_hours,
+        folders_to_scan: newEmailForm.folders_to_scan
+      });
+
+      if (response.success) {
+        alert("✅ Email account added successfully!");
+        setShowAddEmailForm(false);
+        setNewEmailForm({
+          provider: '',
+          email_address: '',
+          imap_host: '',
+          imap_port: 993,
+          password: '',
+          auto_scan_enabled: true,
+          scan_interval_hours: 24,
+          folders_to_scan: 'INBOX'
+        });
+        await fetchEmailAccounts();
+      } else {
+        alert(`❌ Failed to add email account: ${response.error}`);
+      }
+    } catch (err) {
+      console.error("Error adding email account:", err);
+      alert("❌ Failed to add email account");
+    } finally {
+      setIsAddingEmail(false);
+    }
+  };
+
+  // Toggle auto-scan
+  const handleToggleAutoScan = async (accountId: number, enabled: boolean) => {
+    try {
+      const response = await emailsApi.updateAccount(accountId, {
+        auto_scan_enabled: enabled
+      });
+
+      if (response.success) {
+        await fetchEmailAccounts();
+      } else {
+        alert(`Failed to update: ${response.error}`);
+      }
+    } catch (err) {
+      console.error("Error toggling auto-scan:", err);
+      alert("Failed to update auto-scan");
+    }
+  };
+
+  // Delete email account
+  const handleDeleteAccount = async (accountId: number) => {
+    if (!confirm("Are you sure you want to delete this email account?")) return;
+
+    try {
+      const response = await emailsApi.deleteAccount(accountId);
+
+      if (response.success) {
+        alert("✅ Email account deleted successfully");
+        await fetchEmailAccounts();
+      } else {
+        alert(`❌ Failed to delete: ${response.error}`);
+      }
+    } catch (err) {
+      console.error("Error deleting email account:", err);
+      alert("❌ Failed to delete email account");
+    }
+  };
 
   // Save settings
-const handleSave = async () => {
-  if (!settings) return;
-  
-  try {
-    setIsSaving(true);
-    const response = await settingsApi.saveSettings(settings);
+  const handleSave = async () => {
+    if (!settings) return;
     
-    if (response.success) {
-      setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 3000);
-    } else {
-      alert(response.error || "Failed to save settings");
+    try {
+      setIsSaving(true);
+      const response = await settingsApi.saveSettings(settings);
+      
+      if (response.success) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3000);
+      } else {
+        alert(response.error || "Failed to save settings");
+      }
+    } catch (err) {
+      console.error("Error saving settings:", err);
+      alert("Failed to save settings");
+    } finally {
+      setIsSaving(false);
     }
-  } catch (err) {
-    console.error("Error saving settings:", err);
-    alert("Failed to save settings");
-  } finally {
-    setIsSaving(false);
-  }
-};
+  };
 
   // Reset settings
-const handleReset = async () => {
-  if (!confirm("Are you sure you want to reset all settings to default?")) return;
-  
-  try {
-    const response = await settingsApi.resetSettings();
+  const handleReset = async () => {
+    if (!confirm("Are you sure you want to reset all settings to default?")) return;
     
-    if (response.success) {
-      await fetchSettings();
-      alert("Settings reset to default successfully!");
-    } else {
-      alert(response.error || "Failed to reset settings");
+    try {
+      const response = await settingsApi.resetSettings();
+      
+      if (response.success) {
+        await fetchSettings();
+        alert("Settings reset to default successfully!");
+      } else {
+        alert(response.error || "Failed to reset settings");
+      }
+    } catch (err) {
+      console.error("Error resetting settings:", err);
+      alert("Failed to reset settings");
     }
-  } catch (err) {
-    console.error("Error resetting settings:", err);
-    alert("Failed to reset settings");
-  }
-};
+  };
 
   // Initial load
   useEffect(() => {
     fetchSettings();
     fetchSystemInfo();
     fetchLicenseInfo();
+    fetchEmailAccounts();
   }, []);
 
   // Update settings helper
@@ -312,15 +422,15 @@ const handleReset = async () => {
                     <div className="font-medium">Theme</div>
                     <div className="text-sm text-muted-foreground">Choose your preferred theme</div>
                   </div>
-                 <select
-  value={settings.appearance.theme}
-  onChange={(e) => updateSettings('appearance', 'theme', e.target.value)}
-  className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/5 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer relative z-50"
-  style={{ 
-    pointerEvents: 'auto',
-    colorScheme: 'dark'
-  }}
->
+                  <select
+                    value={settings.appearance.theme}
+                    onChange={(e) => updateSettings('appearance', 'theme', e.target.value)}
+                    className="px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all duration-300 hover:border-cyan-400 hover:bg-cyan-500/5 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer relative z-50"
+                    style={{ 
+                      pointerEvents: 'auto',
+                      colorScheme: 'dark'
+                    }}
+                  >
                     <option value="dark" className="bg-[#0a0e27] text-white">Dark</option>
                     <option value="light" className="bg-[#0a0e27] text-white">Light</option>
                     <option value="auto" className="bg-[#0a0e27] text-white">Auto</option>
@@ -403,6 +513,194 @@ const handleReset = async () => {
                   />
                 </div>
               </div>
+            </div>
+
+            {/* Email Accounts */}
+            <div className="card-premium p-6 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Mail className="h-5 w-5 text-blue-500" />
+                Email Accounts
+              </h3>
+
+              {/* Email Accounts List */}
+              {emailAccounts.length > 0 ? (
+                <div className="space-y-3 mb-4">
+                  {emailAccounts.map((account: any) => (
+                    <div
+                      key={account.id}
+                      className="p-4 rounded-lg bg-card/50 border border-border hover:border-blue-500/50 transition-all"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div>
+                          <div className="font-medium text-foreground">{account.email_address}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {account.provider} • {account.total_scanned} scanned • {account.phishing_detected} phishing
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Toggle
+                            enabled={account.auto_scan_enabled}
+                            onChange={() => handleToggleAutoScan(account.id, !account.auto_scan_enabled)}
+                          />
+                          <button
+                            onClick={() => handleDeleteAccount(account.id)}
+                            className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                            title="Delete account"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                      {account.auto_scan_enabled && (
+                        <div className="text-xs text-muted-foreground">
+                          Auto-scan every {account.scan_interval_hours}h • Folders: {account.folders_to_scan}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-muted-foreground">
+                  <Mail className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No email accounts configured</p>
+                  <p className="text-sm">Add an account to start scanning for phishing emails</p>
+                </div>
+              )}
+
+              {/* Add Email Account Button */}
+              <button
+                onClick={() => setShowAddEmailForm(!showAddEmailForm)}
+                className="w-full px-4 py-2 rounded-lg bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 border-2 border-blue-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                {showAddEmailForm ? 'Cancel' : 'Add Email Account'}
+              </button>
+
+              {/* Add Email Form */}
+              {showAddEmailForm && (
+                <div className="mt-4 p-4 rounded-lg bg-card/50 border border-blue-500/30 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Email Provider</label>
+                    <select
+                      value={newEmailForm.provider}
+                      onChange={(e) => {
+                        const provider = e.target.value;
+                        setNewEmailForm({
+                          ...newEmailForm,
+                          provider,
+                          imap_host: provider === 'gmail' ? 'imap.gmail.com' : 
+                                    provider === 'outlook' ? 'outlook.office365.com' : '',
+                          imap_port: 993
+                        });
+                      }}
+                      className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      style={{ colorScheme: 'dark' }}
+                    >
+                      <option value="">Select provider</option>
+                      <option value="gmail">Gmail</option>
+                      <option value="outlook">Outlook / Office 365</option>
+                      <option value="yahoo">Yahoo Mail</option>
+                      <option value="other">Other (Custom)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Email Address</label>
+                    <input
+                      type="email"
+                      value={newEmailForm.email_address}
+                      onChange={(e) => setNewEmailForm({ ...newEmailForm, email_address: e.target.value })}
+                      placeholder="your.email@example.com"
+                      className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  {newEmailForm.provider === 'other' && (
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">IMAP Host</label>
+                        <input
+                          type="text"
+                          value={newEmailForm.imap_host}
+                          onChange={(e) => setNewEmailForm({ ...newEmailForm, imap_host: e.target.value })}
+                          placeholder="imap.example.com"
+                          className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-2">IMAP Port</label>
+                        <input
+                          type="number"
+                          value={newEmailForm.imap_port}
+                          onChange={(e) => setNewEmailForm({ ...newEmailForm, imap_port: parseInt(e.target.value) })}
+                          placeholder="993"
+                          className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      App Password
+                      {newEmailForm.provider === 'gmail' && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          (Generate at: myaccount.google.com/apppasswords)
+                        </span>
+                      )}
+                    </label>
+                    <input
+                      type="password"
+                      value={newEmailForm.password}
+                      onChange={(e) => setNewEmailForm({ ...newEmailForm, password: e.target.value })}
+                      placeholder="Enter app password"
+                      className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-2">Auto-scan every (hours)</label>
+                      <input
+                        type="number"
+                        value={newEmailForm.scan_interval_hours}
+                        onChange={(e) => setNewEmailForm({ ...newEmailForm, scan_interval_hours: parseInt(e.target.value) })}
+                        min="1"
+                        max="168"
+                        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium mb-2">Folders to scan</label>
+                      <input
+                        type="text"
+                        value={newEmailForm.folders_to_scan}
+                        onChange={(e) => setNewEmailForm({ ...newEmailForm, folders_to_scan: e.target.value })}
+                        placeholder="INBOX"
+                        className="w-full px-4 py-2 rounded-lg bg-card border-2 border-border text-foreground transition-all hover:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleAddEmailAccount}
+                    disabled={isAddingEmail || !newEmailForm.email_address || !newEmailForm.password || !newEmailForm.provider}
+                    className="w-full px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 flex items-center justify-center gap-2"
+                  >
+                    {isAddingEmail ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Testing connection...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="h-4 w-4" />
+                        Add Account
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

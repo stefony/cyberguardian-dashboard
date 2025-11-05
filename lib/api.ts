@@ -61,54 +61,96 @@ class ApiClient {
     this.baseUrl = baseUrl
   }
 
-  /**
-   * Generic fetch wrapper with error handling
-   */
-  private async fetch<T>(
-    endpoint: string,
-    options?: RequestInit
-  ): Promise<ApiResponse<T>> {
-    // 🔎 DEBUG (временен): ако е към quarantine, логни реалния URL
-    if (endpoint.startsWith("/api/quarantine")) {
-      // eslint-disable-next-line no-console
-      console.log("QUAR FETCH →", this.baseUrl, endpoint);
+  // REPLACE THE ENTIRE fetch METHOD IN ApiClient CLASS (around line 70-100)
+// This adds Authorization header to all requests
+
+/**
+ * Generic fetch wrapper with error handling and JWT authentication
+ */
+// REPLACE THE ENTIRE fetch METHOD IN ApiClient CLASS (around line 70-100)
+// This adds Authorization header to all requests
+
+/**
+ * Generic fetch wrapper with error handling and JWT authentication
+ */
+private async fetch<T>(
+  endpoint: string,
+  options?: RequestInit
+): Promise<ApiResponse<T>> {
+  // 🔎 DEBUG (временен): ако е към quarantine, логни реалния URL
+  if (endpoint.startsWith("/api/quarantine")) {
+    // eslint-disable-next-line no-console
+    console.log("QUAR FETCH →", this.baseUrl, endpoint);
+  }
+
+  try {
+    // Get JWT token from localStorage
+    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    
+    // Build headers with JWT token
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Add Authorization header if token exists
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          ...options?.headers,
-        },
+    // Merge with provided headers
+    if (options?.headers) {
+      Object.entries(options.headers).forEach(([key, value]) => {
+        if (typeof value === 'string') {
+          headers[key] = value;
+        }
       });
+    }
 
-      if (!response.ok) {
-        // 🔎 DEBUG (временен): логни статуса при грешка
-        // eslint-disable-next-line no-console
-        console.warn("FETCH ERROR →", `${this.baseUrl}${endpoint}`, response.status);
-        const error = await response.json().catch(() => ({ message: "Unknown error" }));
+    const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      ...options,
+      headers,
+    });
+
+    if (!response.ok) {
+      // Handle 401 Unauthorized - redirect to login
+      if (response.status === 401) {
+        console.warn("401 Unauthorized - redirecting to login");
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('user');
+          window.location.href = '/auth/login';
+        }
         return {
           success: false,
-          error: error.message || `HTTP ${response.status}`,
+          error: "Unauthorized - please login again",
         };
       }
 
-      const data = await response.json();
-      return {
-        success: true,
-        data,
-      };
-    } catch (error) {
-      // 🔎 DEBUG (временен): логни мрежова грешка
-     
-      console.error("NETWORK ERROR →", `${this.baseUrl}${endpoint}`, error);
+      // 🔎 DEBUG (временен): логни статуса при грешка
+      // eslint-disable-next-line no-console
+      console.warn("FETCH ERROR →", `${this.baseUrl}${endpoint}`, response.status);
+      const error = await response.json().catch(() => ({ message: "Unknown error" }));
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Network error",
+        error: error.message || error.detail || `HTTP ${response.status}`,
       };
     }
+
+    const data = await response.json();
+    return {
+      success: true,
+      data,
+    };
+  } catch (error) {
+    // 🔎 DEBUG (временен): логни мрежова грешка
+   
+    console.error("NETWORK ERROR →", `${this.baseUrl}${endpoint}`, error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Network error",
+    };
   }
+}
 
 
   /**
@@ -806,6 +848,8 @@ export const analyticsApi = {
   },
 }
 
+// REPLACE THE ENTIRE emailsApi SECTION IN lib/api.ts WITH THIS:
+
 // ============================================
 // EMAILS API
 // ============================================
@@ -822,10 +866,82 @@ export const emailsApi = {
    * Scan emails for phishing
    */
   scan: async (params: {
+    account_id: number
     folder?: string
     limit?: number
   }): Promise<ApiResponse<any[]>> => {
     return client.post<any[]>('/api/emails/scan', params)
+  },
+
+  /**
+   * Get email statistics
+   */
+  getStats: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/emails/stats')
+  },
+
+  // ========== EMAIL ACCOUNTS MANAGEMENT ==========
+
+  /**
+   * Get all email accounts for current user
+   */
+  getAccounts: async (): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>('/api/emails/accounts')
+  },
+
+  /**
+   * Add new email account
+   */
+  addAccount: async (data: {
+    email_address: string
+    provider: string
+    imap_host: string
+    imap_port: number
+    password: string
+    auto_scan_enabled?: boolean
+    scan_interval_hours?: number
+    folders_to_scan?: string
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/emails/accounts/add', data)
+  },
+
+  /**
+   * Update email account settings
+   */
+  updateAccount: async (
+    accountId: number,
+    data: {
+      auto_scan_enabled?: boolean
+      scan_interval_hours?: number
+      folders_to_scan?: string
+    }
+  ): Promise<ApiResponse<any>> => {
+    return client.put<any>(`/api/emails/accounts/${accountId}`, data)
+  },
+
+  /**
+   * Delete email account
+   */
+  deleteAccount: async (accountId: number): Promise<ApiResponse<any>> => {
+    return client.delete<any>(`/api/emails/accounts/${accountId}`)
+  },
+
+  /**
+   * Get scan history for account
+   */
+  getHistory: async (accountId: number, limit?: number): Promise<ApiResponse<any>> => {
+    return client.get<any>(
+      `/api/emails/history?account_id=${accountId}${limit ? `&limit=${limit}` : ''}`
+    )
+  },
+
+  /**
+   * Get scanned emails results
+   */
+  getResults: async (accountId: number, limit?: number): Promise<ApiResponse<any>> => {
+    return client.get<any>(
+      `/api/emails/results?account_id=${accountId}${limit ? `&limit=${limit}` : ''}`
+    )
   },
 }
 
