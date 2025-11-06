@@ -440,11 +440,11 @@ const batchDeleteThreats = async () => {
             </div>
           )}
 
-          {/* Table */}
-          {!isLoading && !error && (
-            <div className="overflow-x-auto">
-              <table className="table w-full">
-                <thead>
+{/* Table */}
+{!isLoading && !error && (
+ <div className="overflow-x-auto">
+ <table className="table w-full">
+<thead>
   <tr>
     <th className="w-12">
       <input
@@ -459,12 +459,12 @@ const batchDeleteThreats = async () => {
     <th>Type</th>
     <th>Description</th>
     <th>Severity</th>
-    <th>Confidence</th>  {/* ← НОВА КОЛОНА */}
+    <th>Confidence</th>
     <th>Status</th>
     <th>Actions</th>
   </tr>
 </thead>
-                <tbody>
+<tbody>
   {threats?.length === 0 ? (
     <tr>
       <td colSpan={9} className="text-center py-8 text-muted-foreground">
