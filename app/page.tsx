@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, Activity, AlertTriangle, Eye, Wifi, WifiOff } from "lucide-react";
-import { dashboardApi, threatsApi } from "@/lib/api";
+import { dashboardApi, threatsApi, analyticsApi } from "@/lib/api";
 import type { HealthData } from "@/lib/types";
 import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
 import { LiveThreatNotification } from "@/components/LiveThreatNotification";
@@ -143,6 +143,9 @@ export default function DashboardPage() {
   const [threatCount, setThreatCount] = useState(0);
   const [honeypotCount, setHoneypotCount] = useState(0);
   const [monitorCount, setMonitorCount] = useState(5); // Default monitors
+  // Security Posture & Recent Incidents
+  const [securityPosture, setSecurityPosture] = useState<any>(null);
+  const [recentIncidents, setRecentIncidents] = useState<any[]>([]);
 
   
   
@@ -184,21 +187,45 @@ export default function DashboardPage() {
   };
 
   // Fetch real honeypot count
-const fetchHoneypotsCount = async () => {
-  try {
-   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/honeypots/statistics`);
-    const data = await response.json();
-    if (data && data.active_honeypots !== undefined) {
-      setHoneypotCount(data.active_honeypots);
+  const fetchHoneypotsCount = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/honeypots/statistics`);
+      const data = await response.json();
+      if (data && data.active_honeypots !== undefined) {
+        setHoneypotCount(data.active_honeypots);
+      }
+    } catch (err) {
+      console.error("Error fetching honeypot count:", err);
+      // Fallback to default
+      setHoneypotCount(0);
     }
-  } catch (err) {
-    console.error("Error fetching honeypot count:", err);
-    // Fallback to default
-    setHoneypotCount(0);
-  }
-};
+  };
 
- // Check authentication
+  // Fetch security posture score
+  const fetchSecurityPosture = async () => {
+    try {
+      const response = await analyticsApi.getSecurityPosture();
+      if (response.success && response.data) {
+        setSecurityPosture(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching security posture:", err);
+    }
+  };
+
+  // Fetch recent incidents
+  const fetchRecentIncidents = async () => {
+    try {
+      const response = await analyticsApi.getRecentIncidents(5);
+      if (response.success && response.data) {
+        setRecentIncidents(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching recent incidents:", err);
+    }
+  };
+
+  // Check authentication
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -211,6 +238,8 @@ const fetchHoneypotsCount = async () => {
     fetchHealth();
     fetchThreatsCount();
     fetchHoneypotsCount();
+    fetchSecurityPosture();
+    fetchRecentIncidents();
   }, []);
 
   // Listen for WebSocket updates
@@ -231,31 +260,31 @@ const fetchHoneypotsCount = async () => {
         }
         break;
 
-case "threat_update":
-  // Show notification for new threat
-  if (lastMessage.data) {
-    setCurrentThreat({
-      id: lastMessage.data.id || Date.now().toString(),
-      title: lastMessage.data.title || lastMessage.data.threat_type || "Unknown Threat",
-      severity: lastMessage.data.severity || lastMessage.data.level || "medium",
-      timestamp: lastMessage.data.timestamp || new Date().toISOString()
-    });
-    
-    // Play sound alert (optional)
-    if (typeof Audio !== 'undefined') {
-      try {
-        const audio = new Audio('/alert.mp3');
-        audio.volume = 0.3;
-        audio.play().catch(() => {});
-      } catch (e) {}
-    }
-  }
-  
-  // Refresh all stats when new threat detected
-  fetchHealth();
-  fetchThreatsCount();
-  fetchHoneypotsCount();
-  break;
+      case "threat_update":
+        // Show notification for new threat
+        if (lastMessage.data) {
+          setCurrentThreat({
+            id: lastMessage.data.id || Date.now().toString(),
+            title: lastMessage.data.title || lastMessage.data.threat_type || "Unknown Threat",
+            severity: lastMessage.data.severity || lastMessage.data.level || "medium",
+            timestamp: lastMessage.data.timestamp || new Date().toISOString()
+          });
+          
+          // Play sound alert (optional)
+          if (typeof Audio !== 'undefined') {
+            try {
+              const audio = new Audio('/alert.mp3');
+              audio.volume = 0.3;
+              audio.play().catch(() => {});
+            } catch (e) {}
+          }
+        }
+        
+        // Refresh all stats when new threat detected
+        fetchHealth();
+        fetchThreatsCount();
+        fetchHoneypotsCount();
+        break;
     }
   }, [lastMessage, health]);
 
@@ -418,6 +447,152 @@ case "threat_update":
 
       {/* Threat Activity Chart */}
       <ThreatActivityChart />
+
+      {/* Security Posture Score */}
+      {securityPosture && (
+        <div className="stat-card p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold mb-1">Security Posture</h3>
+              <p className="text-sm text-slate-400">Overall system security score</p>
+            </div>
+            <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
+              securityPosture.color === 'green' ? 'bg-green-500/20 text-green-400' :
+              securityPosture.color === 'blue' ? 'bg-blue-500/20 text-blue-400' :
+              securityPosture.color === 'yellow' ? 'bg-yellow-500/20 text-yellow-400' :
+              'bg-red-500/20 text-red-400'
+            }`}>
+              {securityPosture.status.toUpperCase()}
+            </div>
+          </div>
+
+          {/* Score Gauge */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative w-48 h-48">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  stroke="rgba(148, 163, 184, 0.1)"
+                  strokeWidth="12"
+                  fill="none"
+                />
+                <circle
+                  cx="96"
+                  cy="96"
+                  r="88"
+                  stroke={
+                    securityPosture.color === 'green' ? '#10b981' :
+                    securityPosture.color === 'blue' ? '#3b82f6' :
+                    securityPosture.color === 'yellow' ? '#f59e0b' :
+                    '#ef4444'
+                  }
+                  strokeWidth="12"
+                  fill="none"
+                  strokeDasharray={`${(securityPosture.score / 100) * 552.92} 552.92`}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center flex-col">
+                <div className="text-5xl font-bold">
+                  <CountUp end={securityPosture.score} />
+                </div>
+                <div className="text-sm text-slate-400 mt-1">out of 100</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Factors */}
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-400">Active Threats:</span>
+              <span className="font-semibold">{securityPosture.factors.active_threats}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Protection:</span>
+              <span className="font-semibold">{securityPosture.factors.protection_enabled ? 'ON' : 'OFF'}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Honeypots:</span>
+              <span className="font-semibold">{securityPosture.factors.active_honeypots}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-slate-400">Recent Scans:</span>
+              <span className="font-semibold">{securityPosture.factors.recent_scans}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Recent Incidents */}
+      {recentIncidents.length > 0 && (
+        <div className="stat-card p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-bold">Recent Security Incidents</h3>
+            <span className="text-sm text-slate-400">Last 5 threats detected</span>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-slate-700">
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-400">Time</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-400">Source IP</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-400">Threat Type</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-400">Severity</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-400">Status</th>
+                  <th className="text-left py-3 px-4 text-sm font-semibold text-slate-400">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentIncidents.map((incident) => (
+                  <tr 
+                    key={incident.id} 
+                    className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors"
+                  >
+                    <td className="py-3 px-4 text-sm text-slate-300">
+                      {new Date(incident.timestamp).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </td>
+                    <td className="py-3 px-4 text-sm font-mono text-slate-300">
+                      {incident.source_ip}
+                    </td>
+                    <td className="py-3 px-4 text-sm font-medium">
+                      {incident.threat_type}
+                    </td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        incident.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
+                        incident.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
+                        incident.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-blue-500/20 text-blue-400'
+                      }`}>
+                        {incident.severity.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        incident.status === 'active' ? 'bg-red-500/20 text-red-400' :
+                        incident.status === 'blocked' ? 'bg-green-500/20 text-green-400' :
+                        'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {incident.status.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-slate-400">
+                      {incident.description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* System Metrics */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

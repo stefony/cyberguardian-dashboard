@@ -846,6 +846,20 @@ export const analyticsApi = {
   getTopThreats: async (limit?: number): Promise<ApiResponse<any[]>> => {
     return client.get<any[]>(`/api/analytics/top-threats${limit ? `?limit=${limit}` : ''}`)
   },
+
+  /**
+   * Get security posture score
+   */
+  getSecurityPosture: async (): Promise<ApiResponse<any>> => {
+    return client.get<any>('/api/analytics/security-posture')
+  },
+
+  /**
+   * Get recent security incidents
+   */
+  getRecentIncidents: async (limit?: number): Promise<ApiResponse<any[]>> => {
+    return client.get<any[]>(`/api/analytics/recent-incidents${limit ? `?limit=${limit}` : ''}`)
+  },
 }
 
 // REPLACE THE ENTIRE emailsApi SECTION IN lib/api.ts WITH THIS:
