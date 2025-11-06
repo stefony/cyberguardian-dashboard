@@ -463,6 +463,7 @@ const batchDeleteThreats = async () => {
         checked={isSelectAll}
         onChange={toggleSelectAll}
         className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900"
+        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
       />
     </th>
     <th>Time</th>
@@ -492,6 +493,7 @@ const batchDeleteThreats = async () => {
             checked={selectedThreats.has(threat.id)}
             onChange={() => toggleThreatSelection(threat.id)}
             className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900"
+            style={{ pointerEvents: 'auto', cursor: 'pointer' }}
           />
         </td>
         
