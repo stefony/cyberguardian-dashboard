@@ -147,11 +147,16 @@ useEffect(() => {
 
   // Toggle select all
 const toggleSelectAll = () => {
+  console.log('🔵 toggleSelectAll CALLED!');
+  console.log('🔵 Current isSelectAll:', isSelectAll);
+  console.log('🔵 Threats array:', threats);
+  
   if (isSelectAll) {
     setSelectedThreats(new Set());
     setIsSelectAll(false);
   } else {
     const allIds = new Set(threats.map(t => t.id));
+    console.log('🔵 All IDs:', Array.from(allIds));
     setSelectedThreats(allIds);
     setIsSelectAll(true);
   }
