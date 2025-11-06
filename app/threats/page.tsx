@@ -24,6 +24,9 @@ export default function ThreatsPage() {
   const [error, setError] = useState<string | null>(null);
   // WebSocket integration for live updates
 const { lastMessage } = useWebSocketContext();
+// Batch selection state
+const [selectedThreats, setSelectedThreats] = useState<Set<number>>(new Set());
+const [isSelectAll, setIsSelectAll] = useState(false);
   
   // Filters
   const [severityFilter, setSeverityFilter] = useState<string>("all");
@@ -38,6 +41,8 @@ const fetchThreats = useCallback(async () => {
     const params: Record<string, string> = {};
     if (severityFilter !== "all") params.severity = severityFilter;
     if (statusFilter !== "all") params.status = statusFilter;
+
+    
 
     const response = await threatsApi.getThreats(params);
 
@@ -139,6 +144,111 @@ useEffect(() => {
     const date = new Date(timestamp);
     return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
   };
+
+  // Toggle select all
+const toggleSelectAll = () => {
+  if (isSelectAll) {
+    setSelectedThreats(new Set());
+    setIsSelectAll(false);
+  } else {
+    const allIds = new Set(threats.map(t => t.id));
+    setSelectedThreats(allIds);
+    setIsSelectAll(true);
+  }
+};
+
+// Toggle single threat selection
+const toggleThreatSelection = (threatId: number) => {
+  const newSelected = new Set(selectedThreats);
+  if (newSelected.has(threatId)) {
+    newSelected.delete(threatId);
+  } else {
+    newSelected.add(threatId);
+  }
+  setSelectedThreats(newSelected);
+  setIsSelectAll(newSelected.size === threats.length);
+};
+
+// Batch block threats
+const batchBlockThreats = async () => {
+  if (selectedThreats.size === 0) return;
+  
+  if (!confirm(`Block ${selectedThreats.size} threats?`)) return;
+  
+  try {
+    const response = await threatsApi.batchAction({
+      threat_ids: Array.from(selectedThreats),
+      action: 'block',
+      reason: 'Bulk block action'
+    });
+    
+    if (response.success) {
+      await fetchThreats();
+      await fetchStats();
+      setSelectedThreats(new Set());
+      setIsSelectAll(false);
+    } else {
+      alert(response.error || 'Failed to block threats');
+    }
+  } catch (err) {
+    console.error('Batch block failed:', err);
+    alert('Failed to block threats');
+  }
+};
+
+// Batch dismiss threats
+const batchDismissThreats = async () => {
+  if (selectedThreats.size === 0) return;
+  
+  if (!confirm(`Dismiss ${selectedThreats.size} threats?`)) return;
+  
+  try {
+    const response = await threatsApi.batchAction({
+      threat_ids: Array.from(selectedThreats),
+      action: 'dismiss',
+      reason: 'Bulk dismiss action'
+    });
+    
+    if (response.success) {
+      await fetchThreats();
+      await fetchStats();
+      setSelectedThreats(new Set());
+      setIsSelectAll(false);
+    } else {
+      alert(response.error || 'Failed to dismiss threats');
+    }
+  } catch (err) {
+    console.error('Batch dismiss failed:', err);
+    alert('Failed to dismiss threats');
+  }
+};
+
+// Batch delete threats
+const batchDeleteThreats = async () => {
+  if (selectedThreats.size === 0) return;
+  
+  if (!confirm(`Permanently delete ${selectedThreats.size} threats? This cannot be undone!`)) return;
+  
+  try {
+    const response = await threatsApi.batchAction({
+      threat_ids: Array.from(selectedThreats),
+      action: 'delete',
+      reason: 'Bulk delete action'
+    });
+    
+    if (response.success) {
+      await fetchThreats();
+      await fetchStats();
+      setSelectedThreats(new Set());
+      setIsSelectAll(false);
+    } else {
+      alert(response.error || 'Failed to delete threats');
+    }
+  } catch (err) {
+    console.error('Batch delete failed:', err);
+    alert('Failed to delete threats');
+  }
+};
 
   // Severity badge class
   const getSeverityBadgeClass = (severity: string) => {
@@ -282,6 +392,39 @@ useEffect(() => {
             </div>
           </div>
 
+          {/* Batch Actions - ДОБАВИ ТУК */}
+{selectedThreats.size > 0 && (
+  <div className="mb-4 p-4 bg-primary/10 border border-primary/30 rounded-lg">
+    <div className="flex items-center justify-between">
+      <div className="text-sm font-medium">
+        {selectedThreats.size} threat{selectedThreats.size > 1 ? 's' : ''} selected
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={batchBlockThreats}
+          className="btn btn-sm bg-red-500/20 text-red-400 hover:bg-red-500/30"
+        >
+          <Ban className="h-4 w-4" />
+          Block All
+        </button>
+        <button
+          onClick={batchDismissThreats}
+          className="btn btn-sm bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+        >
+          <X className="h-4 w-4" />
+          Dismiss All
+        </button>
+        <button
+          onClick={batchDeleteThreats}
+          className="btn btn-sm bg-gray-500/20 text-gray-400 hover:bg-gray-500/30"
+        >
+          Delete All
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
           {/* Loading / Error */}
           {isLoading && (
             <div className="text-center py-12">
@@ -302,75 +445,114 @@ useEffect(() => {
             <div className="overflow-x-auto">
               <table className="table w-full">
                 <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Source IP</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Severity</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+  <tr>
+    <th className="w-12">
+      <input
+        type="checkbox"
+        checked={isSelectAll}
+        onChange={toggleSelectAll}
+        className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900"
+      />
+    </th>
+    <th>Time</th>
+    <th>Source IP</th>
+    <th>Type</th>
+    <th>Description</th>
+    <th>Severity</th>
+    <th>Confidence</th>  {/* ← НОВА КОЛОНА */}
+    <th>Status</th>
+    <th>Actions</th>
+  </tr>
+</thead>
                 <tbody>
-                  {threats?.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No threats found
-                      </td>
-                    </tr>
-                  ) : (
-                    threats?.map((threat) => (
-                      <tr key={threat.id}>
-                        <td className="font-mono text-sm">
-                          {formatTime(threat.timestamp)}
-                        </td>
-                        <td className="font-mono text-sm text-blue-400">
-                          {threat.source_ip}
-                        </td>
-                        <td className="font-semibold">{threat.threat_type}</td>
-                        <td className="max-w-xs truncate">{threat.description}</td>
-                        <td>
-                          <span className={getSeverityBadgeClass(threat.severity)}>
-                            {threat.severity}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={getStatusBadgeClass(threat.status)}>
-                            {threat.status}
-                          </span>
-                        </td>
-                        <td>
-                          <div className="flex gap-2">
-                            {threat.status === "active" && (
-                              <>
-                                <button
-                                  onClick={() => blockThreat(threat.id)}
-                                  className="btn btn-ghost text-red-500 hover:bg-red-500/10"
-                                  title="Block Threat"
-                                >
-                                  <Ban className="h-4 w-4" />
-                                </button>
-                                <button
-                                  onClick={() => dismissThreat(threat.id)}
-                                  className="btn btn-ghost hover:bg-muted"
-                                  title="Dismiss Threat"
-                                >
-                                  <X className="h-4 w-4" />
-                                </button>
-                              </>
-                            )}
-                            {threat.status !== "active" && (
-                              <span className="text-xs text-muted-foreground">
-                                {threat.status}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
+  {threats?.length === 0 ? (
+    <tr>
+      <td colSpan={9} className="text-center py-8 text-muted-foreground">
+        No threats found
+      </td>
+    </tr>
+  ) : (
+    threats?.map((threat) => (
+      <tr key={threat.id}>
+        {/* Checkbox */}
+        <td>
+          <input
+            type="checkbox"
+            checked={selectedThreats.has(threat.id)}
+            onChange={() => toggleThreatSelection(threat.id)}
+            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900"
+          />
+        </td>
+        
+        <td className="font-mono text-sm">
+          {formatTime(threat.timestamp)}
+        </td>
+        <td className="font-mono text-sm text-blue-400">
+          {threat.source_ip}
+        </td>
+        <td className="font-semibold">{threat.threat_type}</td>
+        <td className="max-w-xs truncate">{threat.description}</td>
+        <td>
+          <span className={getSeverityBadgeClass(threat.severity)}>
+            {threat.severity}
+          </span>
+        </td>
+        
+        {/* Confidence Score - НОВА КОЛОНА */}
+        <td>
+          <div className="flex items-center gap-2">
+            <div className="w-16 bg-gray-700 rounded-full h-2">
+              <div
+                className={`h-2 rounded-full ${
+                  (threat.confidence_score || 0) >= 80 ? 'bg-green-500' :
+                  (threat.confidence_score || 0) >= 60 ? 'bg-yellow-500' :
+                  'bg-red-500'
+                }`}
+                style={{ width: `${threat.confidence_score || 0}%` }}
+              />
+            </div>
+            <span className="text-sm font-mono">
+              {(threat.confidence_score || 0).toFixed(1)}%
+            </span>
+          </div>
+        </td>
+        
+        <td>
+          <span className={getStatusBadgeClass(threat.status)}>
+            {threat.status}
+          </span>
+        </td>
+        <td>
+          <div className="flex gap-2">
+            {threat.status === "active" && (
+              <>
+                <button
+                  onClick={() => blockThreat(threat.id)}
+                  className="btn btn-ghost text-red-500 hover:bg-red-500/10"
+                  title="Block Threat"
+                >
+                  <Ban className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={() => dismissThreat(threat.id)}
+                  className="btn btn-ghost hover:bg-muted"
+                  title="Dismiss Threat"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </>
+            )}
+            {threat.status !== "active" && (
+              <span className="text-xs text-muted-foreground">
+                {threat.status}
+              </span>
+            )}
+          </div>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
               </table>
             </div>
           )}

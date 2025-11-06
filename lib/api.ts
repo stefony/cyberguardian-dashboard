@@ -224,18 +224,18 @@ export const dashboardApi = {
 // ============================================
 
 export const threatsApi = {
-getThreats: async (params?: {
-  severity?: string;
-  status?: string;
-  type?: string;
-  limit?: number;
-}): Promise<ApiResponse<ThreatResponse[]>> => {  // ← Changed from PaginatedResponse!
-  const query = new URLSearchParams(params as any).toString();
-  console.log("➡️ FETCH_THREATS URL:", `/api/threats${query ? `?${query}` : ''}`);
-  return client.get<ThreatResponse[]>(  // ← Changed from PaginatedResponse!
-    `/api/threats${query ? `?${query}` : ''}`
-  );
-},
+  getThreats: async (params?: {
+    severity?: string;
+    status?: string;
+    type?: string;
+    limit?: number;
+  }): Promise<ApiResponse<ThreatResponse[]>> => {
+    const query = new URLSearchParams(params as any).toString();
+    console.log("➡️ FETCH_THREATS URL:", `/api/threats${query ? `?${query}` : ''}`);
+    return client.get<ThreatResponse[]>(
+      `/api/threats${query ? `?${query}` : ''}`
+    );
+  },
 
   getThreatById: async (id: string): Promise<ApiResponse<Threat>> => {
     return client.get<Threat>(`/api/threats/${id}`)
@@ -249,8 +249,6 @@ getThreats: async (params?: {
     return client.post<void>(`/api/alerts/${id}/dismiss`)
   },
 
-  // ADD THESE 3 NEW FUNCTIONS:
-  
   /**
    * Get threat statistics
    */
@@ -276,6 +274,17 @@ getThreats: async (params?: {
       threat_id: threatId, 
       action: 'dismiss' 
     })
+  },
+
+  /**
+   * Batch action on multiple threats
+   */
+  batchAction: async (data: {
+    threat_ids: number[];
+    action: 'block' | 'dismiss' | 'delete';
+    reason?: string;
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/threats/batch', data);
   },
 }
 

@@ -36,16 +36,17 @@ export interface Threat {
 }
 // Backend API Threat Response
 export interface ThreatResponse {
-  id: number
-  timestamp: string
-  source_ip: string
-  threat_type: string
-  severity: 'critical' | 'high' | 'medium' | 'low'
-  description: string
-  status: 'active' | 'blocked' | 'dismissed'
-  details?: Record<string, any>
-  created_at: string
-  updated_at: string
+  id: number;
+  timestamp: string;
+  source_ip: string;
+  threat_type: string;
+  severity: string;
+  description: string;
+  status: string;
+  details?: any;
+  confidence_score?: number;  // ← ДОБАВИ ТОЗИ РЕД
+  created_at: string;
+  updated_at: string;
 }
 
 // ADD THIS AFTER ThreatResponse:
