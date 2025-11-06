@@ -157,6 +157,12 @@ const toggleSelectAll = () => {
   }
 };
 
+// Debug: Log when selection changes
+useEffect(() => {
+  console.log('🔍 Selected Threats Size:', selectedThreats.size);
+  console.log('🔍 Selected Threats IDs:', Array.from(selectedThreats));
+}, [selectedThreats]);
+
 // Toggle single threat selection
 const toggleThreatSelection = (threatId: number) => {
   const newSelected = new Set(selectedThreats);
@@ -392,7 +398,7 @@ const batchDeleteThreats = async () => {
             </div>
           </div>
 
-          {/* Batch Actions - ДОБАВИ ТУК */}
+          {/* Batch Actions */}
 {selectedThreats.size > 0 && (
   <div className="mb-4 p-4 bg-primary/10 border border-primary/30 rounded-lg">
     <div className="flex items-center justify-between">
