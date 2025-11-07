@@ -52,9 +52,9 @@ export default function HoneypotsPage() {
       honeypotApi.getStatistics()
     ])
 
-    if (statusRes.success) setHoneypots(statusRes.data || [])
-    if (attacksRes.success) setAttacks(attacksRes.data || [])
-    if (statsRes.success) setStats(statsRes.data || null)
+    if (statusRes.success) setHoneypots(statusRes.data ?? [])
+    if (attacksRes.success) setAttacks(attacksRes.data ?? [])
+    if (statsRes.success) setStats(statsRes.data ?? null)    
 
     setLoading(false)
     setError(null)
