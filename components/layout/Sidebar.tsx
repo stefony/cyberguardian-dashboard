@@ -107,13 +107,14 @@ export function Sidebar() {
   console.log('Current pathname:', pathname) // DEBUG
 
   return (
-    <aside
-      className={cn(
-        'fixed left-0 top-0 z-40 h-screen transition-all duration-300',
-        'bg-dark-surface border-r border-dark-border',
-        collapsed ? 'w-20' : 'w-64'
-      )}
-    >
+  <aside
+  className={cn(
+    'fixed left-0 top-0 z-40 h-screen transition-all duration-300',
+    'bg-dark-surface border-r border-dark-border',
+    'flex flex-col',
+    collapsed ? 'w-20' : 'w-64'
+  )}
+>
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-dark-border px-4">
         {!collapsed && (
@@ -157,7 +158,7 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
