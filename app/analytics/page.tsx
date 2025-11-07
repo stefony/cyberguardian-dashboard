@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { BarChart3, TrendingUp, Shield, Activity, RefreshCw, Calendar } from "lucide-react";
 import WhatIfPanel from '@/components/WhatIfPanel'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { analyticsApi } from "@/lib/api"; 
+
 // Types
 type OverviewStats = {
   total_threats: number;
@@ -63,38 +64,38 @@ export default function AnalyticsPage() {
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<number>(7);
 
-  // Fetch all data
- const fetchData = async (showRefreshIndicator = false) => {
-  try {
-    if (showRefreshIndicator) {
-      setIsRefreshing(true);
-    } else {
-      setIsLoading(true);
+// Fetch all data
+  const fetchData = useCallback(async (showRefreshIndicator = false) => {
+    try {
+      if (showRefreshIndicator) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+
+      const [overviewRes, timelineRes, detectionRes, honeypotRes, threatsRes] = await Promise.all([
+        analyticsApi.getOverview(),
+        analyticsApi.getThreatsTimeline(timeRange),
+        analyticsApi.getDetectionStats(),
+        analyticsApi.getHoneypotActivity(timeRange),
+        analyticsApi.getTopThreats(5)
+      ]);
+
+      if (overviewRes.success) setOverview(overviewRes.data || null);
+      if (timelineRes.success) setThreatsTimeline(timelineRes.data || []);
+      if (detectionRes.success) setDetectionStats(detectionRes.data || []);
+      if (honeypotRes.success) setHoneypotActivity(honeypotRes.data || []);
+      if (threatsRes.success) setTopThreats(threatsRes.data || []);
+
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching analytics:", err);
+      setError("Could not load analytics data");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
     }
-
-    const [overviewRes, timelineRes, detectionRes, honeypotRes, threatsRes] = await Promise.all([
-      analyticsApi.getOverview(),
-      analyticsApi.getThreatsTimeline(timeRange),
-      analyticsApi.getDetectionStats(),
-      analyticsApi.getHoneypotActivity(timeRange),
-      analyticsApi.getTopThreats(5)
-    ]);
-
-    if (overviewRes.success) setOverview(overviewRes.data || null);
-    if (timelineRes.success) setThreatsTimeline(timelineRes.data || []);
-    if (detectionRes.success) setDetectionStats(detectionRes.data || []);
-    if (honeypotRes.success) setHoneypotActivity(honeypotRes.data || []);
-    if (threatsRes.success) setTopThreats(threatsRes.data || []);
-
-    setError(null);
-  } catch (err) {
-    console.error("Error fetching analytics:", err);
-    setError("Could not load analytics data");
-  } finally {
-    setIsLoading(false);
-    setIsRefreshing(false);
-  }
-};
+  }, [timeRange]);
 
   useEffect(() => {
     fetchData();
@@ -302,13 +303,11 @@ export default function AnalyticsPage() {
 
           {/* What-if Simulator */}
           <div className="section">
-            <div className="card-premium p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Activity className="h-6 w-6 text-purple-500" />
-                AI What-If Simulator
-              </h2>
-              <WhatIfPanel />
-            </div>
+            <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 px-6">
+              <Activity className="h-6 w-6 text-purple-500" />
+              AI What-If Simulator
+            </h2>
+            <WhatIfPanel />
           </div>
         </>
       )}
