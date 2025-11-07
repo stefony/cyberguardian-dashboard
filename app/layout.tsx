@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import 'leaflet/dist/leaflet.css'
 import { ConditionalLayout } from '@/components/layout/ConditionalLayout'
 import { AuthProvider } from '@/lib/contexts/AuthContext'
 import { WebSocketProvider } from '@/lib/contexts/WebSocketContext'

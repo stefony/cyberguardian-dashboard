@@ -1126,7 +1126,6 @@ export const scansApi = {
     return client.post<any>('/api/scans/run', data)
   },
 }
-
 // ============================================
 // QUARANTINE API
 // ============================================
@@ -1181,6 +1180,32 @@ export const quarantineApi = {
   },
 }
 
+// ============================================
+// HONEYPOT GEO ATTACKS API
+// ============================================
+
+export const geoAttacksApi = {
+  /**
+   * Get honeypot attacks with geolocation data
+   */
+  getGeoAttacks: async (limit: number = 100): Promise<ApiResponse<{
+    success: boolean
+    total: number
+    attacks: Array<{
+      id: number
+      timestamp: string
+      source_ip: string
+      action: string
+      country: string
+      city: string
+      latitude: number
+      longitude: number
+      honeypot_id: number
+    }>
+  }>> => {
+    return client.get<any>(`/api/honeypots/geo-attacks?limit=${limit}`)
+  },
+}
 
 // ============================================
 // EXPORTS
@@ -1200,6 +1225,7 @@ export const api = {
    protection: protectionApi,
    scans: scansApi,
    quarantine: quarantineApi,
+   geoAttacks: geoAttacksApi,
 }
 
 export default api

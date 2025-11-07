@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { RefreshCw, Activity, AlertTriangle, Shield, Globe, MapPin, Clock } from 'lucide-react'
 import { honeypotApi } from '@/lib/api'
+import HoneypotMap from '@/components/HoneypotMap'
 
 interface HoneypotStatus {
   name: string
@@ -248,6 +249,14 @@ const stopAll = async () => {
           <RefreshCw className="w-5 h-5" />
           Refresh
         </button>
+      </div>
+
+       {/* Geo Map */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold mb-4 text-dark-text">
+          Attack Origins Map
+        </h2>
+        <HoneypotMap />
       </div>
 
       {/* Recent Attacks */}
