@@ -1208,6 +1208,36 @@ export const geoAttacksApi = {
 }
 
 // ============================================
+// WHAT-IF SIMULATOR API
+// ============================================
+
+export const whatIfApi = {
+  /**
+   * Simulate threat scenario
+   */
+  simulate: async (scenario: {
+    threats_per_hour: number
+    attack_types: string[]
+    duration_hours: number
+    current_defenses: Record<string, boolean>
+  }): Promise<ApiResponse<{
+    scenario: string
+    threat_volume: number
+    estimated_blocks: number
+    estimated_breaches: number
+    cpu_usage_percent: number
+    memory_usage_percent: number
+    disk_io_mbps: number
+    network_bandwidth_mbps: number
+    recommendations: string[]
+    risk_level: string
+    confidence: number
+  }>> => {
+    return client.post<any>('/api/ai/what-if', scenario)
+  },
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 export const api = {
@@ -1226,6 +1256,7 @@ export const api = {
    scans: scansApi,
    quarantine: quarantineApi,
    geoAttacks: geoAttacksApi,
+   whatIf: whatIfApi,
 }
 
 export default api

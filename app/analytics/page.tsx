@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BarChart3, TrendingUp, Shield, Activity, RefreshCw, Calendar } from "lucide-react";
+import WhatIfPanel from '@/components/WhatIfPanel'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { analyticsApi } from "@/lib/api"; 
 // Types
@@ -296,6 +297,17 @@ export default function AnalyticsPage() {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+            </div>
+          </div>
+
+          {/* What-if Simulator */}
+          <div className="section">
+            <div className="card-premium p-6">
+              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+                <Activity className="h-6 w-6 text-purple-500" />
+                AI What-If Simulator
+              </h2>
+              <WhatIfPanel />
             </div>
           </div>
         </>
