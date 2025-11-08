@@ -144,7 +144,7 @@ export default function SensitivityProfiles() {
               } rounded-xl shadow-2xl transition-all duration-300 ${
                 isActive ? 'ring-2 ring-offset-2 ring-offset-dark-bg' : ''
               }`}
-              style={isActive ? { ringColor: profile.color === 'green' ? '#10b981' : profile.color === 'yellow' ? '#f59e0b' : '#ef4444' } : {}}
+              
               >
                 {/* Active Badge */}
                 {isActive && (
