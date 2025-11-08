@@ -1236,7 +1236,55 @@ export const whatIfApi = {
     return client.post<any>('/api/ai/what-if', scenario)
   },
 }
+// ============================================
+// EXCLUSIONS API
+// ============================================
 
+export const exclusionsApi = {
+  /**
+   * Get all exclusions
+   */
+  getExclusions: async (type?: string): Promise<ApiResponse<Array<{
+    id: number
+    type: string
+    value: string
+    reason: string | null
+    created_at: string
+    created_by: string | null
+  }>>> => {
+    const url = type ? `/api/exclusions?type=${type}` : '/api/exclusions'
+    return client.get<any>(url)
+  },
+
+  /**
+   * Add new exclusion
+   */
+  addExclusion: async (data: {
+    type: string
+    value: string
+    reason?: string
+  }): Promise<ApiResponse<{ success: boolean; id: number; message: string }>> => {
+    return client.post<any>('/api/exclusions', data)
+  },
+
+  /**
+   * Delete exclusion
+   */
+  deleteExclusion: async (id: number): Promise<ApiResponse<{ success: boolean; message: string }>> => {
+    return client.delete<any>(`/api/exclusions/${id}`)
+  },
+
+  /**
+   * Check if value is excluded
+   */
+  checkExclusion: async (type: string, value: string): Promise<ApiResponse<{
+    excluded: boolean
+    type: string
+    value: string
+  }>> => {
+    return client.get<any>(`/api/exclusions/check/${type}/${value}`)
+  },
+}
 // ============================================
 // EXPORTS
 // ============================================
@@ -1257,6 +1305,7 @@ export const api = {
    quarantine: quarantineApi,
    geoAttacks: geoAttacksApi,
    whatIf: whatIfApi,
+   exclusions: exclusionsApi,
 }
 
 export default api
