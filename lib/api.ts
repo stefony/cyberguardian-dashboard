@@ -1285,6 +1285,38 @@ export const exclusionsApi = {
     return client.get<any>(`/api/exclusions/check/${type}/${value}`)
   },
 }
+
+// ============================================
+// SENSITIVITY PROFILES API
+// ============================================
+
+export const profilesApi = {
+  /**
+   * Get available sensitivity profiles
+   */
+  getProfiles: async (): Promise<ApiResponse<{
+    profiles: Record<string, {
+      name: string
+      description: string
+      threshold: number
+      color: string
+    }>
+  }>> => {
+    return client.get<any>('/api/protection/profiles')
+  },
+
+  /**
+   * Set active sensitivity profile
+   */
+  setProfile: async (profileName: string): Promise<ApiResponse<{
+    success: boolean
+    profile: string
+    threshold: number
+    message: string
+  }>> => {
+    return client.post<any>(`/api/protection/profile/${profileName}`, {})
+  },
+}
 // ============================================
 // EXPORTS
 // ============================================
@@ -1306,6 +1338,7 @@ export const api = {
    geoAttacks: geoAttacksApi,
    whatIf: whatIfApi,
    exclusions: exclusionsApi,
+   profiles: profilesApi, 
 }
 
 export default api

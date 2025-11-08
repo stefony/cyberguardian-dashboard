@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { protectionApi } from "@/lib/api";
 import ExclusionsManager from '@/components/ExclusionsManager'
+import SensitivityProfiles from '@/components/SensitivityProfiles'
 
 export default function ProtectionPage() {
   const [enabled, setEnabled] = useState(false);
@@ -507,7 +508,23 @@ export default function ProtectionPage() {
         </div>
         <ExclusionsManager />
       </div>
-      
+       {/* Sensitivity Profiles */}
+      <div className="section">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg">
+              <Shield className="h-6 w-6 text-white" />
+            </div>
+            <span className="bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
+              Sensitivity Profiles
+            </span>
+          </h2>
+          <p className="text-muted-foreground ml-14">
+            Adjust threat detection sensitivity based on your security requirements
+          </p>
+        </div>
+        <SensitivityProfiles />
+      </div>
     </main>
   );
 }
