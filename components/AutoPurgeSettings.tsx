@@ -143,21 +143,20 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         </div>
 
         {/* Enable Toggle */}
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={settings.enabled}
-            onChange={(e) => setSettings({ ...settings, enabled: e.target.checked })}
-            className="sr-only peer"
-          />
-          <div className="w-14 h-7 bg-gray-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:start-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-purple-600"></div>
+        <button
+          onClick={() => setSettings({ ...settings, enabled: !settings.enabled })}
+          className="relative inline-flex items-center cursor-pointer"
+        >
+          <div className={`w-14 h-7 rounded-full transition-colors ${settings.enabled ? 'bg-purple-600' : 'bg-gray-700'}`}>
+            <div className={`absolute top-0.5 left-0.5 bg-white rounded-full h-6 w-6 transition-transform ${settings.enabled ? 'translate-x-7' : 'translate-x-0'}`}></div>
+          </div>
           <span className="ml-3 text-sm font-medium">
             {settings.enabled ? "Enabled" : "Disabled"}
           </span>
-        </label>
+        </button>
       </div>
 
-{/* Days Threshold Slider */}
+      {/* Days Threshold Slider */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium flex items-center gap-2">
@@ -176,7 +175,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
             max="90"
             value={settings.days_threshold}
             onChange={(e) => setSettings({ ...settings, days_threshold: parseInt(e.target.value) })}
-            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
+            className="slider-thumb w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
             style={{
               background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 100%)`
             }}
@@ -190,7 +189,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         </div>
       </div>
 
-{/* Threat Level Toggles */}
+      {/* Threat Level Toggles */}
       <div className="space-y-3">
         <label className="text-sm font-medium flex items-center gap-2">
           <Shield className="h-4 w-4 text-green-400" />
@@ -199,64 +198,76 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
 
         <div className="grid grid-cols-2 gap-3">
           {/* Critical */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border-2 border-red-500/30">
-            <input
-              type="checkbox"
-              id="purge-critical"
-              checked={settings.auto_purge_critical}
-              onChange={(e) => setSettings({ ...settings, auto_purge_critical: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-red-500 focus:ring-2 focus:ring-red-500 cursor-pointer"
-            />
-            <label htmlFor="purge-critical" className="flex-1 cursor-pointer">
+          <button
+            onClick={() => setSettings({ ...settings, auto_purge_critical: !settings.auto_purge_critical })}
+            className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border-2 border-red-500/30 hover:bg-red-500/20 transition-colors cursor-pointer text-left"
+          >
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_critical ? 'bg-red-500 border-red-500' : 'bg-gray-800 border-gray-600'}`}>
+              {settings.auto_purge_critical && (
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              )}
+            </div>
+            <div className="flex-1">
               <div className="font-medium text-red-400">Critical</div>
               <div className="text-xs text-muted-foreground">Highest risk</div>
-            </label>
-          </div>
+            </div>
+          </button>
 
           {/* High */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border-2 border-orange-500/30">
-            <input
-              type="checkbox"
-              id="purge-high"
-              checked={settings.auto_purge_high}
-              onChange={(e) => setSettings({ ...settings, auto_purge_high: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-2 focus:ring-orange-500 cursor-pointer"
-            />
-            <label htmlFor="purge-high" className="flex-1 cursor-pointer">
+          <button
+            onClick={() => setSettings({ ...settings, auto_purge_high: !settings.auto_purge_high })}
+            className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border-2 border-orange-500/30 hover:bg-orange-500/20 transition-colors cursor-pointer text-left"
+          >
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_high ? 'bg-orange-500 border-orange-500' : 'bg-gray-800 border-gray-600'}`}>
+              {settings.auto_purge_high && (
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              )}
+            </div>
+            <div className="flex-1">
               <div className="font-medium text-orange-400">High</div>
               <div className="text-xs text-muted-foreground">High risk</div>
-            </label>
-          </div>
+            </div>
+          </button>
 
           {/* Medium */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border-2 border-yellow-500/30">
-            <input
-              type="checkbox"
-              id="purge-medium"
-              checked={settings.auto_purge_medium}
-              onChange={(e) => setSettings({ ...settings, auto_purge_medium: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-yellow-500 focus:ring-2 focus:ring-yellow-500 cursor-pointer"
-            />
-            <label htmlFor="purge-medium" className="flex-1 cursor-pointer">
+          <button
+            onClick={() => setSettings({ ...settings, auto_purge_medium: !settings.auto_purge_medium })}
+            className="flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border-2 border-yellow-500/30 hover:bg-yellow-500/20 transition-colors cursor-pointer text-left"
+          >
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_medium ? 'bg-yellow-500 border-yellow-500' : 'bg-gray-800 border-gray-600'}`}>
+              {settings.auto_purge_medium && (
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              )}
+            </div>
+            <div className="flex-1">
               <div className="font-medium text-yellow-400">Medium</div>
               <div className="text-xs text-muted-foreground">Moderate risk</div>
-            </label>
-          </div>
+            </div>
+          </button>
 
           {/* Low */}
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border-2 border-green-500/30">
-            <input
-              type="checkbox"
-              id="purge-low"
-              checked={settings.auto_purge_low}
-              onChange={(e) => setSettings({ ...settings, auto_purge_low: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-green-500 focus:ring-2 focus:ring-green-500 cursor-pointer"
-            />
-            <label htmlFor="purge-low" className="flex-1 cursor-pointer">
+          <button
+            onClick={() => setSettings({ ...settings, auto_purge_low: !settings.auto_purge_low })}
+            className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border-2 border-green-500/30 hover:bg-green-500/20 transition-colors cursor-pointer text-left"
+          >
+            <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_low ? 'bg-green-500 border-green-500' : 'bg-gray-800 border-gray-600'}`}>
+              {settings.auto_purge_low && (
+                <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              )}
+            </div>
+            <div className="flex-1">
               <div className="font-medium text-green-400">Low</div>
               <div className="text-xs text-muted-foreground">Low risk</div>
-            </label>
-          </div>
+            </div>
+          </button>
         </div>
       </div>
 
