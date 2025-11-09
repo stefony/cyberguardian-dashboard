@@ -129,7 +129,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
   }
 
   return (
-    <div className="card-premium p-6 space-y-6">
+    <div className="card-premium p-6 space-y-6" style={{ pointerEvents: 'auto', position: 'relative', zIndex: 10 }}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -146,6 +146,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         <button
           onClick={() => setSettings({ ...settings, enabled: !settings.enabled })}
           className="relative inline-flex items-center cursor-pointer"
+          style={{ pointerEvents: 'auto', zIndex: 20 }}
         >
           <div className={`w-14 h-7 rounded-full transition-colors ${settings.enabled ? 'bg-purple-600' : 'bg-gray-700'}`}>
             <div className={`absolute top-0.5 left-0.5 bg-white rounded-full h-6 w-6 transition-transform ${settings.enabled ? 'translate-x-7' : 'translate-x-0'}`}></div>
@@ -168,7 +169,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
           </span>
         </div>
 
-        <div className="relative">
+        <div className="relative" style={{ pointerEvents: 'auto', zIndex: 20 }}>
           <input
             type="range"
             min="1"
@@ -177,7 +178,8 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
             onChange={(e) => setSettings({ ...settings, days_threshold: parseInt(e.target.value) })}
             className="slider-thumb w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
             style={{
-              background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 100%)`
+              background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 100%)`,
+              pointerEvents: 'auto'
             }}
           />
         </div>
@@ -197,8 +199,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         </label>
 
         <div className="grid grid-cols-2 gap-3">
-
-       {/* Critical */}
+          {/* Critical */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -209,6 +210,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
               setSettings({ ...settings, auto_purge_critical: newValue });
             }}
             type="button"
+            style={{ pointerEvents: 'auto', zIndex: 20 }}
             className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border-2 border-red-500/30 hover:bg-red-500/20 transition-colors cursor-pointer text-left"
           >
             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_critical ? 'bg-red-500 border-red-500' : 'bg-gray-800 border-gray-600'}`}>
@@ -226,7 +228,16 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
 
           {/* High */}
           <button
-            onClick={() => setSettings({ ...settings, auto_purge_high: !settings.auto_purge_high })}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("🟠 HIGH CLICKED!");
+              const newValue = !settings.auto_purge_high;
+              console.log("New value:", newValue);
+              setSettings({ ...settings, auto_purge_high: newValue });
+            }}
+            type="button"
+            style={{ pointerEvents: 'auto', zIndex: 20 }}
             className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border-2 border-orange-500/30 hover:bg-orange-500/20 transition-colors cursor-pointer text-left"
           >
             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_high ? 'bg-orange-500 border-orange-500' : 'bg-gray-800 border-gray-600'}`}>
@@ -244,7 +255,16 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
 
           {/* Medium */}
           <button
-            onClick={() => setSettings({ ...settings, auto_purge_medium: !settings.auto_purge_medium })}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("🟡 MEDIUM CLICKED!");
+              const newValue = !settings.auto_purge_medium;
+              console.log("New value:", newValue);
+              setSettings({ ...settings, auto_purge_medium: newValue });
+            }}
+            type="button"
+            style={{ pointerEvents: 'auto', zIndex: 20 }}
             className="flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border-2 border-yellow-500/30 hover:bg-yellow-500/20 transition-colors cursor-pointer text-left"
           >
             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_medium ? 'bg-yellow-500 border-yellow-500' : 'bg-gray-800 border-gray-600'}`}>
@@ -262,7 +282,16 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
 
           {/* Low */}
           <button
-            onClick={() => setSettings({ ...settings, auto_purge_low: !settings.auto_purge_low })}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("🟢 LOW CLICKED!");
+              const newValue = !settings.auto_purge_low;
+              console.log("New value:", newValue);
+              setSettings({ ...settings, auto_purge_low: newValue });
+            }}
+            type="button"
+            style={{ pointerEvents: 'auto', zIndex: 20 }}
             className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border-2 border-green-500/30 hover:bg-green-500/20 transition-colors cursor-pointer text-left"
           >
             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_low ? 'bg-green-500 border-green-500' : 'bg-gray-800 border-gray-600'}`}>
@@ -305,6 +334,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         <button
           onClick={handleSave}
           disabled={saving}
+          style={{ pointerEvents: 'auto', zIndex: 20 }}
           className="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Save className={`h-4 w-4 ${saving ? "animate-spin" : ""}`} />
@@ -314,6 +344,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         <button
           onClick={handlePreview}
           disabled={previewing}
+          style={{ pointerEvents: 'auto', zIndex: 20 }}
           className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Eye className={`h-4 w-4 ${previewing ? "animate-spin" : ""}`} />
@@ -323,6 +354,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         <button
           onClick={handleExecute}
           disabled={!settings.enabled || executing}
+          style={{ pointerEvents: 'auto', zIndex: 20 }}
           className="px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Play className={`h-4 w-4 ${executing ? "animate-spin" : ""}`} />
