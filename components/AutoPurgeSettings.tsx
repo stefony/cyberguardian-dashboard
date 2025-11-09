@@ -197,9 +197,18 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         </label>
 
         <div className="grid grid-cols-2 gap-3">
-          {/* Critical */}
+
+       {/* Critical */}
           <button
-            onClick={() => setSettings({ ...settings, auto_purge_critical: !settings.auto_purge_critical })}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log("🔴 CRITICAL CLICKED!");
+              const newValue = !settings.auto_purge_critical;
+              console.log("New value:", newValue);
+              setSettings({ ...settings, auto_purge_critical: newValue });
+            }}
+            type="button"
             className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border-2 border-red-500/30 hover:bg-red-500/20 transition-colors cursor-pointer text-left"
           >
             <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${settings.auto_purge_critical ? 'bg-red-500 border-red-500' : 'bg-gray-800 border-gray-600'}`}>
