@@ -1211,6 +1211,63 @@ export const quarantineApi = {
   deleteFile: async (id: string): Promise<ApiResponse<any>> => {
     return client.delete<any>(`/api/quarantine/${id}`)
   },
+
+  // ========== AUTO-PURGE POLICY ==========
+
+  /**
+   * Get auto-purge settings
+   */
+  getAutoPurgeSettings: async (): Promise<ApiResponse<{
+    enabled: boolean
+    days_threshold: number
+    auto_purge_critical: boolean
+    auto_purge_high: boolean
+    auto_purge_medium: boolean
+    auto_purge_low: boolean
+  }>> => {
+    return client.get<any>('/api/quarantine/auto-purge/settings')
+  },
+
+  /**
+   * Update auto-purge settings
+   */
+  updateAutoPurgeSettings: async (settings: {
+    enabled: boolean
+    days_threshold: number
+    auto_purge_critical: boolean
+    auto_purge_high: boolean
+    auto_purge_medium: boolean
+    auto_purge_low: boolean
+  }): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/quarantine/auto-purge/settings', settings)
+  },
+
+  /**
+   * Preview auto-purge (which files will be deleted)
+   */
+  previewAutoPurge: async (): Promise<ApiResponse<{
+    files_to_delete: Array<{
+      id: string
+      name: string
+      threat_level: string
+      age_days: number
+      size: number
+    }>
+    total_count: number
+    total_size_bytes: number
+  }>> => {
+    return client.post<any>('/api/quarantine/auto-purge/preview', {})
+  },
+
+  /**
+   * Execute auto-purge
+   */
+  executeAutoPurge: async (): Promise<ApiResponse<{
+    deleted_count: number
+    deleted_size_bytes: number
+  }>> => {
+    return client.post<any>('/api/quarantine/auto-purge/execute', {})
+  },
 }
 
 // ============================================

@@ -13,6 +13,7 @@ import {
   Search,
 } from "lucide-react";
 import { quarantineApi } from "@/lib/api";
+import AutoPurgeSettings from "@/components/AutoPurgeSettings";
 
 export default function QuarantinePage() {
   const [files, setFiles] = useState<any[]>([]);
@@ -214,6 +215,11 @@ export default function QuarantinePage() {
           </div>
         </div>
       )}
+
+        {/* Auto-Purge Settings */}
+      <div className="section">
+        <AutoPurgeSettings onSettingsChanged={loadData} />
+      </div>
 
       {/* Search */}
       {/* Search */}
