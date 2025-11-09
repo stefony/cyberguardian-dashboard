@@ -157,7 +157,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         </label>
       </div>
 
-      {/* Days Threshold Slider */}
+{/* Days Threshold Slider */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <label className="text-sm font-medium flex items-center gap-2">
@@ -169,14 +169,19 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
           </span>
         </div>
 
-        <input
-          type="range"
-          min="1"
-          max="90"
-          value={settings.days_threshold}
-          onChange={(e) => setSettings({ ...settings, days_threshold: parseInt(e.target.value) })}
-          className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500"
-        />
+        <div className="relative">
+          <input
+            type="range"
+            min="1"
+            max="90"
+            value={settings.days_threshold}
+            onChange={(e) => setSettings({ ...settings, days_threshold: parseInt(e.target.value) })}
+            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
+            style={{
+              background: `linear-gradient(to right, #a855f7 0%, #a855f7 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 ${((settings.days_threshold - 1) / 89) * 100}%, #374151 100%)`
+            }}
+          />
+        </div>
 
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>1 day</span>
@@ -185,7 +190,7 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
         </div>
       </div>
 
-      {/* Threat Level Toggles */}
+{/* Threat Level Toggles */}
       <div className="space-y-3">
         <label className="text-sm font-medium flex items-center gap-2">
           <Shield className="h-4 w-4 text-green-400" />
@@ -194,60 +199,64 @@ export default function AutoPurgeSettings({ onSettingsChanged }: AutoPurgeSettin
 
         <div className="grid grid-cols-2 gap-3">
           {/* Critical */}
-          <label className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border-2 border-red-500/30 cursor-pointer hover:bg-red-500/20 transition-colors">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-red-500/10 border-2 border-red-500/30">
             <input
               type="checkbox"
+              id="purge-critical"
               checked={settings.auto_purge_critical}
               onChange={(e) => setSettings({ ...settings, auto_purge_critical: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 text-red-500 focus:ring-red-500 focus:ring-offset-gray-900"
+              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-red-500 focus:ring-2 focus:ring-red-500 cursor-pointer"
             />
-            <div className="flex-1">
+            <label htmlFor="purge-critical" className="flex-1 cursor-pointer">
               <div className="font-medium text-red-400">Critical</div>
               <div className="text-xs text-muted-foreground">Highest risk</div>
-            </div>
-          </label>
+            </label>
+          </div>
 
           {/* High */}
-          <label className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border-2 border-orange-500/30 cursor-pointer hover:bg-orange-500/20 transition-colors">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border-2 border-orange-500/30">
             <input
               type="checkbox"
+              id="purge-high"
               checked={settings.auto_purge_high}
               onChange={(e) => setSettings({ ...settings, auto_purge_high: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 text-orange-500 focus:ring-orange-500 focus:ring-offset-gray-900"
+              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-orange-500 focus:ring-2 focus:ring-orange-500 cursor-pointer"
             />
-            <div className="flex-1">
+            <label htmlFor="purge-high" className="flex-1 cursor-pointer">
               <div className="font-medium text-orange-400">High</div>
               <div className="text-xs text-muted-foreground">High risk</div>
-            </div>
-          </label>
+            </label>
+          </div>
 
           {/* Medium */}
-          <label className="flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border-2 border-yellow-500/30 cursor-pointer hover:bg-yellow-500/20 transition-colors">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-yellow-500/10 border-2 border-yellow-500/30">
             <input
               type="checkbox"
+              id="purge-medium"
               checked={settings.auto_purge_medium}
               onChange={(e) => setSettings({ ...settings, auto_purge_medium: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 text-yellow-500 focus:ring-yellow-500 focus:ring-offset-gray-900"
+              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-yellow-500 focus:ring-2 focus:ring-yellow-500 cursor-pointer"
             />
-            <div className="flex-1">
+            <label htmlFor="purge-medium" className="flex-1 cursor-pointer">
               <div className="font-medium text-yellow-400">Medium</div>
               <div className="text-xs text-muted-foreground">Moderate risk</div>
-            </div>
-          </label>
+            </label>
+          </div>
 
           {/* Low */}
-          <label className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border-2 border-green-500/30 cursor-pointer hover:bg-green-500/20 transition-colors">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-green-500/10 border-2 border-green-500/30">
             <input
               type="checkbox"
+              id="purge-low"
               checked={settings.auto_purge_low}
               onChange={(e) => setSettings({ ...settings, auto_purge_low: e.target.checked })}
-              className="w-5 h-5 rounded border-gray-600 text-green-500 focus:ring-green-500 focus:ring-offset-gray-900"
+              className="w-5 h-5 rounded border-gray-600 bg-gray-800 text-green-500 focus:ring-2 focus:ring-green-500 cursor-pointer"
             />
-            <div className="flex-1">
+            <label htmlFor="purge-low" className="flex-1 cursor-pointer">
               <div className="font-medium text-green-400">Low</div>
               <div className="text-xs text-muted-foreground">Low risk</div>
-            </div>
-          </label>
+            </label>
+          </div>
         </div>
       </div>
 
