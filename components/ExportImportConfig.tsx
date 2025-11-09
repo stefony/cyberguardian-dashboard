@@ -109,10 +109,10 @@ export default function ExportImportConfig() {
             <p>✅ Auto-purge policy</p>
           </div>
 
-          <button
+         <button
             onClick={handleExport}
             disabled={exporting}
-            style={{ pointerEvents: 'auto', zIndex: 20 }}
+            style={{ pointerEvents: 'auto', zIndex: 20, position: 'relative' }}
             className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FileJson className={`h-4 w-4 ${exporting ? "animate-spin" : ""}`} />
@@ -142,9 +142,9 @@ export default function ExportImportConfig() {
             <p>🔒 Backup & recovery</p>
           </div>
 
-          <label 
+       <label 
             className="w-full px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{ pointerEvents: 'auto', zIndex: 20 }}
+            style={{ pointerEvents: 'auto', zIndex: 20, position: 'relative' }}
           >
             <Upload className={`h-4 w-4 ${importing ? "animate-spin" : ""}`} />
             {importing ? "Importing..." : "Import Config"}
@@ -154,6 +154,7 @@ export default function ExportImportConfig() {
               onChange={handleImport}
               disabled={importing}
               className="hidden"
+              style={{ pointerEvents: 'auto' }}
             />
           </label>
         </div>
