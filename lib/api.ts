@@ -1125,6 +1125,39 @@ export const scansApi = {
   }): Promise<ApiResponse<any>> => {
     return client.post<any>('/api/scans/run', data)
   },
+
+  /**
+   * Get available scan profiles
+   */
+  getScanProfiles: async (): Promise<ApiResponse<{
+    profiles: Record<string, {
+      name: string
+      description: string
+      scan_type: string
+      threads: number
+      max_files: number
+      extensions: string[]
+      skip_archives: boolean
+      recursive: boolean
+      duration_estimate: string
+      icon: string
+      color: string
+    }>
+  }>> => {
+    return client.get<any>('/api/scans/profiles')
+  },
+
+  /**
+   * Start scan with profile
+   */
+  startScanWithProfile: async (profileName: string): Promise<ApiResponse<{
+    success: boolean
+    scan_id: number
+    profile: string
+    message: string
+  }>> => {
+    return client.post<any>(`/api/scans/start-profile/${profileName}`, {})
+  },
 }
 // ============================================
 // QUARANTINE API

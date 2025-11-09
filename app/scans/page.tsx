@@ -7,14 +7,13 @@ import {
   Pause,
   Trash2,
   Plus,
-  Clock,
-  FolderOpen,
   CheckCircle,
   XCircle,
   RefreshCw,
   BarChart3,
 } from "lucide-react";
 import { scansApi } from "@/lib/api";
+import ScanProfiles from '@/components/ScanProfiles'
 
 export default function ScansPage() {
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -204,6 +203,24 @@ const loadHistory = async () => {
             </button>
           </div>
         </div>
+      </div>
+
+       {/* Scan Profiles - NEW SECTION */}
+      <div className="section">
+        <div className="mb-6">
+          <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg">
+              <Calendar className="h-6 w-6 text-white" />
+            </div>
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+              Quick Scan Profiles
+            </span>
+          </h2>
+          <p className="text-muted-foreground ml-14">
+            Start a scan instantly with predefined profiles optimized for different scenarios
+          </p>
+        </div>
+        <ScanProfiles />
       </div>
 
       {/* Schedules Section */}
