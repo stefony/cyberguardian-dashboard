@@ -16,7 +16,7 @@ export default function ExportImportConfig() {
       
       if (res.success && res.data) {
         // Create JSON file and download
-        const jsonString = JSON.stringify(res.data.data, null, 2);
+        const jsonString = JSON.stringify(res.data, null, 2);
         const blob = new Blob([jsonString], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         
