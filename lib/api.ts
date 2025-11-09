@@ -1007,6 +1007,36 @@ export const settingsApi = {
   getLicense: async (): Promise<ApiResponse<any>> => {
     return client.get<any>('/api/settings/license')
   },
+
+  // ========== EXPORT/IMPORT CONFIG ==========
+
+  /**
+   * Export complete system configuration
+   */
+  exportConfig: async (): Promise<ApiResponse<{
+    version: string
+    exported_at: string
+    settings: any
+    exclusions: any[]
+    scan_schedules: any[]
+    auto_purge_policy: any
+    filename: string
+  }>> => {
+    return client.get<any>('/api/settings/export')
+  },
+
+  /**
+   * Import system configuration
+   */
+  importConfig: async (config: any): Promise<ApiResponse<{
+    success: boolean
+    imported: string[]
+    failed: string[]
+    warnings: string[]
+    message: string
+  }>> => {
+    return client.post<any>('/api/settings/import', config)
+  },
 }
 
 

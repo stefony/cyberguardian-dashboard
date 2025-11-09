@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { Settings as SettingsIcon, Bell, Palette, Shield, Info, Key, Save, RotateCcw, Check, Mail, Plus, Trash2, Loader2 } from "lucide-react";
 import { settingsApi, emailsApi } from "@/lib/api"; 
+import ExportImportConfig from "@/components/ExportImportConfig";
+import { FileJson } from "lucide-react";
  
 
 // Types
@@ -856,6 +858,14 @@ export default function SettingsPage() {
             )}
           </div>
         </div>
+      </div>
+      {/* Export/Import Configuration */}
+      <div className="section">
+        <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
+          <FileJson className="h-6 w-6 text-purple-500" />
+          Configuration Backup
+        </h2>
+        <ExportImportConfig />
       </div>
     </main>
   );
