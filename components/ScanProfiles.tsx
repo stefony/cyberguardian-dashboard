@@ -38,31 +38,37 @@ export default function ScanProfiles() {
     }
   }
 
-  const handleStartScan = async (profileKey: string) => {
-    if (loading) return
+const handleStartScan = async (profileKey: string) => {
+  if (loading) return
+  
+  const profile = profiles[profileKey]
+  
+  setLoading(profileKey)
+  setMessage(null)
+  
+  try {
+    const response = await api.scans.startScanWithProfile(profileKey)
     
-    setLoading(profileKey)
-    setMessage(null)
-    
-    try {
-      const response = await api.scans.startScanWithProfile(profileKey)
-      
-      if (response.success) {
-        setMessage({ 
-          type: 'success', 
-          text: response.data?.message || 'Scan started successfully!' 
-        })
-        setTimeout(() => setMessage(null), 5000)
-      }
-    } catch (error: any) {
+    if (response.success || response.data) {
       setMessage({ 
-        type: 'error', 
-        text: error.message || 'Failed to start scan' 
+        type: 'success', 
+        text: `${profile?.name || 'Scan'} started successfully! Check Scan History for results.`
       })
-    } finally {
-      setLoading(null)
+      setTimeout(() => setMessage(null), 5000)
+    } else {
+      throw new Error('Failed to start scan')
     }
+  } catch (error: any) {
+    console.error('Scan start error:', error)
+    setMessage({ 
+      type: 'error', 
+      text: `Failed to start scan: ${error.message || 'Unknown error'}`
+    })
+    setTimeout(() => setMessage(null), 5000)
+  } finally {
+    setLoading(null)
   }
+}
 
   const getProfileIcon = (iconName: string) => {
     switch (iconName) {
