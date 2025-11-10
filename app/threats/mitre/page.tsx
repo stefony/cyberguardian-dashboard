@@ -52,7 +52,7 @@ export default function MITREPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/mitre/matrix`
       );
       const data = await response.json();
-      
+
       if (data.success) {
         setMatrixData(data.matrix || []);
       }
@@ -69,7 +69,7 @@ export default function MITREPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/mitre/statistics`
       );
       const data = await response.json();
-      
+
       if (data.success) {
         setStats(data.statistics);
       }
@@ -96,7 +96,7 @@ export default function MITREPage() {
             Adversarial Tactics, Techniques & Common Knowledge
           </p>
         </div>
-        
+
         <button
           onClick={handleRefresh}
           className="px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg 
@@ -173,17 +173,23 @@ export default function MITREPage() {
                 </div>
               )}
 
+              {/* ✅ Fixed Section */}
               <div>
-                <label className="text-sm text-gray-400 block mb-2">MITRE ATT&CK Reference</label>
-                
-                  href={selectedTechnique.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-2"
-                >
-                  View on MITRE ATT&CK
-                  <Info className="w-4 h-4" />
-                </a>
+                <label className="text-sm text-gray-400 block mb-2">
+                  MITRE ATT&CK Reference
+                </label>
+
+                {selectedTechnique.url && (
+                  <a
+                    href={selectedTechnique.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-2"
+                  >
+                    View on MITRE ATT&CK
+                    <Info className="w-4 h-4" />
+                  </a>
+                )}
               </div>
             </div>
           </div>
