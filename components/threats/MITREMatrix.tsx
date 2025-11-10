@@ -69,7 +69,7 @@ export default function MITREMatrix({
       {/* Horizontal Scrollable Matrix */}
       <div className="bg-gray-800/50 border border-gray-700 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <div className="inline-flex gap-4 p-6 min-w-full">
+           <div className="inline-flex gap-4 p-6">
             {matrixData.map((tactic) => (
               <div
                 key={tactic.tactic_id}
