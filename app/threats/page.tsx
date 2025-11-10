@@ -472,14 +472,16 @@ const batchDeleteThreats = async () => {
 <thead>
   <tr>
     <th className="w-12">
-      <input
-        type="checkbox"
-        checked={isSelectAll}
-        onChange={toggleSelectAll}
-        className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900"
-        style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-      />
-    </th>
+  <div className="flex items-center justify-center">
+    <input
+      type="checkbox"
+      checked={isSelectAll}
+      onChange={toggleSelectAll}
+      className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900 cursor-pointer relative z-[60]"
+      style={{ pointerEvents: 'auto' }}
+    />
+  </div>
+</th>
     <th>Time</th>
     <th>Source IP</th>
     <th>Type</th>
@@ -501,15 +503,18 @@ const batchDeleteThreats = async () => {
     threats?.map((threat) => (
       <tr key={threat.id}>
         {/* Checkbox */}
-        <td>
-          <input
-            type="checkbox"
-            checked={selectedThreats.has(threat.id)}
-            onChange={() => toggleThreatSelection(threat.id)}
-            className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900"
-            style={{ pointerEvents: 'auto', cursor: 'pointer' }}
-          />
-        </td>
+        <td onClick={(e) => e.stopPropagation()}>
+  <div className="flex items-center justify-center relative z-[60]">
+    <input
+      type="checkbox"
+      checked={selectedThreats.has(threat.id)}
+      onChange={() => toggleThreatSelection(threat.id)}
+      onClick={(e) => e.stopPropagation()}
+      className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900 cursor-pointer"
+      style={{ pointerEvents: 'auto' }}
+    />
+  </div>
+</td>
         
         <td className="font-mono text-sm">
           {formatTime(threat.timestamp)}
