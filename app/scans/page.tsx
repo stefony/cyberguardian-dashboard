@@ -11,7 +11,9 @@ import {
   XCircle,
   RefreshCw,
   BarChart3,
+  Upload, 
 } from "lucide-react";
+import FileScanner from '@/components/FileScanner'
 import { scansApi } from "@/lib/api";
 import ScanProfiles from '@/components/ScanProfiles'
 
@@ -204,6 +206,24 @@ const loadHistory = async () => {
           </div>
         </div>
       </div>
+
+      {/* File Scanner - Multi-Engine Detection */}
+<div className="section">
+  <div className="mb-6">
+    <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+      <div className="p-2 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg">
+        <Upload className="h-6 w-6 text-white" />
+      </div>
+      <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+        Advanced File Analysis
+      </span>
+    </h2>
+    <p className="text-muted-foreground ml-14">
+      Upload any file for comprehensive multi-engine detection (YARA + Heuristics + ML)
+    </p>
+  </div>
+  <FileScanner />
+</div>
 
        {/* Scan Profiles - NEW SECTION */}
       <div className="section">
