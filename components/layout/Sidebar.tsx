@@ -17,18 +17,26 @@ import {
   Target,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Zap,
   LogOut,
   Calendar,
   Lock,
+  Database,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+
+interface SubItem {
+  label: string
+  href: string
+}
 
 interface NavItem {
   label: string
   href: string
   icon: React.ComponentType<{ className?: string }>
   badge?: number
+  subItems?: SubItem[]
 }
 
 const navItems: NavItem[] = [
@@ -42,6 +50,11 @@ const navItems: NavItem[] = [
     href: '/threats',
     icon: AlertTriangle,
     badge: 3,
+    subItems: [
+      { label: 'Overview', href: '/threats' },
+      { label: 'IOCs', href: '/threats/iocs' },
+      { label: 'MITRE ATT&CK', href: '/threats/mitre' },
+    ],
   },
   {
     label: 'Detection',
@@ -54,14 +67,14 @@ const navItems: NavItem[] = [
     icon: Shield,              
   },    
   {
-    label: 'Scans',           // ← ADD THIS
-    href: '/scans',           // ← ADD THIS
-    icon: Calendar,           // ← ADD THIS (need to import)
+    label: 'Scans',
+    href: '/scans',
+    icon: Calendar,
   },   
   {
-    label: 'Quarantine',      // ← ADD THIS
-    href: '/quarantine',      // ← ADD THIS
-    icon: Lock,             // ← ADD THIS (we can use Shield or import new icon)
+    label: 'Quarantine',
+    href: '/quarantine',
+    icon: Lock,
   },
   {
     label: 'Deception',
@@ -103,18 +116,26 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const { logout } = useAuth()
   const [collapsed, setCollapsed] = useState(false)
+  const [expandedItems, setExpandedItems] = useState<string[]>(['Threats'])
   const pathname = usePathname()
-  console.log('Current pathname:', pathname) // DEBUG
+
+  const toggleExpanded = (label: string) => {
+    setExpandedItems(prev => 
+      prev.includes(label) 
+        ? prev.filter(item => item !== label)
+        : [...prev, label]
+    )
+  }
 
   return (
-  <aside
-  className={cn(
-    'fixed left-0 top-0 z-40 h-screen transition-all duration-300',
-    'bg-dark-surface border-r border-dark-border',
-    'flex flex-col',
-    collapsed ? 'w-20' : 'w-64'
-  )}
->
+    <aside
+      className={cn(
+        'fixed left-0 top-0 z-40 h-screen transition-all duration-300',
+        'bg-dark-surface border-r border-dark-border',
+        'flex flex-col',
+        collapsed ? 'w-20' : 'w-64'
+      )}
+    >
       {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-dark-border px-4">
         {!collapsed && (
@@ -137,7 +158,6 @@ export function Sidebar() {
           </div>
         )}
 
-        {/* Collapse Toggle (hidden when collapsed, shown on hover) */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className={cn(
@@ -147,13 +167,8 @@ export function Sidebar() {
             'opacity-0 group-hover:opacity-100',
             collapsed && 'opacity-100'
           )}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <ChevronLeft className="h-4 w-4" />
-          )}
+          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
 
@@ -161,64 +176,105 @@ export function Sidebar() {
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href
+          const isActive = pathname === item.href || 
+                          (item.subItems && item.subItems.some(sub => pathname === sub.href))
+          const isExpanded = expandedItems.includes(item.label)
           
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
-                'hover:bg-dark-bg',
-                isActive && 'bg-dark-bg text-purple-500',
-                !isActive && 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              {/* Active Indicator */}
-              {isActive && (
-                <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-purple-500" />
-              )}
+            <div key={item.href}>
+              {/* Main Item */}
+              <div className="relative">
+                <Link
+                  href={item.href}
+                  onClick={(e) => {
+                    if (item.subItems && !collapsed) {
+                      e.preventDefault()
+                      toggleExpanded(item.label)
+                    }
+                  }}
+                  className={cn(
+                    'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
+                    'hover:bg-dark-bg',
+                    isActive && 'bg-dark-bg text-purple-500',
+                    !isActive && 'text-muted-foreground hover:text-foreground'
+                  )}
+                >
+                  {isActive && (
+                    <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-purple-500" />
+                  )}
 
-              <Icon 
-                className={cn(
-                  'h-5 w-5 flex-shrink-0 transition-colors',
-                  isActive && 'text-purple-500',
-                  !isActive && 'text-muted-foreground group-hover:text-foreground'
-                )} 
-              />
-              
-              {!collapsed && (
-                <>
-                  <span className="flex-1 text-sm font-medium">
-                    {item.label}
-                  </span>
+                  <Icon 
+                    className={cn(
+                      'h-5 w-5 flex-shrink-0 transition-colors',
+                      isActive && 'text-purple-500',
+                      !isActive && 'text-muted-foreground group-hover:text-foreground'
+                    )} 
+                  />
                   
-                  {/* Badge */}
-                  {item.badge && item.badge > 0 && (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-threat-critical px-1.5 text-xs font-bold text-white">
-                      {item.badge}
-                    </span>
-                  )}
-                </>
-              )}
+                  {!collapsed && (
+                    <>
+                      <span className="flex-1 text-sm font-medium">
+                        {item.label}
+                      </span>
+                      
+                      {item.badge && item.badge > 0 && (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-threat-critical px-1.5 text-xs font-bold text-white">
+                          {item.badge}
+                        </span>
+                      )}
 
-              {/* Tooltip for collapsed state */}
-              {collapsed && (
-                <div className="pointer-events-none absolute left-full ml-2 hidden rounded-md bg-dark-bg px-2 py-1 text-sm font-medium shadow-lg group-hover:block">
-                  {item.label}
-                  {item.badge && item.badge > 0 && (
-                    <span className="ml-2 rounded-full bg-threat-critical px-1.5 text-xs text-white">
-                      {item.badge}
-                    </span>
+                      {item.subItems && (
+                        <ChevronDown 
+                          className={cn(
+                            'h-4 w-4 transition-transform duration-200',
+                            isExpanded && 'rotate-180'
+                          )}
+                        />
+                      )}
+                    </>
                   )}
+
+                  {collapsed && (
+                    <div className="pointer-events-none absolute left-full ml-2 hidden rounded-md bg-dark-bg px-2 py-1 text-sm font-medium shadow-lg group-hover:block whitespace-nowrap">
+                      {item.label}
+                      {item.badge && item.badge > 0 && (
+                        <span className="ml-2 rounded-full bg-threat-critical px-1.5 text-xs text-white">
+                          {item.badge}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </Link>
+              </div>
+
+              {/* Sub Items */}
+              {item.subItems && !collapsed && isExpanded && (
+                <div className="ml-8 mt-1 space-y-1 border-l-2 border-dark-border pl-2">
+                  {item.subItems.map((subItem) => {
+                    const isSubActive = pathname === subItem.href
+                    return (
+                      <Link
+                        key={subItem.href}
+                        href={subItem.href}
+                        className={cn(
+                          'block rounded-md px-3 py-2 text-sm transition-colors',
+                          isSubActive 
+                            ? 'bg-purple-500/10 text-purple-400 font-medium'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-dark-bg'
+                        )}
+                      >
+                        {subItem.label}
+                      </Link>
+                    )
+                  })}
                 </div>
               )}
-            </Link>
+            </div>
           )
         })}
       </nav>
 
-     {/* System Status */}
+      {/* System Status */}
       <div className={cn(
         'border-t border-dark-border',
         collapsed ? 'p-2' : 'p-4'
@@ -244,7 +300,6 @@ export function Sidebar() {
               </p>
             </div>
 
-            {/* Logout Button */}
             <button
               onClick={logout}
               className="w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:text-red-500 hover:bg-dark-bg transition-all duration-200"
@@ -262,7 +317,6 @@ export function Sidebar() {
                 <Shield className="h-4 w-4 text-cyber-green" />
               </div>
             </div>
-            {/* Logout Icon for collapsed */}
             <button
               onClick={logout}
               className="w-full flex justify-center items-center py-2 text-muted-foreground hover:text-red-500 transition-colors"
