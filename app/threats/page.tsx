@@ -403,32 +403,46 @@ const batchDeleteThreats = async () => {
             </div>
           </div>
 
-          {/* Batch Actions */}
+{/* Batch Actions */}
 {selectedThreats.size > 0 && (
-  <div className="mb-4 p-4 bg-primary/10 border border-primary/30 rounded-lg">
+  <div className="mb-4 p-4 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-2 border-purple-500/30 rounded-lg animate-in fade-in slide-in-from-top-2 duration-300">
     <div className="flex items-center justify-between">
-      <div className="text-sm font-medium">
-        {selectedThreats.size} threat{selectedThreats.size > 1 ? 's' : ''} selected
+      <div className="flex items-center gap-3">
+        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/20">
+          <span className="text-sm font-bold text-purple-400">{selectedThreats.size}</span>
+        </div>
+        <div>
+          <div className="text-sm font-semibold text-foreground">
+            {selectedThreats.size} threat{selectedThreats.size > 1 ? 's' : ''} selected
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Choose an action to apply to selected threats
+          </div>
+        </div>
       </div>
       <div className="flex gap-2">
         <button
           onClick={batchBlockThreats}
-          className="btn btn-sm bg-red-500/20 text-red-400 hover:bg-red-500/30"
+          className="px-4 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/50 flex items-center gap-2 relative z-50"
+          style={{ pointerEvents: 'auto' }}
         >
           <Ban className="h-4 w-4" />
           Block All
         </button>
         <button
           onClick={batchDismissThreats}
-          className="btn btn-sm bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+          className="px-4 py-2 rounded-lg bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30 border border-yellow-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-yellow-500/50 flex items-center gap-2 relative z-50"
+          style={{ pointerEvents: 'auto' }}
         >
           <X className="h-4 w-4" />
           Dismiss All
         </button>
         <button
           onClick={batchDeleteThreats}
-          className="btn btn-sm bg-gray-500/20 text-gray-400 hover:bg-gray-500/30"
+          className="px-4 py-2 rounded-lg bg-gray-500/20 text-gray-400 hover:bg-gray-500/30 border border-gray-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-gray-500/50 flex items-center gap-2 relative z-50"
+          style={{ pointerEvents: 'auto' }}
         >
+          <X className="h-4 w-4" />
           Delete All
         </button>
       </div>
