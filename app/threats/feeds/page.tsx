@@ -210,6 +210,24 @@ export default function ThreatFeedsPage() {
         </div>
       )}
 
+      {/* Auto-Update Status */}
+      <div className="bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border border-purple-500/30 
+                    rounded-xl p-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-purple-500/20 rounded-lg">
+            <RefreshCw className="w-5 h-5 text-purple-400" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-white">Automated Intelligence Updates</h3>
+            <p className="text-xs text-gray-400">Updates run every 6 hours automatically</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse"></div>
+          <span className="text-sm text-green-400 font-medium">Active</span>
+        </div>
+      </div>
+
       {/* Feed Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {feeds.map((feed) => (
