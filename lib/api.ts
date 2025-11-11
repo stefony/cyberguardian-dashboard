@@ -1437,6 +1437,108 @@ export const profilesApi = {
     return client.post<any>(`/api/protection/profile/${profileName}`, {})
   },
 }
+
+// ============================================
+// REMEDIATION API
+// ============================================
+
+export const remediationApi = {
+  /**
+   * Scan Windows registry for suspicious entries
+   */
+  scanRegistry: async (): Promise<ApiResponse<{
+    entries: Array<{
+      id: string
+      hive: string
+      key_path: string
+      value_name: string
+      value_data: string
+      value_type: string
+      risk_score: number
+      indicators: string[]
+      scanned_at: string
+    }>
+    statistics: {
+      total_suspicious: number
+      critical_risk: number
+      high_risk: number
+      medium_risk: number
+      low_risk: number
+      by_hive: Record<string, number>
+    }
+    scanned_at: string
+  }>> => {
+    return client.get<any>('/api/remediation/registry/scan')
+  },
+
+  /**
+   * Get registry scan statistics
+   */
+  getRegistryStats: async (): Promise<ApiResponse<{
+    total_suspicious: number
+    critical_risk: number
+    high_risk: number
+    medium_risk: number
+    low_risk: number
+    by_hive: Record<string, number>
+  }>> => {
+    return client.get<any>('/api/remediation/registry/statistics')
+  },
+
+  /**
+   * Remove a registry entry (with automatic backup)
+   */
+  removeRegistryEntry: async (data: {
+    hive: string
+    key_path: string
+    value_name: string
+  }): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    backup_file: string | null
+  }>> => {
+    return client.post<any>('/api/remediation/registry/remove', data)
+  },
+
+  /**
+   * Restore a registry entry from backup
+   */
+  restoreRegistryEntry: async (data: {
+    backup_file: string
+  }): Promise<ApiResponse<{
+    success: boolean
+    message: string
+  }>> => {
+    return client.post<any>('/api/remediation/registry/restore', data)
+  },
+
+  /**
+   * List all registry backups
+   */
+  listRegistryBackups: async (): Promise<ApiResponse<{
+    backups: Array<{
+      filename: string
+      filepath: string
+      hive: string
+      key_path: string
+      value_name: string
+      backed_up_at: string
+    }>
+  }>> => {
+    return client.get<any>('/api/remediation/registry/backups')
+  },
+
+  /**
+   * Get remediation service health
+   */
+  getHealth: async (): Promise<ApiResponse<{
+    status: string
+    service: string
+    features: Record<string, string>
+  }>> => {
+    return client.get<any>('/api/remediation/health')
+  },
+}
 // ============================================
 // EXPORTS
 // ============================================
@@ -1459,6 +1561,7 @@ export const api = {
    whatIf: whatIfApi,
    exclusions: exclusionsApi,
    profiles: profilesApi, 
+   remediation: remediationApi, 
 }
 
 export default api
