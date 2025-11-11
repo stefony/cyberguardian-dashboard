@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Table,
   TableBody,
@@ -12,8 +12,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
 import {
   AlertTriangle,
   Database,
@@ -22,204 +22,206 @@ import {
   RotateCcw,
   Shield,
   RefreshCw,
-  CheckCircle2,
-  XCircle,
   Info,
   History,
   ChevronDown,
-  ChevronRight
-} from "lucide-react"
-import { remediationApi } from "@/lib/api"
-import { useToast } from "@/hooks/use-toast"
+  ChevronRight,
+} from "lucide-react";
+import { remediationApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface RegistryEntry {
-  id: string
-  hive: string
-  key_path: string
-  value_name: string
-  value_data: string
-  value_type: string
-  risk_score: number
-  indicators: string[]
-  scanned_at: string
+  id: string;
+  hive: string;
+  key_path: string;
+  value_name: string;
+  value_data: string;
+  value_type: string;
+  risk_score: number;
+  indicators: string[];
+  scanned_at: string;
 }
 
 interface RegistryStats {
-  total_suspicious: number
-  critical_risk: number
-  high_risk: number
-  medium_risk: number
-  low_risk: number
-  by_hive: Record<string, number>
+  total_suspicious: number;
+  critical_risk: number;
+  high_risk: number;
+  medium_risk: number;
+  low_risk: number;
+  by_hive: Record<string, number>;
 }
 
 interface BackupFile {
-  filename: string
-  filepath: string
-  hive: string
-  key_path: string
-  value_name: string
-  backed_up_at: string
+  filename: string;
+  filepath: string;
+  hive: string;
+  key_path: string;
+  value_name: string;
+  backed_up_at: string;
 }
 
 export default function RegistryCleanupPage() {
-  const { toast } = useToast()
-  const [scanning, setScanning] = useState(false)
-  const [entries, setEntries] = useState<RegistryEntry[]>([])
-  const [stats, setStats] = useState<RegistryStats | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedSeverity, setSelectedSeverity] = useState<string>("all")
-  const [expandedEntry, setExpandedEntry] = useState<string | null>(null)
-  const [backups, setBackups] = useState<BackupFile[]>([])
-  const [showBackups, setShowBackups] = useState(false)
-  const [removing, setRemoving] = useState<string | null>(null)
+  const [scanning, setScanning] = useState(false);
+  const [entries, setEntries] = useState<RegistryEntry[]>([]);
+  const [stats, setStats] = useState<RegistryStats | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedSeverity, setSelectedSeverity] = useState<string>("all");
+  const [expandedEntry, setExpandedEntry] = useState<string | null>(null);
+  const [backups, setBackups] = useState<BackupFile[]>([]);
+  const [showBackups, setShowBackups] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
-  // Scan registry on mount
   useEffect(() => {
-    handleScan()
-    loadBackups()
-  }, [])
+    handleScan();
+    loadBackups();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleScan = async () => {
-    setScanning(true)
+    setScanning(true);
     try {
-      const response = await remediationApi.scanRegistry()
+      const response = await remediationApi.scanRegistry();
+
       if (response.success && response.data) {
-        setEntries(response.data.entries)
-        setStats(response.data.statistics)
-        toast({
-          title: "Scan Complete",
+        setEntries(response.data.entries);
+        setStats(response.data.statistics);
+
+        toast("Scan Complete", {
           description: `Found ${response.data.entries.length} suspicious registry entries`,
-        })
+        });
       } else {
-        toast({
-          title: "Scan Failed",
+        toast.error("Scan Failed", {
           description: response.error || "Failed to scan registry",
-          variant: "destructive",
-        })
+        });
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "An error occurred while scanning",
-        variant: "destructive",
-      })
+      });
     } finally {
-      setScanning(false)
+      setScanning(false);
     }
-  }
+  };
 
   const loadBackups = async () => {
     try {
-      const response = await remediationApi.listRegistryBackups()
+      const response = await remediationApi.listRegistryBackups();
       if (response.success && response.data) {
-        setBackups(response.data.backups)
+        setBackups(response.data.backups);
       }
     } catch (error) {
-      console.error("Failed to load backups:", error)
+      console.error("Failed to load backups:", error);
     }
-  }
+  };
 
   const handleRemove = async (entry: RegistryEntry) => {
-    if (!confirm(`Are you sure you want to remove this registry entry?\n\n${entry.hive}\\${entry.key_path}\\${entry.value_name}\n\nA backup will be created automatically.`)) {
-      return
+    if (
+      !confirm(
+        `Are you sure you want to remove this registry entry?\n\n${entry.hive}\\${entry.key_path}\\${entry.value_name}\n\nA backup will be created automatically.`
+      )
+    ) {
+      return;
     }
 
-    setRemoving(entry.id)
+    setRemoving(entry.id);
     try {
       const response = await remediationApi.removeRegistryEntry({
         hive: entry.hive,
         key_path: entry.key_path,
         value_name: entry.value_name,
-      })
+      });
 
       if (response.success && response.data?.success) {
-        toast({
-          title: "Entry Removed",
+        toast("Entry Removed", {
           description: `Registry entry removed successfully. Backup: ${response.data.backup_file}`,
-        })
-        // Refresh scan and backups
-        handleScan()
-        loadBackups()
+        });
+        await handleScan();
+        await loadBackups();
       } else {
-        toast({
-          title: "Removal Failed",
-          description: response.data?.message || response.error || "Failed to remove entry",
-          variant: "destructive",
-        })
+        toast.error("Removal Failed", {
+          description:
+            response.data?.message || response.error || "Failed to remove entry",
+        });
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "An error occurred during removal",
-        variant: "destructive",
-      })
+      });
     } finally {
-      setRemoving(null)
+      setRemoving(null);
     }
-  }
+  };
 
   const handleRestore = async (backup: BackupFile) => {
-    if (!confirm(`Restore this registry entry?\n\n${backup.hive}\\${backup.key_path}\\${backup.value_name}`)) {
-      return
+    if (
+      !confirm(
+        `Restore this registry entry?\n\n${backup.hive}\\${backup.key_path}\\${backup.value_name}`
+      )
+    ) {
+      return;
     }
 
     try {
       const response = await remediationApi.restoreRegistryEntry({
         backup_file: backup.filepath,
-      })
+      });
 
       if (response.success && response.data?.success) {
-        toast({
-          title: "Entry Restored",
+        toast("Entry Restored", {
           description: response.data.message,
-        })
-        // Refresh scan and backups
-        handleScan()
-        loadBackups()
+        });
+        await handleScan();
+        await loadBackups();
       } else {
-        toast({
-          title: "Restore Failed",
-          description: response.data?.message || response.error || "Failed to restore entry",
-          variant: "destructive",
-        })
+        toast.error("Restore Failed", {
+          description:
+            response.data?.message || response.error || "Failed to restore entry",
+        });
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "An error occurred during restore",
-        variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   const getRiskBadge = (score: number) => {
     if (score >= 80) {
-      return <Badge className="bg-red-500/20 text-red-400">Critical ({score})</Badge>
+      return <Badge className="bg-red-500/20 text-red-400">Critical ({score})</Badge>;
     } else if (score >= 60) {
-      return <Badge className="bg-orange-500/20 text-orange-400">High ({score})</Badge>
+      return (
+        <Badge className="bg-orange-500/20 text-orange-400">High ({score})</Badge>
+      );
     } else if (score >= 40) {
-      return <Badge className="bg-yellow-500/20 text-yellow-400">Medium ({score})</Badge>
+      return (
+        <Badge className="bg-yellow-500/20 text-yellow-400">Medium ({score})</Badge>
+      );
     } else {
-      return <Badge className="bg-blue-500/20 text-blue-400">Low ({score})</Badge>
+      return <Badge className="bg-blue-500/20 text-blue-400">Low ({score})</Badge>;
     }
-  }
+  };
 
   const filteredEntries = entries.filter((entry) => {
+    const q = searchQuery.toLowerCase();
+
     const matchesSearch =
-      entry.value_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.value_data.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      entry.key_path.toLowerCase().includes(searchQuery.toLowerCase())
+      entry.value_name.toLowerCase().includes(q) ||
+      entry.value_data.toLowerCase().includes(q) ||
+      entry.key_path.toLowerCase().includes(q);
 
     const matchesSeverity =
       selectedSeverity === "all" ||
       (selectedSeverity === "critical" && entry.risk_score >= 80) ||
-      (selectedSeverity === "high" && entry.risk_score >= 60 && entry.risk_score < 80) ||
-      (selectedSeverity === "medium" && entry.risk_score >= 40 && entry.risk_score < 60) ||
-      (selectedSeverity === "low" && entry.risk_score < 40)
+      (selectedSeverity === "high" &&
+        entry.risk_score >= 60 &&
+        entry.risk_score < 80) ||
+      (selectedSeverity === "medium" &&
+        entry.risk_score >= 40 &&
+        entry.risk_score < 60) ||
+      (selectedSeverity === "low" && entry.risk_score < 40);
 
-    return matchesSearch && matchesSeverity
-  })
+    return matchesSearch && matchesSeverity;
+  });
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -235,10 +237,7 @@ export default function RegistryCleanupPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setShowBackups(!showBackups)}
-          >
+          <Button variant="outline" onClick={() => setShowBackups(!showBackups)}>
             <History className="mr-2 h-4 w-4" />
             Backups ({backups.length})
           </Button>
@@ -283,7 +282,9 @@ export default function RegistryCleanupPage() {
               <AlertTriangle className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-500">{stats.critical_risk}</div>
+              <div className="text-2xl font-bold text-red-500">
+                {stats.critical_risk}
+              </div>
             </CardContent>
           </Card>
 
@@ -296,7 +297,9 @@ export default function RegistryCleanupPage() {
               <AlertTriangle className="h-4 w-4 text-orange-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">{stats.high_risk}</div>
+              <div className="text-2xl font-bold text-orange-500">
+                {stats.high_risk}
+              </div>
             </CardContent>
           </Card>
 
@@ -309,7 +312,9 @@ export default function RegistryCleanupPage() {
               <AlertTriangle className="h-4 w-4 text-yellow-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">{stats.medium_risk}</div>
+              <div className="text-2xl font-bold text-yellow-500">
+                {stats.medium_risk}
+              </div>
             </CardContent>
           </Card>
 
@@ -322,7 +327,9 @@ export default function RegistryCleanupPage() {
               <Info className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-500">{stats.low_risk}</div>
+              <div className="text-2xl font-bold text-blue-500">
+                {stats.low_risk}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -333,7 +340,9 @@ export default function RegistryCleanupPage() {
         <Card>
           <CardHeader>
             <CardTitle>Registry Backups</CardTitle>
-            <CardDescription>Restore previously removed registry entries</CardDescription>
+            <CardDescription>
+              Restore previously removed registry entries
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {backups.length === 0 ? (
@@ -498,5 +507,5 @@ export default function RegistryCleanupPage() {
         </AlertDescription>
       </Alert>
     </div>
-  )
+  );
 }
