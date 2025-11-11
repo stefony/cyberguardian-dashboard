@@ -32,7 +32,7 @@ const [isSelectAll, setIsSelectAll] = useState(false);
   const [severityFilter, setSeverityFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-// Fetch threats
+// Fetch threats with correlations
 const fetchThreats = useCallback(async () => {
   try {
     setIsLoading(true);
@@ -42,18 +42,35 @@ const fetchThreats = useCallback(async () => {
     if (severityFilter !== "all") params.severity = severityFilter;
     if (statusFilter !== "all") params.status = statusFilter;
 
-    
-
     const response = await threatsApi.getThreats(params);
 
-    // ✅ NEW: Handle ApiResponse wrapper
+    // Handle ApiResponse wrapper
     if (response.success && response.data) {
-      // Backend returns array directly
       const items = Array.isArray(response.data) 
         ? response.data 
         : normalizeThreatList(response.data);
       
-      setThreats(items);
+      // Fetch correlations for each threat
+      const threatsWithCorrelations = await Promise.all(
+        items.map(async (threat) => {
+          try {
+            const correlationResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/api/threats/${threat.id}/correlations`
+            );
+            const correlationData = await correlationResponse.json();
+            
+            return {
+              ...threat,
+              correlation: correlationData.success ? correlationData.correlations : null
+            };
+          } catch (err) {
+            console.error(`Failed to fetch correlations for threat ${threat.id}:`, err);
+            return { ...threat, correlation: null };
+          }
+        })
+      );
+      
+      setThreats(threatsWithCorrelations);
       setError(null);
     } else {
       setError(response.error || "Failed to load threats");
@@ -68,8 +85,6 @@ const fetchThreats = useCallback(async () => {
     setIsLoading(false);
   }
 }, [severityFilter, statusFilter]);
-
-
   // Fetch stats
 const fetchStats = useCallback(async () => {
   try {
@@ -120,9 +135,9 @@ const fetchStats = useCallback(async () => {
 
   // Initial load
   useEffect(() => {
-    fetchThreats();
-    fetchStats();
-  }, [severityFilter, statusFilter]);
+  fetchStats();
+  fetchThreats();
+}, [fetchStats, fetchThreats, severityFilter, statusFilter]);
 
   // Listen for live threat updates via WebSocket
 // Listen for live threat updates via WebSocket
@@ -472,22 +487,23 @@ const batchDeleteThreats = async () => {
 <thead>
   <tr>
     <th className="w-12">
-  <div className="flex items-center justify-center">
-    <input
-      type="checkbox"
-      checked={isSelectAll}
-      onChange={toggleSelectAll}
-      className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900 cursor-pointer relative z-[60]"
-      style={{ pointerEvents: 'auto' }}
-    />
-  </div>
-</th>
+      <div className="flex items-center justify-center">
+        <input
+          type="checkbox"
+          checked={isSelectAll}
+          onChange={toggleSelectAll}
+          className="w-5 h-5 rounded border-gray-600 bg-gray-700 text-primary focus:ring-primary focus:ring-offset-gray-900 cursor-pointer relative z-[60]"
+          style={{ pointerEvents: 'auto' }}
+        />
+      </div>
+    </th>
     <th>Time</th>
     <th>Source IP</th>
     <th>Type</th>
     <th>Description</th>
     <th>Severity</th>
     <th>Confidence</th>
+    <th>IOC Match</th>  {/* ← НОВА КОЛОНА */}
     <th>Status</th>
     <th>Actions</th>
   </tr>
@@ -495,7 +511,7 @@ const batchDeleteThreats = async () => {
 <tbody>
   {threats?.length === 0 ? (
     <tr>
-      <td colSpan={9} className="text-center py-8 text-muted-foreground">
+      <td colSpan={10} className="text-center py-8 text-muted-foreground">
         No threats found
       </td>
     </tr>
@@ -530,7 +546,7 @@ const batchDeleteThreats = async () => {
           </span>
         </td>
         
-        {/* Confidence Score - НОВА КОЛОНА */}
+       {/* Confidence Score */}
         <td>
           <div className="flex items-center gap-2">
             <div className="w-16 bg-gray-700 rounded-full h-2">
@@ -548,6 +564,29 @@ const batchDeleteThreats = async () => {
             </span>
           </div>
         </td>
+        
+        {/* IOC Match - НОВА КОЛОНА */}
+        <td>
+          {threat.correlation && threat.correlation.match_count > 0 ? (
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-400 font-medium">
+                  🔗 {threat.correlation.match_count} IOC{threat.correlation.match_count > 1 ? 's' : ''}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-400">
+                  {threat.correlation.correlation_score}% confidence
+                </span>
+              </div>
+            </div>
+          ) : (
+            <span className="text-xs text-gray-500">No match</span>
+          )}
+        </td>
+        
+
+        
         
         <td>
           <span className={getStatusBadgeClass(threat.status)}>

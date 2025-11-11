@@ -47,6 +47,12 @@ export interface ThreatResponse {
   confidence_score?: number;  // ← ДОБАВИ ТОЗИ РЕД
   created_at: string;
   updated_at: string;
+  correlation?: {
+    threat_id: number;
+    matched_iocs: any[];
+    match_count: number;
+    correlation_score: number;
+  } | null;
 }
 
 // ADD THIS AFTER ThreatResponse:
