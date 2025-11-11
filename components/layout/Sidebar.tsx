@@ -46,17 +46,17 @@ const navItems: NavItem[] = [
     icon: Activity,
   },
   {
-  label: 'Threats',
-  href: '/threats',
-  icon: AlertTriangle,
-  badge: 3,
-  subItems: [
-    { label: 'Overview', href: '/threats' },
-    { label: 'IOCs', href: '/threats/iocs' },
-    { label: 'MITRE ATT&CK', href: '/threats/mitre' },
-    { label: 'Threat Feeds', href: '/threats/feeds' },
-  ],
-},
+    label: 'Threats',
+    href: '/threats',
+    icon: AlertTriangle,
+    badge: 3,
+    subItems: [
+      { label: 'Overview', href: '/threats' },
+      { label: 'IOCs', href: '/threats/iocs' },
+      { label: 'MITRE ATT&CK', href: '/threats/mitre' },
+      { label: 'Threat Feeds', href: '/threats/feeds' },
+    ],
+  },
   {
     label: 'Detection',
     href: '/detection',
@@ -78,14 +78,23 @@ const navItems: NavItem[] = [
     icon: Lock,
   },
   {
+    label: 'Remediation',
+    href: '/remediation',
+    icon: Database,
+    subItems: [
+      { label: 'Overview', href: '/remediation' },
+      { label: 'Registry Cleanup', href: '/remediation/registry' },
+    ],
+  },
+  {
     label: 'Deception',
     href: '/deception',
     icon: Eye,
   },
   {
    label: 'Insights',
-  href: '/insights', 
-  icon: Brain,
+    href: '/insights', 
+    icon: Brain,
   },
   {
     label: 'ML Models',
