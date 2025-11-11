@@ -1,12 +1,11 @@
 /* CyberGuardian Dashboard - Global Styles */
 
-@plugin "tailwindcss-animate";
-/* Tailwind v4 */
-@import "tailwindcss";
-@import "tw-animate-css";
+/* CyberGuardian Dashboard - Global Styles */
 
-@custom-variant dark (&:is(.dark *));
-@reference "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 /* ================== TOKENS ================== */
 :root{
