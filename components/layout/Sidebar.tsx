@@ -46,16 +46,17 @@ const navItems: NavItem[] = [
     icon: Activity,
   },
   {
-    label: 'Threats',
-    href: '/threats',
-    icon: AlertTriangle,
-    badge: 3,
-    subItems: [
-      { label: 'Overview', href: '/threats' },
-      { label: 'IOCs', href: '/threats/iocs' },
-      { label: 'MITRE ATT&CK', href: '/threats/mitre' },
-    ],
-  },
+  label: 'Threats',
+  href: '/threats',
+  icon: AlertTriangle,
+  badge: 3,
+  subItems: [
+    { label: 'Overview', href: '/threats' },
+    { label: 'IOCs', href: '/threats/iocs' },
+    { label: 'MITRE ATT&CK', href: '/threats/mitre' },
+    { label: 'Threat Feeds', href: '/threats/feeds' },
+  ],
+},
   {
     label: 'Detection',
     href: '/detection',
