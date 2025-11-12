@@ -23,6 +23,7 @@ import {
   Calendar,
   Lock,
   Database,
+  Fingerprint,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -76,6 +77,11 @@ const navItems: NavItem[] = [
     label: 'Quarantine',
     href: '/quarantine',
     icon: Lock,
+  },
+  {
+    label: 'Integrity',
+    href: '/security/integrity',
+    icon: Fingerprint, 
   },
 {
     label: 'Remediation',
