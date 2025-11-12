@@ -92,13 +92,23 @@ export default function DeepQuarantinePage() {
     try {
       const response = await remediationApi.analyzeDeep({ file_path: targetPath })
 
-      if (response.success && response.data) {
-        setAnalysis(response.data)
-        toast({
-          title: "Analysis Complete",
-          description: `Threat Level: ${response.data.threat_level.toUpperCase()}`,
-        })
-      } else {
+if (response.success && response.data) {
+  // Check if threat_level exists (means analysis succeeded)
+  if (!response.data.threat_level) {
+    toast({
+      title: "Analysis Not Supported",
+      description: "Deep Quarantine is only available on Windows systems",
+      variant: "destructive",
+    })
+    return
+  }
+  
+  setAnalysis(response.data)
+  toast({
+    title: "Analysis Complete",
+    description: `Threat Level: ${response.data.threat_level.toUpperCase()}`,
+  })
+} else {
         toast({
           title: "Analysis Failed",
           description: response.error || "Failed to analyze target",
