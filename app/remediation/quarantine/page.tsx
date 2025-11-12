@@ -27,7 +27,7 @@ import {
   ArrowRight
 } from "lucide-react"
 import { remediationApi } from "@/lib/api"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from "sonner"
 
 interface AnalysisResult {
   analysis_id: string
@@ -55,7 +55,6 @@ interface BackupFile {
 }
 
 export default function DeepQuarantinePage() {
-  const { toast } = useToast()
   const [targetPath, setTargetPath] = useState("")
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
@@ -81,10 +80,8 @@ export default function DeepQuarantinePage() {
 
   const handleAnalyze = async () => {
     if (!selectedFile && !targetPath.trim()) {
-      toast({
-        title: "Invalid Input",
+      toast.error("Invalid Input", {
         description: "Please select a file or enter a path",
-        variant: "destructive",
       })
       return
     }
@@ -92,8 +89,7 @@ export default function DeepQuarantinePage() {
     setAnalyzing(true)
     
     // Show initial toast
-    toast({
-      title: "Starting Analysis",
+    toast.info("Starting Analysis", {
       description: selectedFile ? `Uploading ${selectedFile.name}...` : `Analyzing ${targetPath}...`,
     })
 
@@ -140,34 +136,27 @@ export default function DeepQuarantinePage() {
         // Check if threat_level exists (means analysis succeeded)
         if (!response.data.threat_level) {
           console.warn("⚠️ No threat_level in response:", response.data)
-          toast({
-            title: "Analysis Not Supported",
+          toast.warning("Analysis Not Supported", {
             description: response.data.message || "Deep Quarantine is only available on Windows systems",
-            variant: "destructive",
           })
           return
         }
 
         console.log("✅ Analysis complete! Threat level:", response.data.threat_level)
         setAnalysis(response.data)
-        toast({
-          title: "Analysis Complete",
+        toast.success("Analysis Complete", {
           description: `Threat Level: ${response.data.threat_level.toUpperCase()} | Risk Score: ${response.data.risk_score}`,
         })
       } else {
         console.error("❌ Analysis failed:", response)
-        toast({
-          title: "Analysis Failed",
+        toast.error("Analysis Failed", {
           description: response.error || "Failed to analyze target",
-          variant: "destructive",
         })
       }
     } catch (error) {
       console.error("❌ Error during analysis:", error)
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: error instanceof Error ? error.message : "An error occurred during analysis",
-        variant: "destructive",
       })
     } finally {
       setAnalyzing(false)
@@ -189,25 +178,20 @@ export default function DeepQuarantinePage() {
       })
 
       if (response.success && response.data?.success) {
-        toast({
-          title: "Complete Removal Successful",
+        toast.success("Complete Removal Successful", {
           description: `Backup: ${response.data.backup_file}`,
         })
         setAnalysis(null)
         setTargetPath("")
         loadBackups()
       } else {
-        toast({
-          title: "Removal Failed",
+        toast.error("Removal Failed", {
           description: response.data?.message || response.error,
-          variant: "destructive",
         })
       }
     } catch (error) {
-      toast({
-        title: "Error",
+      toast.error("Error", {
         description: "An error occurred during removal",
-        variant: "destructive",
       })
     } finally {
       setRemoving(false)
