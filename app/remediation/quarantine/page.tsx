@@ -57,6 +57,7 @@ interface BackupFile {
 export default function DeepQuarantinePage() {
   const { toast } = useToast()
   const [targetPath, setTargetPath] = useState("")
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [analyzing, setAnalyzing] = useState(false)
   const [removing, setRemoving] = useState(false)
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
@@ -79,10 +80,10 @@ export default function DeepQuarantinePage() {
   }
 
   const handleAnalyze = async () => {
-    if (!targetPath.trim()) {
+    if (!selectedFile && !targetPath.trim()) {
       toast({
         title: "Invalid Input",
-        description: "Please enter a file or directory path",
+        description: "Please select a file or enter a path",
         variant: "destructive",
       })
       return
@@ -90,25 +91,50 @@ export default function DeepQuarantinePage() {
 
     setAnalyzing(true)
     try {
-      const response = await remediationApi.analyzeDeep({ file_path: targetPath })
+      let response
 
-if (response.success && response.data) {
-  // Check if threat_level exists (means analysis succeeded)
-  if (!response.data.threat_level) {
-    toast({
-      title: "Analysis Not Supported",
-      description: "Deep Quarantine is only available on Windows systems",
-      variant: "destructive",
-    })
-    return
-  }
-  
-  setAnalysis(response.data)
-  toast({
-    title: "Analysis Complete",
-    description: `Threat Level: ${response.data.threat_level.toUpperCase()}`,
-  })
-} else {
+      // If file is selected, upload it
+      if (selectedFile) {
+        const formData = new FormData()
+        formData.append("file", selectedFile)
+
+        // Call upload endpoint
+        const uploadResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'https://cyberguardian-backend-production.up.railway.app'}/api/remediation/deep-quarantine/upload`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        )
+
+        if (!uploadResponse.ok) {
+          throw new Error("Upload failed")
+        }
+
+        const data = await uploadResponse.json()
+        response = { success: true, data }
+      } else {
+        // Use path-based analysis
+        response = await remediationApi.analyzeDeep({ file_path: targetPath })
+      }
+
+      if (response.success && response.data) {
+        // Check if threat_level exists (means analysis succeeded)
+        if (!response.data.threat_level) {
+          toast({
+            title: "Analysis Not Supported",
+            description: response.data.message || "Deep Quarantine is only available on Windows systems",
+            variant: "destructive",
+          })
+          return
+        }
+
+        setAnalysis(response.data)
+        toast({
+          title: "Analysis Complete",
+          description: `Threat Level: ${response.data.threat_level.toUpperCase()}`,
+        })
+      } else {
         toast({
           title: "Analysis Failed",
           description: response.error || "Failed to analyze target",
@@ -293,8 +319,7 @@ if (response.success && response.data) {
                 onChange={(e) => {
                   const file = e.target.files?.[0]
                   if (file) {
-                    // For web environment, we'll use the file name
-                    // In a real Windows environment, this would be the full path
+                    setSelectedFile(file)
                     setTargetPath(file.name)
                   }
                 }}
@@ -306,14 +331,17 @@ if (response.success && response.data) {
               <Input
                 placeholder="Or enter path: C:\Path\To\File.exe"
                 value={targetPath}
-                onChange={(e) => setTargetPath(e.target.value)}
+                onChange={(e) => {
+                  setTargetPath(e.target.value)
+                  setSelectedFile(null) // Clear file selection when typing path
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
               />
             </div>
             
             <Button
               onClick={handleAnalyze}
-              disabled={analyzing || !targetPath.trim()}
+              disabled={analyzing || (!selectedFile && !targetPath.trim())}
               className="bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700"
             >
               {analyzing ? (
