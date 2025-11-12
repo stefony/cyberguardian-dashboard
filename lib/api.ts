@@ -1602,6 +1602,79 @@ export const remediationApi = {
     return client.get<any>('/api/remediation/services/backups')
   },
 
+  // ========== SCHEDULED TASKS CLEANUP ==========
+
+  /**
+   * Scan Windows scheduled tasks for suspicious entries
+   */
+  scanTasks: async (): Promise<ApiResponse<{
+    tasks: Array<{
+      id: string
+      task_name: string
+      path: string
+      status: string
+      enabled: boolean
+      actions: Array<{
+        type: string
+        path: string
+        arguments: string
+        working_directory: string
+      }>
+      triggers: Array<{
+        type: string
+        enabled: boolean
+      }>
+      last_run: string
+      next_run: string
+      author: string
+      risk_score: number
+      indicators: string[]
+      scanned_at: string
+    }>
+    statistics: {
+      total_suspicious: number
+      critical_risk: number
+      high_risk: number
+      medium_risk: number
+      low_risk: number
+      by_status: Record<string, number>
+      enabled_count: number
+      disabled_count: number
+    }
+    scanned_at: string
+  }>> => {
+    return client.get<any>('/api/remediation/tasks/scan')
+  },
+
+  /**
+   * Remove a scheduled task (with automatic backup)
+   */
+  removeTask: async (data: {
+    task_path: string
+  }): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    backup_file: string | null
+  }>> => {
+    return client.post<any>('/api/remediation/tasks/remove', data)
+  },
+
+  /**
+   * List all task backups
+   */
+  listTaskBackups: async (): Promise<ApiResponse<{
+    backups: Array<{
+      filename: string
+      filepath: string
+      task_path: string
+      task_name: string
+      author: string
+      backed_up_at: string
+    }>
+  }>> => {
+    return client.get<any>('/api/remediation/tasks/backups')
+  },
+
   /**
    * Get remediation service health
    */

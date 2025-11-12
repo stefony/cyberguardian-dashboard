@@ -77,7 +77,7 @@ const navItems: NavItem[] = [
     href: '/quarantine',
     icon: Lock,
   },
- {
+{
     label: 'Remediation',
     href: '/remediation',
     icon: Database,
@@ -85,6 +85,7 @@ const navItems: NavItem[] = [
       { label: 'Overview', href: '/remediation' },
       { label: 'Registry Cleanup', href: '/remediation/registry' },
       { label: 'Services Cleanup', href: '/remediation/services' },
+      { label: 'Tasks Cleanup', href: '/remediation/tasks' },  // ← ADD THIS
     ],
   },
   {

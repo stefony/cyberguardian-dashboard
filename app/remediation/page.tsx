@@ -53,21 +53,21 @@ export default function RemediationPage() {
   ]
 },
     {
-      id: "tasks",
-      title: "Scheduled Tasks",
-      description: "Scan and clean malicious scheduled tasks",
-      icon: Clock,
-      status: "planned",
-      color: "text-green-500",
-      bgColor: "bg-green-500/10",
-      path: "#",
-      features: [
-        "Scan Task Scheduler",
-        "Identify malicious tasks",
-        "Remove suspicious tasks",
-        "Task backup"
-      ]
-    },
+  id: "tasks",
+  title: "Scheduled Tasks",
+  description: "Scan and clean malicious scheduled tasks",
+  icon: Clock,
+  status: "available",  // ← Променено от "planned"
+  color: "text-green-500",
+  bgColor: "bg-green-500/10",
+  path: "/remediation/tasks",  // ← Променено от "#"
+  features: [
+    "Scan Task Scheduler",
+    "Identify malicious tasks",
+    "Remove suspicious tasks",
+    "Task backup"
+  ]
+},
     {
       id: "deep-quarantine",
       title: "Deep Quarantine",
