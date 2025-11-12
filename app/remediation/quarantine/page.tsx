@@ -90,11 +90,20 @@ export default function DeepQuarantinePage() {
     }
 
     setAnalyzing(true)
+    
+    // Show initial toast
+    toast({
+      title: "Starting Analysis",
+      description: selectedFile ? `Uploading ${selectedFile.name}...` : `Analyzing ${targetPath}...`,
+    })
+
     try {
       let response
 
       // If file is selected, upload it
       if (selectedFile) {
+        console.log("📤 Uploading file:", selectedFile.name, selectedFile.size, "bytes")
+        
         const formData = new FormData()
         formData.append("file", selectedFile)
 
@@ -107,20 +116,30 @@ export default function DeepQuarantinePage() {
           }
         )
 
+        console.log("📥 Upload response status:", uploadResponse.status)
+
         if (!uploadResponse.ok) {
-          throw new Error("Upload failed")
+          const errorText = await uploadResponse.text()
+          console.error("❌ Upload failed:", errorText)
+          throw new Error(`Upload failed: ${uploadResponse.status}`)
         }
 
         const data = await uploadResponse.json()
+        console.log("✅ Analysis result:", data)
         response = { success: true, data }
       } else {
         // Use path-based analysis
+        console.log("📂 Analyzing path:", targetPath)
         response = await remediationApi.analyzeDeep({ file_path: targetPath })
+        console.log("✅ Analysis result:", response)
       }
 
       if (response.success && response.data) {
+        console.log("🔍 Checking analysis data:", response.data)
+        
         // Check if threat_level exists (means analysis succeeded)
         if (!response.data.threat_level) {
+          console.warn("⚠️ No threat_level in response:", response.data)
           toast({
             title: "Analysis Not Supported",
             description: response.data.message || "Deep Quarantine is only available on Windows systems",
@@ -129,12 +148,14 @@ export default function DeepQuarantinePage() {
           return
         }
 
+        console.log("✅ Analysis complete! Threat level:", response.data.threat_level)
         setAnalysis(response.data)
         toast({
           title: "Analysis Complete",
-          description: `Threat Level: ${response.data.threat_level.toUpperCase()}`,
+          description: `Threat Level: ${response.data.threat_level.toUpperCase()} | Risk Score: ${response.data.risk_score}`,
         })
       } else {
+        console.error("❌ Analysis failed:", response)
         toast({
           title: "Analysis Failed",
           description: response.error || "Failed to analyze target",
@@ -142,9 +163,10 @@ export default function DeepQuarantinePage() {
         })
       }
     } catch (error) {
+      console.error("❌ Error during analysis:", error)
       toast({
         title: "Error",
-        description: "An error occurred during analysis",
+        description: error instanceof Error ? error.message : "An error occurred during analysis",
         variant: "destructive",
       })
     } finally {
