@@ -261,21 +261,46 @@ export default function DeepQuarantinePage() {
             Target Analysis
           </CardTitle>
           <CardDescription>
-            Enter a file or directory path for comprehensive malware analysis
+            Select a file or enter a directory path for comprehensive malware analysis
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-3">
+            {/* File Upload Button */}
+            <div className="flex-1">
+              <label htmlFor="file-upload" className="cursor-pointer">
+                <div className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-accent transition-colors">
+                  <FileSearch className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">
+                    {targetPath ? targetPath : "Choose file to analyze..."}
+                  </span>
+                </div>
+              </label>
+              <input
+                id="file-upload"
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) {
+                    // For web environment, we'll use the file name
+                    // In a real Windows environment, this would be the full path
+                    setTargetPath(file.name)
+                  }
+                }}
+              />
+            </div>
+            
+            {/* Manual Path Input (Optional) */}
             <div className="flex-1 relative">
-              <FileSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="C:\Path\To\Suspicious\File.exe"
+                placeholder="Or enter path: C:\Path\To\File.exe"
                 value={targetPath}
                 onChange={(e) => setTargetPath(e.target.value)}
-                className="pl-10"
                 onKeyDown={(e) => e.key === "Enter" && handleAnalyze()}
               />
             </div>
+            
             <Button
               onClick={handleAnalyze}
               disabled={analyzing || !targetPath.trim()}
