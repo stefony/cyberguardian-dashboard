@@ -69,21 +69,21 @@ export default function RemediationPage() {
   ]
 },
     {
-      id: "deep-quarantine",
-      title: "Deep Quarantine",
-      description: "Complete malware removal with deep scanning",
-      icon: Shield,
-      status: "planned",
-      color: "text-red-500",
-      bgColor: "bg-red-500/10",
-      path: "#",
-      features: [
-        "Deep file analysis",
-        "Registry reference scan",
-        "Service dependency check",
-        "Complete removal"
-      ]
-    }
+  id: "deep-quarantine",
+  title: "Deep Quarantine",
+  description: "Complete malware removal with deep scanning",
+  icon: Shield,
+  status: "available",  // ← Променено от "planned"
+  color: "text-red-500",
+  bgColor: "bg-red-500/10",
+  path: "/remediation/quarantine",  // ← Променено от "#"
+  features: [
+    "Deep file analysis",
+    "Registry reference scan",
+    "Service dependency check",
+    "Complete removal"
+  ]
+},
   ]
 
   const getStatusBadge = (status: string) => {

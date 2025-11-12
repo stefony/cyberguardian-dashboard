@@ -1675,6 +1675,61 @@ export const remediationApi = {
     return client.get<any>('/api/remediation/tasks/backups')
   },
 
+  // ========== DEEP QUARANTINE ==========
+
+  /**
+   * Perform deep analysis on a target file/directory
+   */
+  analyzeDeep: async (data: {
+    file_path: string
+  }): Promise<ApiResponse<{
+    analysis_id: string
+    target_path: string
+    analyzed_at: string
+    stages: {
+      file_analysis: any
+      registry_scan: any
+      service_scan: any
+      task_scan: any
+    }
+    threat_level: string
+    risk_score: number
+    recommendations: string[]
+  }>> => {
+    return client.post<any>('/api/remediation/deep-quarantine/analyze', data)
+  },
+
+  /**
+   * Perform complete removal based on analysis
+   */
+  removeDeep: async (data: {
+    analysis_id: string
+    analysis_data: any
+  }): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    backup_file: string | null
+  }>> => {
+    return client.post<any>('/api/remediation/deep-quarantine/remove', data)
+  },
+
+  /**
+   * List all deep quarantine backups
+   */
+  listDeepBackups: async (): Promise<ApiResponse<{
+    backups: Array<{
+      filename: string
+      filepath: string
+      analysis_id: string
+      target_path: string
+      threat_level: string
+      risk_score: number
+      backed_up_at: string
+    }>
+  }>> => {
+    return client.get<any>('/api/remediation/deep-quarantine/backups')
+  },
+
   /**
    * Get remediation service health
    */

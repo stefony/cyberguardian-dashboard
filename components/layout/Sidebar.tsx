@@ -85,7 +85,8 @@ const navItems: NavItem[] = [
       { label: 'Overview', href: '/remediation' },
       { label: 'Registry Cleanup', href: '/remediation/registry' },
       { label: 'Services Cleanup', href: '/remediation/services' },
-      { label: 'Tasks Cleanup', href: '/remediation/tasks' },  // ← ADD THIS
+      { label: 'Tasks Cleanup', href: '/remediation/tasks' },
+      { label: 'Deep Quarantine', href: '/remediation/quarantine' },  // ← ADD THIS
     ],
   },
   {
