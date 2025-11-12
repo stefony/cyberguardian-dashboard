@@ -36,22 +36,22 @@ export default function RemediationPage() {
         "One-click restore"
       ]
     },
-    {
-      id: "services",
-      title: "Services Cleanup",
-      description: "Identify and remove malicious Windows services",
-      icon: Settings,
-      status: "planned",
-      color: "text-purple-500",
-      bgColor: "bg-purple-500/10",
-      path: "#",
-      features: [
-        "Enumerate all services",
-        "Detect suspicious services",
-        "Stop and delete services",
-        "Service backup"
-      ]
-    },
+  {
+  id: "services",
+  title: "Services Cleanup",
+  description: "Identify and remove malicious Windows services",
+  icon: Settings,
+  status: "available",  // ← Променено
+  color: "text-purple-500",
+  bgColor: "bg-purple-500/10",
+  path: "/remediation/services",  // ← Променено
+  features: [
+    "Enumerate all services",
+    "Detect suspicious services",
+    "Stop and delete services",
+    "Service backup"
+  ]
+},
     {
       id: "tasks",
       title: "Scheduled Tasks",
