@@ -54,7 +54,7 @@ export default function RemediationPage() {
 },
     {
   id: "tasks",
-  title: "Scheduled Tasks",
+  title: "Tasks Cleanup",
   description: "Scan and clean malicious scheduled tasks",
   icon: Clock,
   status: "available",  // ← Променено от "planned"
