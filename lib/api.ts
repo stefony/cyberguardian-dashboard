@@ -1528,6 +1528,80 @@ export const remediationApi = {
     return client.get<any>('/api/remediation/registry/backups')
   },
 
+  // ========== SERVICES CLEANUP ==========
+
+  /**
+   * Scan Windows services for suspicious entries
+   */
+  scanServices: async (): Promise<ApiResponse<{
+    services: Array<{
+      id: string
+      service_name: string
+      display_name: string
+      binary_path: string
+      startup_type: string
+      status: string
+      description: string
+      risk_score: number
+      indicators: string[]
+      dependencies: string[]
+      scanned_at: string
+    }>
+    statistics: {
+      total_suspicious: number
+      critical_risk: number
+      high_risk: number
+      medium_risk: number
+      low_risk: number
+      by_status: Record<string, number>
+      by_startup_type: Record<string, number>
+    }
+    scanned_at: string
+  }>> => {
+    return client.get<any>('/api/remediation/services/scan')
+  },
+
+  /**
+   * Stop a Windows service
+   */
+  stopService: async (data: {
+    service_name: string
+  }): Promise<ApiResponse<{
+    success: boolean
+    message: string
+  }>> => {
+    return client.post<any>('/api/remediation/services/stop', data)
+  },
+
+  /**
+   * Remove a Windows service (with automatic backup)
+   */
+  removeService: async (data: {
+    service_name: string
+  }): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    backup_file: string | null
+  }>> => {
+    return client.post<any>('/api/remediation/services/remove', data)
+  },
+
+  /**
+   * List all service backups
+   */
+  listServiceBackups: async (): Promise<ApiResponse<{
+    backups: Array<{
+      filename: string
+      filepath: string
+      service_name: string
+      binary_path: string
+      startup_type: string
+      backed_up_at: string
+    }>
+  }>> => {
+    return client.get<any>('/api/remediation/services/backups')
+  },
+
   /**
    * Get remediation service health
    */
@@ -1539,6 +1613,7 @@ export const remediationApi = {
     return client.get<any>('/api/remediation/health')
   },
 }
+
 // ============================================
 // EXPORTS
 // ============================================
