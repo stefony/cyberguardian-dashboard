@@ -4,14 +4,15 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/AuthContext'
+import { cn } from '@/lib/utils'  // ← ADD THIS LINE
 
-import { 
-  Shield, 
-  Activity, 
-  AlertTriangle, 
-  Eye, 
-  Brain, 
-  BarChart3, 
+import {
+  Shield,
+  Activity,
+  AlertTriangle,
+  Eye,
+  Brain,
+  BarChart3,
   Settings,
   Mail,
   Target,
@@ -25,8 +26,9 @@ import {
   Database,
   Fingerprint,
   ShieldAlert,
+  RefreshCw,      // ← ADD THIS
+  FileJson,       // ← ADD THIS
 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface SubItem {
   label: string
@@ -85,11 +87,11 @@ const navItems: NavItem[] = [
     icon: Fingerprint, 
   },
   {
-  label: 'Tamper Protection',
-  href: '/security/tamper',
-  icon: ShieldAlert,  // Need to import this
-},
-{
+    label: 'Tamper Protection',
+    href: '/security/tamper',
+    icon: ShieldAlert,
+  },
+  {
     label: 'Remediation',
     href: '/remediation',
     icon: Database,
@@ -98,7 +100,7 @@ const navItems: NavItem[] = [
       { label: 'Registry Cleanup', href: '/remediation/registry' },
       { label: 'Services Cleanup', href: '/remediation/services' },
       { label: 'Tasks Cleanup', href: '/remediation/tasks' },
-      { label: 'Deep Quarantine', href: '/remediation/quarantine' },  // ← ADD THIS
+      { label: 'Deep Quarantine', href: '/remediation/quarantine' },
     ],
   },
   {
@@ -107,7 +109,7 @@ const navItems: NavItem[] = [
     icon: Eye,
   },
   {
-   label: 'Insights',
+    label: 'Insights',
     href: '/insights', 
     icon: Brain,
   },
@@ -130,6 +132,16 @@ const navItems: NavItem[] = [
     label: 'Honeypots',
     href: '/honeypots',
     icon: Target,
+  },
+  {
+    label: 'Updates',           // ← NEW
+    href: '/updates',           // ← NEW
+    icon: RefreshCw,           // ← NEW (need to import)
+  },
+  {
+    label: 'Configuration',     // ← NEW
+    href: '/configuration',     // ← NEW
+    icon: FileJson,            // ← NEW (need to import)
   },
   {
     label: 'Settings',
