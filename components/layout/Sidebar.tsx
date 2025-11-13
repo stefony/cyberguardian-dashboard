@@ -24,6 +24,7 @@ import {
   Lock,
   Database,
   Fingerprint,
+  ShieldAlert,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -83,6 +84,11 @@ const navItems: NavItem[] = [
     href: '/security/integrity',
     icon: Fingerprint, 
   },
+  {
+  label: 'Tamper Protection',
+  href: '/security/tamper',
+  icon: ShieldAlert,  // Need to import this
+},
 {
     label: 'Remediation',
     href: '/remediation',
