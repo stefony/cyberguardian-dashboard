@@ -59,11 +59,32 @@ interface RestartRecord {
   reason: string;
 }
 
+interface ProcessProtectionStatus {
+  platform: string;
+  is_protected: boolean;
+  service_installed: boolean;
+  can_protect: boolean;
+  is_admin: boolean;
+  is_root: boolean;
+  username: string;
+  recommendations: string[];
+}
+
+interface Privileges {
+  platform: string;
+  is_admin: boolean;
+  is_root: boolean;
+  can_protect: boolean;
+  username: string;
+}
+
 export default function TamperProtectionPage() {
   const [protectionStatus, setProtectionStatus] = useState<ProtectionStatus | null>(null);
   const [watchdogStatus, setWatchdogStatus] = useState<WatchdogStatus | null>(null);
   const [alerts, setAlerts] = useState<TamperAlert[]>([]);
   const [restarts, setRestarts] = useState<RestartRecord[]>([]);
+  const [processProtection, setProcessProtection] = useState<ProcessProtectionStatus | null>(null);
+  const [privileges, setPrivileges] = useState<Privileges | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -103,6 +124,20 @@ export default function TamperProtectionPage() {
       const restartsData = await restartsRes.json();
       if (restartsData.success) {
         setRestarts(restartsData.restarts);
+      }
+
+      // Fetch process protection status
+      const processProtectionRes = await fetch(`${API_URL}/api/process-protection/status`);
+      const processProtectionData = await processProtectionRes.json();
+      if (processProtectionData.success) {
+        setProcessProtection(processProtectionData.protection);
+      }
+
+      // Fetch privileges
+      const privilegesRes = await fetch(`${API_URL}/api/process-protection/privileges`);
+      const privilegesData = await privilegesRes.json();
+      if (privilegesData.success) {
+        setPrivileges(privilegesData.privileges);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -186,6 +221,85 @@ export default function TamperProtectionPage() {
       toast.error("Failed to verify config");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const enableAntiTermination = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/process-protection/enable-anti-termination`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Anti-Termination Enabled", {
+          description: "Process protection is now active",
+        });
+        fetchData();
+      } else {
+        toast.error("Failed to enable anti-termination", {
+          description: data.message,
+        });
+      }
+    } catch (error) {
+      console.error("Error enabling anti-termination:", error);
+      toast.error("Failed to enable anti-termination");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const enableMaxProtection = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/process-protection/enable-maximum-protection`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Maximum Protection Enabled", {
+          description: "All available protection features activated",
+        });
+        fetchData();
+      } else {
+        toast.warning("Partial Protection Enabled", {
+          description: data.message,
+        });
+        fetchData();
+      }
+    } catch (error) {
+      console.error("Error enabling max protection:", error);
+      toast.error("Failed to enable maximum protection");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const installService = async () => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/process-protection/install-service`, {
+        method: "POST",
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        toast.success("Service Installed", {
+          description: `Service '${data.service_name}' installed successfully`,
+        });
+        fetchData();
+      } else {
+        toast.error("Failed to install service", {
+          description: data.message,
+        });
+      }
+    } catch (error) {
+      console.error("Error installing service:", error);
+      toast.error("Failed to install service");
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -417,6 +531,132 @@ export default function TamperProtectionPage() {
             </div>
           </div>
         )}
+
+        {/* Process Protection Status */}
+        <div className="bg-gradient-to-br from-indigo-600/30 via-blue-600/30 to-cyan-600/30 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-lg">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-blue-200 font-semibold text-sm mb-1">🛡️ Process Protection</p>
+                <p className="text-3xl font-black text-white">
+                  {processProtection?.platform || "Unknown"}
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex gap-3">
+              {privileges?.can_protect ? (
+                <>
+                  <button
+                    onClick={enableAntiTermination}
+                    disabled={actionLoading || processProtection?.is_protected}
+                    className="px-6 py-3 bg-white/20 backdrop-blur-lg text-white rounded-xl hover:bg-white/30 transition-all disabled:opacity-50 flex items-center gap-2 border border-white/30"
+                  >
+                    <Lock className="w-5 h-5" />
+                    <span className="font-semibold">
+                      {processProtection?.is_protected ? "Protected" : "Enable Protection"}
+                    </span>
+                  </button>
+                  
+                  <button
+                    onClick={enableMaxProtection}
+                    disabled={actionLoading}
+                    className="px-6 py-3 bg-gradient-to-r from-rose-500 to-pink-500 text-white rounded-xl hover:shadow-2xl transition-all disabled:opacity-50 flex items-center gap-2 font-bold"
+                  >
+                    <Zap className="w-5 h-5" />
+                    <span>Max Protection</span>
+                  </button>
+                </>
+              ) : (
+                <div className="px-6 py-3 bg-amber-500/20 backdrop-blur-lg text-amber-200 rounded-xl border border-amber-400/30 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5" />
+                  <span className="font-semibold">
+                    {processProtection?.platform === "Windows" ? "Requires Administrator" : "Requires Root"}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Protection Status Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-blue-200">Protection Status</span>
+                {processProtection?.is_protected ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-rose-400" />
+                )}
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {processProtection?.is_protected ? "ACTIVE" : "INACTIVE"}
+              </p>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-blue-200">Service Status</span>
+                {processProtection?.service_installed ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-rose-400" />
+                )}
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {processProtection?.service_installed ? "INSTALLED" : "NOT INSTALLED"}
+              </p>
+            </div>
+            
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 border border-white/20">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-blue-200">Privileges</span>
+                {privileges?.can_protect ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-rose-400" />
+                )}
+              </div>
+              <p className="text-2xl font-bold text-white">
+                {privileges?.is_admin && "ADMIN"}
+                {privileges?.is_root && "ROOT"}
+                {!privileges?.can_protect && "USER"}
+              </p>
+            </div>
+          </div>
+          
+          {/* Recommendations */}
+          {processProtection && processProtection.recommendations.length > 0 && (
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-4 border border-white/10">
+              <p className="text-white font-semibold mb-3 flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-400" />
+                Security Recommendations
+              </p>
+              <div className="space-y-2">
+                {processProtection.recommendations.map((rec, index) => (
+                  <div key={index} className="flex items-start gap-2 text-sm text-blue-200">
+                    <span className="text-blue-400 mt-0.5">•</span>
+                    <span>{rec}</span>
+                  </div>
+                ))}
+              </div>
+              
+              {!processProtection.service_installed && privileges?.can_protect && (
+                <button
+                  onClick={installService}
+                  disabled={actionLoading}
+                  className="mt-4 w-full px-4 py-3 bg-white/10 backdrop-blur-lg text-white rounded-lg hover:bg-white/20 transition-all disabled:opacity-50 flex items-center justify-center gap-2 border border-white/20"
+                >
+                  <Server className="w-5 h-5" />
+                  <span className="font-semibold">Install as System Service</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Tamper Alerts */}
         {alerts.length > 0 && (
