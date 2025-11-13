@@ -9,6 +9,8 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface VersionInfo {
   version: string;
   major: number;
@@ -54,7 +56,7 @@ export default function UpdatesPage() {
   // Fetch current version
   const fetchVersion = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/updates/version');
+      const response = await fetch(`${API_URL}/api/updates/version`);
       const data = await response.json();
       if (data.success) {
         setVersionInfo(data.version);
@@ -68,7 +70,7 @@ export default function UpdatesPage() {
   const checkForUpdates = async (force: boolean = false) => {
     setChecking(true);
     try {
-      const response = await fetch(`http://localhost:8000/api/updates/check?force=${force}`);
+      const response = await fetch(`${API_URL}/api/updates/check?force=${force}`);
       const data = await response.json();
       if (data.success) {
         setUpdateInfo(data);
@@ -83,7 +85,7 @@ export default function UpdatesPage() {
   // Fetch update history
   const fetchHistory = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/updates/history?limit=10');
+      const response = await fetch(`${API_URL}/api/updates/history?limit=10`);
       const data = await response.json();
       if (data.success) {
         setUpdateHistory(data.history);
@@ -97,7 +99,7 @@ export default function UpdatesPage() {
   const downloadUpdate = async () => {
     setDownloading(true);
     try {
-      const response = await fetch('http://localhost:8000/api/updates/download', {
+      const response = await fetch(`${API_URL}/api/updates/download`, {
         method: 'POST'
       });
       const data = await response.json();

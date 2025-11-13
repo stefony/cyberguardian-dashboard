@@ -10,6 +10,8 @@ import {
   ExclamationCircleIcon
 } from '@heroicons/react/24/outline';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface ConfigBackup {
   filename: string;
   path: string;
@@ -39,7 +41,7 @@ export default function ConfigurationPage() {
   // Fetch backups
   const fetchBackups = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/configuration/backups');
+      const response = await fetch(`${API_URL}/api/configuration/backups`);
       const data = await response.json();
       if (data.success) {
         setBackups(data.backups);
@@ -53,7 +55,7 @@ export default function ConfigurationPage() {
   const exportConfiguration = async () => {
     setExporting(true);
     try {
-      const response = await fetch('http://localhost:8000/api/configuration/export');
+      const response = await fetch(`${API_URL}/api/configuration/export`);
       const data = await response.json();
       
       if (data.success) {
@@ -88,7 +90,7 @@ export default function ConfigurationPage() {
       const config = JSON.parse(text);
       
       // Validate first
-      const validateResponse = await fetch('http://localhost:8000/api/configuration/validate', {
+      const validateResponse = await fetch(`${API_URL}/api/configuration/validate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
@@ -102,7 +104,7 @@ export default function ConfigurationPage() {
       }
       
       // Import
-      const importResponse = await fetch('http://localhost:8000/api/configuration/import', {
+      const importResponse = await fetch(`${API_URL}/api/configuration/import`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config)
@@ -127,7 +129,7 @@ export default function ConfigurationPage() {
   // Download backup
   const downloadBackup = async (filename: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/configuration/backups/${filename}/download`);
+      const response = await fetch(`${API_URL}/api/configuration/backups/${filename}/download`);
       const blob = await response.blob();
       
       const url = window.URL.createObjectURL(blob);
@@ -151,7 +153,7 @@ export default function ConfigurationPage() {
     }
     
     try {
-      const response = await fetch(`http://localhost:8000/api/configuration/backups/${filename}/restore`, {
+      const response = await fetch(`${API_URL}/api/configuration/backups/${filename}/restore`, {
         method: 'POST'
       });
       
