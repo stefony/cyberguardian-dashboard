@@ -265,8 +265,7 @@ export default function OrganizationsPage() {
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="acme-corp"
-                    pattern="^[a-z0-9-]+$"
-                  />
+                    />
                 </div>
 
                 <div>
