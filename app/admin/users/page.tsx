@@ -47,10 +47,15 @@ export default function UsersPage() {
     filterUsers();
   }, [users, searchQuery, roleFilter]);
 
-  const fetchUsers = async () => {
+ const fetchUsers = async () => {
     try {
       // Note: You'll need to pass org_id or use tenant context
-      const response = await fetch(`${API_URL}/api/users/`);
+      const response = await fetch(`${API_URL}/api/users/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -87,9 +92,10 @@ export default function UsersPage() {
     e.preventDefault();
     
     try {
-      const response = await fetch(`${API_URL}/api/users/invite`, {
+  const response = await fetch(`${API_URL}/api/users/invite`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(inviteData)
