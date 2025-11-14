@@ -2,55 +2,49 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  UserGroupIcon,
+  BuildingOfficeIcon,
   PlusIcon,
-  EnvelopeIcon,
-  ShieldCheckIcon,
+  UserGroupIcon,
+  Cog6ToothIcon,
   PencilIcon,
-  TrashIcon,
   CheckCircleIcon,
   XCircleIcon,
-  MagnifyingGlassIcon
+  SparklesIcon,
+  RocketLaunchIcon
 } from '@heroicons/react/24/outline';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
-interface User {
+interface Organization {
   id: string;
-  username: string;
-  email: string;
-  full_name?: string;
-  role: string;
-  role_display: string;
+  name: string;
+  slug: string;
+  description?: string;
+  plan: string;
+  max_users: number;
+  max_devices: number;
   is_active: number;
-  assigned_at: string;
+  created_at: string;
 }
 
-export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+export default function OrganizationsPage() {
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('all');
-  const [inviteData, setInviteData] = useState({
-    email: '',
-    role: 'viewer',
-    message: ''
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    plan: 'free'
   });
 
   useEffect(() => {
-    fetchUsers();
+    fetchOrganizations();
   }, []);
 
-  useEffect(() => {
-    filterUsers();
-  }, [users, searchQuery, roleFilter]);
-
- const fetchUsers = async () => {
+  const fetchOrganizations = async () => {
     try {
-      // Note: You'll need to pass org_id or use tenant context
-      const response = await fetch(`${API_URL}/api/users/`, {
+      const response = await fetch(`${API_URL}/api/organizations/`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json'
@@ -59,323 +53,335 @@ export default function UsersPage() {
       const data = await response.json();
       
       if (data.success) {
-        setUsers(data.users);
+        setOrganizations(data.organizations);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching organizations:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const filterUsers = () => {
-    let filtered = users;
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(user =>
-        user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (user.full_name && user.full_name.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-
-    // Filter by role
-    if (roleFilter !== 'all') {
-      filtered = filtered.filter(user => user.role === roleFilter);
-    }
-
-    setFilteredUsers(filtered);
-  };
-
-  const handleInviteUser = async (e: React.FormEvent) => {
+  const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-  const response = await fetch(`${API_URL}/api/users/invite`, {
+      const response = await fetch(`${API_URL}/api/organizations/`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(inviteData)
+        body: JSON.stringify(formData)
       });
       
       const data = await response.json();
       
       if (data.success) {
-        setShowInviteModal(false);
-        setInviteData({ email: '', role: 'viewer', message: '' });
-        // Show success message
-        alert('Invitation sent successfully!');
+        setShowCreateModal(false);
+        setFormData({ name: '', slug: '', description: '', plan: 'free' });
+        fetchOrganizations();
       }
     } catch (error) {
-      console.error('Error inviting user:', error);
+      console.error('Error creating organization:', error);
     }
   };
 
-  const getRoleBadge = (role: string) => {
-    const badges: any = {
-      admin: 'bg-red-100 text-red-800 ring-red-200',
-      manager: 'bg-blue-100 text-blue-800 ring-blue-200',
-      analyst: 'bg-green-100 text-green-800 ring-green-200',
-      viewer: 'bg-gray-100 text-gray-800 ring-gray-200'
+  const getPlanConfig = (plan: string) => {
+    const configs: any = {
+      free: {
+        badge: 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800',
+        icon: '🆓',
+        gradient: 'from-gray-400 to-gray-600'
+      },
+      pro: {
+        badge: 'bg-gradient-to-r from-blue-100 to-cyan-100 text-blue-800',
+        icon: '⚡',
+        gradient: 'from-blue-500 to-cyan-500'
+      },
+      enterprise: {
+        badge: 'bg-gradient-to-r from-purple-100 to-pink-100 text-purple-800',
+        icon: '👑',
+        gradient: 'from-purple-500 to-pink-500'
+      }
     };
-    return badges[role] || 'bg-purple-100 text-purple-800 ring-purple-200';
-  };
-
-  const getRoleIcon = (role: string) => {
-    const sizes = 'h-5 w-5';
-    switch(role) {
-      case 'admin': return <ShieldCheckIcon className={`${sizes} text-red-600`} />;
-      case 'manager': return <ShieldCheckIcon className={`${sizes} text-blue-600`} />;
-      case 'analyst': return <ShieldCheckIcon className={`${sizes} text-green-600`} />;
-      default: return <ShieldCheckIcon className={`${sizes} text-gray-600`} />;
-    }
+    return configs[plan] || configs.free;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600"></div>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-purple-500 mx-auto"></div>
+            <BuildingOfficeIcon className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-purple-400" />
+          </div>
+          <p className="mt-6 text-purple-300 text-lg font-semibold">Loading organizations...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 rounded-2xl shadow-2xl p-8 text-white">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center space-x-3 mb-4">
-                <UserGroupIcon className="h-10 w-10" />
-                <h1 className="text-4xl font-bold">Users Management</h1>
+        {/* Animated Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 p-8 shadow-2xl">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center space-x-4">
+                  <div className="p-4 bg-white/20 backdrop-blur-lg rounded-2xl">
+                    <BuildingOfficeIcon className="h-10 w-10 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-5xl font-black text-white tracking-tight">Organizations</h1>
+                    <p className="text-purple-100 text-lg mt-2">Build and manage your teams</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-green-100 text-lg">Manage team members and permissions</p>
+              
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="group relative px-8 py-4 bg-white text-purple-600 rounded-2xl font-bold text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              >
+                <div className="flex items-center space-x-3">
+                  <PlusIcon className="h-6 w-6 group-hover:rotate-90 transition-transform duration-300" />
+                  <span>Create Organization</span>
+                  <SparklesIcon className="h-5 w-5 animate-pulse" />
+                </div>
+              </button>
             </div>
-            
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
+        </div>
+
+        {/* Organizations Grid */}
+        {organizations.length === 0 ? (
+          <div className="text-center py-20 bg-slate-800/50 backdrop-blur-xl rounded-3xl border-2 border-purple-500/20 shadow-2xl">
+            <div className="relative inline-block">
+              <BuildingOfficeIcon className="h-24 w-24 text-purple-400/50 mx-auto mb-6" />
+              <RocketLaunchIcon className="absolute -top-2 -right-2 h-10 w-10 text-pink-400 animate-bounce" />
+            </div>
+            <h3 className="text-3xl font-bold text-white mb-3">No Organizations Yet</h3>
+            <p className="text-purple-300 text-lg mb-8 max-w-md mx-auto">
+              Start your journey by creating your first organization
+            </p>
             <button
-              onClick={() => setShowInviteModal(true)}
-              className="flex items-center space-x-2 px-6 py-3 bg-white text-green-600 rounded-xl hover:shadow-lg transition-all duration-200"
+              onClick={() => setShowCreateModal(true)}
+              className="px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold text-lg hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
-              <EnvelopeIcon className="h-5 w-5" />
-              <span className="font-semibold">Invite User</span>
+              <div className="flex items-center space-x-2">
+                <PlusIcon className="h-6 w-6" />
+                <span>Create Your First Organization</span>
+              </div>
             </button>
           </div>
-        </div>
-
-        {/* Filters and Search */}
-        <div className="bg-white rounded-xl shadow-lg p-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Search */}
-            <div className="relative">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search by name, email, or username..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-
-            {/* Role Filter */}
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              <option value="all">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="analyst">Analyst</option>
-              <option value="viewer">Viewer</option>
-            </select>
-          </div>
-
-          <div className="mt-4 flex items-center justify-between text-sm">
-            <span className="text-gray-600">
-              Showing <span className="font-bold">{filteredUsers.length}</span> of <span className="font-bold">{users.length}</span> users
-            </span>
-          </div>
-        </div>
-
-        {/* Users Table */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2 border-gray-200">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Joined
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredUsers.length === 0 ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <UserGroupIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                      <p className="text-gray-600">No users found</p>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-green-400 to-blue-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {user.username.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900">{user.username}</div>
-                            {user.full_name && (
-                              <div className="text-xs text-gray-500">{user.full_name}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900">{user.email}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-2">
-                          {getRoleIcon(user.role)}
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold ring-2 ${getRoleBadge(user.role)}`}>
-                            {user.role_display}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        {user.is_active ? (
-                          <div className="flex items-center space-x-1 text-green-600">
-                            <CheckCircleIcon className="h-5 w-5" />
-                            <span className="text-sm font-semibold">Active</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center space-x-1 text-red-600">
-                            <XCircleIcon className="h-5 w-5" />
-                            <span className="text-sm font-semibold">Inactive</span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-600">
-                          {new Date(user.assigned_at).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                            <PencilIcon className="h-4 w-4" />
-                          </button>
-                          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                            <TrashIcon className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Invite User Modal */}
-        {showInviteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-gradient-to-br from-green-500 to-blue-600 rounded-lg">
-                    <EnvelopeIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-gray-900">Invite User</h2>
-                </div>
-                <button
-                  onClick={() => setShowInviteModal(false)}
-                  className="text-gray-400 hover:text-gray-600"
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {organizations.map((org, index) => {
+              const planConfig = getPlanConfig(org.plan);
+              return (
+                <div
+                  key={org.id}
+                  className="group relative bg-slate-800/80 backdrop-blur-xl rounded-3xl border-2 border-purple-500/20 hover:border-purple-500/50 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden transform hover:-translate-y-2"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <XCircleIcon className="h-6 w-6" />
-                </button>
+                  {/* Gradient overlay on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${planConfig.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}></div>
+                  
+                  {/* Card Header */}
+                  <div className="relative p-6 border-b border-slate-700/50">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">
+                          {org.name}
+                        </h3>
+                        <p className="text-purple-400 text-sm font-mono">@{org.slug}</p>
+                      </div>
+                      <div className={`px-4 py-2 rounded-full text-sm font-bold ${planConfig.badge} flex items-center space-x-2 shadow-lg`}>
+                        <span>{planConfig.icon}</span>
+                        <span>{org.plan.toUpperCase()}</span>
+                      </div>
+                    </div>
+                    
+                    {org.description && (
+                      <p className="text-slate-300 text-sm leading-relaxed">{org.description}</p>
+                    )}
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-6 space-y-4">
+                    {/* Stats */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <UserGroupIcon className="h-5 w-5 text-blue-400" />
+                          <span className="text-xs text-slate-400 font-semibold">MAX USERS</span>
+                        </div>
+                        <p className="text-2xl font-bold text-white">{org.max_users}</p>
+                      </div>
+
+                      <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Cog6ToothIcon className="h-5 w-5 text-purple-400" />
+                          <span className="text-xs text-slate-400 font-semibold">DEVICES</span>
+                        </div>
+                        <p className="text-2xl font-bold text-white">{org.max_devices}</p>
+                      </div>
+                    </div>
+
+                    {/* Status */}
+                    <div className="flex items-center justify-between py-3 px-4 bg-slate-900/30 rounded-xl border border-slate-700/30">
+                      <span className="text-slate-400 text-sm font-semibold">Status</span>
+                      <div className="flex items-center space-x-2">
+                        {org.is_active ? (
+                          <>
+                            <CheckCircleIcon className="h-5 w-5 text-green-400 animate-pulse" />
+                            <span className="text-green-400 font-bold text-sm">Active</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircleIcon className="h-5 w-5 text-red-400" />
+                            <span className="text-red-400 font-bold text-sm">Inactive</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Created date */}
+                    <div className="pt-3 border-t border-slate-700/50">
+                      <p className="text-xs text-slate-500">
+                        Created {new Date(org.created_at).toLocaleDateString('en-US', { 
+                          month: 'long', 
+                          day: 'numeric', 
+                          year: 'numeric' 
+                        })}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Card Actions */}
+                  <div className="relative bg-slate-900/50 px-6 py-4 flex items-center justify-between border-t border-slate-700/50">
+                    <button className="flex items-center space-x-2 text-sm text-purple-400 hover:text-purple-300 font-semibold transition-colors">
+                      <UserGroupIcon className="h-5 w-5" />
+                      <span>Manage Team</span>
+                    </button>
+                    
+                    <div className="flex items-center space-x-2">
+                      <button className="p-2 text-blue-400 hover:bg-blue-500/10 rounded-lg transition-all">
+                        <PencilIcon className="h-5 w-5" />
+                      </button>
+                      <button className="p-2 text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all">
+                        <Cog6ToothIcon className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Create Organization Modal */}
+        {showCreateModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="bg-slate-800 rounded-3xl shadow-2xl max-w-2xl w-full border-2 border-purple-500/30 animate-scale-in">
+              {/* Modal Header */}
+              <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 rounded-t-3xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-3 bg-white/20 backdrop-blur-lg rounded-xl">
+                      <BuildingOfficeIcon className="h-6 w-6 text-white" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white">Create Organization</h2>
+                  </div>
+                  <button
+                    onClick={() => setShowCreateModal(false)}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    <XCircleIcon className="h-7 w-7" />
+                  </button>
+                </div>
               </div>
 
-              <form onSubmit={handleInviteUser} className="space-y-6">
+              {/* Modal Body */}
+              <form onSubmit={handleCreateOrganization} className="p-8 space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email Address *
+                  <label className="block text-sm font-bold text-purple-300 mb-3">
+                    Organization Name *
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     required
-                    value={inviteData.email}
-                    onChange={(e) => setInviteData({ ...inviteData, email: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    placeholder="user@example.com"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all"
+                    placeholder="Acme Corporation"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Role *
+                  <label className="block text-sm font-bold text-purple-300 mb-3">
+                    Slug * <span className="text-slate-500 font-normal">(URL-friendly identifier)</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.slug}
+                    onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
+                    className="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all font-mono"
+                    placeholder="acme-corp"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-purple-300 mb-3">
+                    Description
+                  </label>
+                  <textarea
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all resize-none"
+                    rows={3}
+                    placeholder="Brief description of your organization"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-purple-300 mb-3">
+                    Plan
                   </label>
                   <select
-                    value={inviteData.role}
-                    onChange={(e) => setInviteData({ ...inviteData, role: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    value={formData.plan}
+                    onChange={(e) => setFormData({ ...formData, plan: e.target.value })}
+                    className="w-full px-4 py-3 bg-slate-900 border-2 border-slate-700 rounded-xl text-white focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all"
                   >
-                    <option value="viewer">Viewer - Read-only access</option>
-                    <option value="analyst">Analyst - Can analyze and scan</option>
-                    <option value="manager">Manager - Can manage threats & scans</option>
-                    <option value="admin">Admin - Full access</option>
+                    <option value="free">🆓 Free - Get started</option>
+                    <option value="pro">⚡ Pro - Advanced features</option>
+                    <option value="enterprise">👑 Enterprise - Unlimited power</option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Personal Message (Optional)
-                  </label>
-                  <textarea
-                    value={inviteData.message}
-                    onChange={(e) => setInviteData({ ...inviteData, message: e.target.value })}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    rows={3}
-                    placeholder="Add a personal note to the invitation..."
-                  />
-                </div>
-
-                <div className="flex items-center justify-end space-x-4 pt-6 border-t">
+                {/* Modal Actions */}
+                <div className="flex items-center justify-end space-x-4 pt-6 border-t border-slate-700">
                   <button
                     type="button"
-                    onClick={() => setShowInviteModal(false)}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-semibold"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-6 py-3 border-2 border-slate-600 text-slate-300 rounded-xl hover:bg-slate-700 font-semibold transition-all"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:shadow-lg font-semibold"
+                    className="px-8 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
                   >
-                    Send Invitation
+                    Create Organization
                   </button>
                 </div>
               </form>
@@ -384,6 +390,29 @@ export default function UsersPage() {
         )}
 
       </div>
+      
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { 
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to { 
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }

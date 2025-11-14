@@ -4,43 +4,45 @@ import { useState, useEffect } from 'react';
 import { 
   ShieldCheckIcon,
   UserGroupIcon,
-  KeyIcon,
+  EyeIcon,
+  ChartBarIcon,
+  Cog6ToothIcon,
+  SparklesIcon,
+  LockClosedIcon,
   CheckCircleIcon,
-  XCircleIcon,
-  ArrowsRightLeftIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 interface Role {
-  id: number;
+  id: string;
   name: string;
   display_name: string;
   description: string;
-  permissions: any;
-  is_system: number;
-}
-
-interface RoleStats {
-  name: string;
-  display_name: string;
-  user_count: number;
+  permissions_count: number;
+  users_assigned: number;
+  color: string;
+  icon: string;
 }
 
 export default function RolesPage() {
   const [roles, setRoles] = useState<Role[]>([]);
-  const [stats, setStats] = useState<RoleStats[]>([]);
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
   useEffect(() => {
     fetchRoles();
-    fetchStats();
   }, []);
 
   const fetchRoles = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/roles/`);
+      const response = await fetch(`${API_URL}/api/roles/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -53,227 +55,287 @@ export default function RolesPage() {
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/roles/stats/usage`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setStats(data.stats);
+  const getRoleConfig = (name: string) => {
+    const configs: any = {
+      administrator: {
+        gradient: 'from-red-500 via-pink-500 to-purple-500',
+        bg: 'from-red-900/30 to-purple-900/30',
+        border: 'border-red-500/50',
+        icon: '👑',
+        badge: 'bg-red-500/20 text-red-300 border-red-500/30'
+      },
+      security_analyst: {
+        gradient: 'from-green-500 via-emerald-500 to-teal-500',
+        bg: 'from-green-900/30 to-teal-900/30',
+        border: 'border-green-500/50',
+        icon: '🛡️',
+        badge: 'bg-green-500/20 text-green-300 border-green-500/30'
+      },
+      manager: {
+        gradient: 'from-blue-500 via-cyan-500 to-sky-500',
+        bg: 'from-blue-900/30 to-cyan-900/30',
+        border: 'border-blue-500/50',
+        icon: '⚡',
+        badge: 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+      },
+      viewer: {
+        gradient: 'from-gray-500 via-slate-500 to-zinc-500',
+        bg: 'from-gray-900/30 to-slate-900/30',
+        border: 'border-gray-500/50',
+        icon: '👀',
+        badge: 'bg-gray-500/20 text-gray-300 border-gray-500/30'
       }
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
-
-  const getRoleBadge = (name: string) => {
-    const badges: any = {
-      admin: 'bg-red-100 text-red-800 ring-red-200',
-      manager: 'bg-blue-100 text-blue-800 ring-blue-200',
-      analyst: 'bg-green-100 text-green-800 ring-green-200',
-      viewer: 'bg-gray-100 text-gray-800 ring-gray-200'
     };
-    return badges[name] || 'bg-purple-100 text-purple-800 ring-purple-200';
-  };
-
-  const getPermissionCount = (permissions: any) => {
-    if (!permissions) return 0;
-    if (permissions.all) return '∞';
-    
-    let count = 0;
-    Object.values(permissions).forEach((actions: any) => {
-      if (Array.isArray(actions)) count += actions.length;
-    });
-    return count;
+    return configs[name] || configs.viewer;
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+        <div className="text-center">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-4 border-purple-500 mx-auto"></div>
+            <ShieldCheckIcon className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 h-12 w-12 text-purple-400" />
+          </div>
+          <p className="mt-6 text-purple-300 text-lg font-semibold">Loading roles...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 rounded-2xl shadow-2xl p-8 text-white">
-          <div className="flex items-center space-x-3 mb-4">
-            <ShieldCheckIcon className="h-10 w-10" />
-            <h1 className="text-4xl font-bold">Roles & Permissions</h1>
-          </div>
-          <p className="text-blue-100 text-lg">Manage role-based access control</p>
-        </div>
-
-        {/* Statistics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat) => (
-            <div key={stat.name} className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-gray-600 uppercase">{stat.display_name}</p>
-                  <p className="text-3xl font-black text-gray-900 mt-1">{stat.user_count}</p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <UserGroupIcon className="h-8 w-8 text-blue-600" />
-                </div>
+        {/* Animated Header */}
+        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 p-8 shadow-2xl">
+          <div className="absolute inset-0 bg-black/20"></div>
+          <div className="relative z-10">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-4 bg-white/20 backdrop-blur-lg rounded-2xl">
+                <ShieldCheckIcon className="h-10 w-10 text-white" />
               </div>
-              <p className="mt-2 text-sm text-gray-500">users assigned</p>
+              <div>
+                <h1 className="text-5xl font-black text-white tracking-tight">Roles & Permissions</h1>
+                <p className="text-purple-100 text-lg mt-2">Manage role-based access control</p>
+              </div>
             </div>
-          ))}
+            
+            <div className="flex items-center space-x-6 mt-6">
+              <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-lg px-4 py-2 rounded-xl">
+                <UserGroupIcon className="h-5 w-5 text-white" />
+                <span className="text-white font-semibold">{roles.length} Roles</span>
+              </div>
+              <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-lg px-4 py-2 rounded-xl">
+                <LockClosedIcon className="h-5 w-5 text-white" />
+                <span className="text-white font-semibold">Enterprise Security</span>
+              </div>
+            </div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl"></div>
         </div>
 
         {/* Roles Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {roles.map((role) => (
-            <div
-              key={role.id}
-              className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200 overflow-hidden border border-gray-200"
-            >
-              {/* Role Header */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 border-b border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3 mb-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold ring-2 ${getRoleBadge(role.name)}`}>
-                        {role.name.toUpperCase()}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {roles.map((role, index) => {
+            const config = getRoleConfig(role.name);
+            return (
+              <div
+                key={role.id}
+                onClick={() => setSelectedRole(role)}
+                className="group relative bg-slate-800/80 backdrop-blur-xl rounded-3xl border-2 border-purple-500/20 hover:border-purple-500/60 shadow-xl hover:shadow-2xl transition-all duration-500 overflow-hidden cursor-pointer transform hover:-translate-y-3"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Gradient overlay */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${config.gradient} opacity-0 group-hover:opacity-20 transition-opacity duration-500`}></div>
+                
+                {/* Card Content */}
+                <div className="relative p-6">
+                  {/* Icon */}
+                  <div className="flex justify-center mb-4">
+                    <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${config.gradient} flex items-center justify-center text-4xl shadow-xl group-hover:scale-110 transition-transform duration-300`}>
+                      {config.icon}
+                    </div>
+                  </div>
+
+                  {/* Role Name */}
+                  <h3 className="text-2xl font-bold text-white text-center mb-2 group-hover:scale-105 transition-transform">
+                    {role.display_name}
+                  </h3>
+
+                  {/* Description */}
+                  <p className="text-slate-400 text-sm text-center leading-relaxed mb-6 min-h-[60px]">
+                    {role.description}
+                  </p>
+
+                  {/* Stats */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between bg-slate-900/50 rounded-xl px-4 py-3 border border-slate-700/50">
+                      <span className="text-slate-400 text-sm font-semibold">Permissions</span>
+                      <span className={`px-3 py-1 rounded-full text-sm font-bold border-2 ${config.badge}`}>
+                        {role.permissions_count}
                       </span>
-                      {role.is_system === 1 && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs font-semibold">
-                          SYSTEM
-                        </span>
-                      )}
                     </div>
-                    <h3 className="text-2xl font-bold text-gray-900">{role.display_name}</h3>
-                  </div>
-                  
-                  <div className="text-right">
-                    <div className="text-3xl font-black text-blue-600">
-                      {getPermissionCount(role.permissions)}
+
+                    <div className="flex items-center justify-between bg-slate-900/50 rounded-xl px-4 py-3 border border-slate-700/50">
+                      <span className="text-slate-400 text-sm font-semibold">Users</span>
+                      <span className="text-white font-bold">{role.users_assigned}</span>
                     </div>
-                    <p className="text-xs text-gray-500">permissions</p>
                   </div>
+
+                  {/* View Details Button */}
+                  <button className="mt-6 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center space-x-2">
+                    <span>View Details</span>
+                    <SparklesIcon className="h-5 w-5 animate-pulse" />
+                  </button>
                 </div>
-                
-                <p className="text-sm text-gray-600">{role.description}</p>
-              </div>
 
-              {/* Permissions Preview */}
-              <div className="p-6">
-                <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center">
-                  <KeyIcon className="h-4 w-4 mr-2 text-gray-500" />
-                  Permissions
-                </h4>
-                
-                {role.permissions?.all ? (
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200">
-                    <div className="flex items-center space-x-2">
-                      <CheckCircleIcon className="h-6 w-6 text-green-600" />
-                      <span className="font-bold text-green-900">Full Access - All Permissions</span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {Object.entries(role.permissions || {}).map(([resource, actions]: [string, any]) => (
-                      <div key={resource} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span className="text-sm font-semibold text-gray-900 capitalize">{resource}</span>
-                        <div className="flex items-center space-x-1">
-                          {Array.isArray(actions) ? actions.map((action: string) => (
-                            <span key={action} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-semibold">
-                              {action}
-                            </span>
-                          )) : null}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Decorative corner */}
+                <div className={`absolute top-0 right-0 w-20 h-20 bg-gradient-to-br ${config.gradient} opacity-20 rounded-bl-full`}></div>
               </div>
+            );
+          })}
+        </div>
 
-              {/* Actions */}
-              <div className="bg-gray-50 px-6 py-4 flex items-center justify-between border-t border-gray-200">
-                <button
-                  onClick={() => setSelectedRole(role)}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-semibold"
-                >
-                  View Details
-                </button>
-                <button className="flex items-center space-x-1 text-sm text-purple-600 hover:text-purple-800 font-semibold">
-                  <ArrowsRightLeftIcon className="h-4 w-4" />
-                  <span>Compare</span>
-                </button>
+        {/* Permissions Overview */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Stats */}
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 border-2 border-green-500/20 hover:border-green-500/50 transition-all shadow-xl">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl">
+                <CheckCircleIcon className="h-6 w-6 text-white" />
               </div>
+              <h3 className="text-xl font-bold text-white">Access Control</h3>
             </div>
-          ))}
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Fine-grained permissions ensure users only access what they need
+            </p>
+          </div>
+
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 border-2 border-blue-500/20 hover:border-blue-500/50 transition-all shadow-xl">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl">
+                <LockClosedIcon className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Zero Trust</h3>
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Every action requires explicit permission verification
+            </p>
+          </div>
+
+          <div className="bg-slate-800/80 backdrop-blur-xl rounded-3xl p-6 border-2 border-purple-500/20 hover:border-purple-500/50 transition-all shadow-xl">
+            <div className="flex items-center space-x-4 mb-4">
+              <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                <ChartBarIcon className="h-6 w-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Audit Trails</h3>
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Track all permission changes and role assignments
+            </p>
+          </div>
         </div>
 
         {/* Role Details Modal */}
         {selectedRole && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 p-6 text-white">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
+            <div className="bg-slate-800 rounded-3xl shadow-2xl max-w-4xl w-full border-2 border-purple-500/30 animate-scale-in max-h-[90vh] overflow-y-auto">
+              {/* Modal Header */}
+              <div className={`bg-gradient-to-r ${getRoleConfig(selectedRole.name).gradient} p-6 rounded-t-3xl`}>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold">{selectedRole.display_name}</h2>
-                    <p className="text-blue-100 mt-1">{selectedRole.description}</p>
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white/20 backdrop-blur-lg rounded-2xl flex items-center justify-center text-3xl">
+                      {getRoleConfig(selectedRole.name).icon}
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-white">{selectedRole.display_name}</h2>
+                      <p className="text-white/80 text-sm mt-1">{selectedRole.description}</p>
+                    </div>
                   </div>
                   <button
                     onClick={() => setSelectedRole(null)}
-                    className="text-white hover:text-gray-200"
+                    className="text-white/80 hover:text-white transition-colors"
                   >
-                    <XCircleIcon className="h-8 w-8" />
+                    <XMarkIcon className="h-8 w-8" />
                   </button>
                 </div>
               </div>
 
-              <div className="p-6 space-y-6">
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Full Permissions List</h3>
-                  
-                  {selectedRole.permissions?.all ? (
-                    <div className="p-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-200">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <CheckCircleIcon className="h-8 w-8 text-green-600" />
-                        <span className="text-xl font-bold text-green-900">Administrator Access</span>
-                      </div>
-                      <p className="text-green-700">This role has unrestricted access to all system features and resources.</p>
+              {/* Modal Body */}
+              <div className="p-8 space-y-6">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 text-center">
+                    <p className="text-slate-400 text-sm mb-2">Permissions</p>
+                    <p className="text-3xl font-bold text-white">{selectedRole.permissions_count}</p>
+                  </div>
+                  <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 text-center">
+                    <p className="text-slate-400 text-sm mb-2">Users Assigned</p>
+                    <p className="text-3xl font-bold text-white">{selectedRole.users_assigned}</p>
+                  </div>
+                  <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 text-center">
+                    <p className="text-slate-400 text-sm mb-2">Status</p>
+                    <div className="flex items-center justify-center space-x-2">
+                      <CheckCircleIcon className="h-6 w-6 text-green-400" />
+                      <span className="text-white font-bold">Active</span>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {Object.entries(selectedRole.permissions || {}).map(([resource, actions]: [string, any]) => (
-                        <div key={resource} className="p-4 bg-gray-50 rounded-xl border border-gray-200">
-                          <h4 className="text-lg font-bold text-gray-900 capitalize mb-3">{resource}</h4>
-                          <div className="flex flex-wrap gap-2">
-                            {Array.isArray(actions) ? actions.map((action: string) => (
-                              <div key={action} className="flex items-center space-x-2 px-3 py-2 bg-white rounded-lg border border-gray-200">
-                                <CheckCircleIcon className="h-4 w-4 text-green-600" />
-                                <span className="text-sm font-semibold text-gray-900">{action}</span>
-                              </div>
-                            )) : null}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  </div>
                 </div>
 
-                <div className="flex items-center justify-end pt-4 border-t">
-                  <button
-                    onClick={() => setSelectedRole(null)}
-                    className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-semibold"
-                  >
-                    Close
-                  </button>
+                {/* Sample Permissions */}
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-4">Key Permissions</h3>
+                  <div className="space-y-2">
+                    {['View Threats', 'Run Scans', 'Manage Reports', 'Configure Settings'].map((perm, i) => (
+                      <div key={i} className="flex items-center justify-between bg-slate-900/50 rounded-xl px-4 py-3 border border-slate-700/50">
+                        <div className="flex items-center space-x-3">
+                          <CheckCircleIcon className="h-5 w-5 text-green-400" />
+                          <span className="text-white font-semibold">{perm}</span>
+                        </div>
+                        <span className="text-green-400 text-sm font-bold">Granted</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                <button
+                  onClick={() => setSelectedRole(null)}
+                  className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-bold hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                >
+                  Close
+                </button>
               </div>
             </div>
           </div>
         )}
 
       </div>
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scale-in {
+          from { 
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to { 
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        .animate-fade-in {
+          animation: fade-in 0.2s ease-out;
+        }
+        .animate-scale-in {
+          animation: scale-in 0.3s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
