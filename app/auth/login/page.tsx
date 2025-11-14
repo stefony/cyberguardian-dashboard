@@ -18,6 +18,8 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    console.log('🔵 Login attempt started');
+
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: 'POST',
@@ -27,25 +29,40 @@ export default function LoginPage() {
         body: JSON.stringify({ email, password }),
       });
 
+      console.log('🔵 Response status:', response.status);
+
       const data = await response.json();
+      console.log('🔵 Response data:', data);
 
       if (!response.ok) {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // ✅ FIXED: Use correct localStorage key
-      localStorage.setItem("access_token", data.access_token);  // ← Changed from "token"
+      console.log('✅ Login successful, saving token...');
+
+      // Save to localStorage
+      localStorage.setItem("access_token", data.access_token);
       localStorage.setItem("user", JSON.stringify(data.user));
+
+      console.log('✅ Token saved to localStorage');
+      console.log('✅ Calling AuthContext login()...');
 
       // Call AuthContext login
       login(data.access_token, data.user);
+
+      console.log('✅ AuthContext login() called');
+      console.log('✅ Redirecting to dashboard...');
       
       // Redirect to dashboard
       router.push('/');
+
+      console.log('✅ router.push() called');
     } catch (err: any) {
+      console.error('❌ Login error:', err);
       setError(err.message || 'An error occurred');
     } finally {
       setLoading(false);
+      console.log('🔵 Login attempt finished');
     }
   };
 
@@ -122,4 +139,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
