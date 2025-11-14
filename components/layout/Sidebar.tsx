@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/AuthContext'
-import { cn } from '@/lib/utils'  // ← ADD THIS LINE
+import { cn } from '@/lib/utils'
 
 import {
   Shield,
@@ -26,8 +26,9 @@ import {
   Database,
   Fingerprint,
   ShieldAlert,
-  RefreshCw,      // ← ADD THIS
-  FileJson,       // ← ADD THIS
+  RefreshCw,      // Updates
+  FileJson,       // Configuration
+  Gauge,          // ✨ Performance (NEW!)
 } from 'lucide-react'
 
 interface SubItem {
@@ -134,14 +135,19 @@ const navItems: NavItem[] = [
     icon: Target,
   },
   {
-    label: 'Updates',           // ← NEW
-    href: '/updates',           // ← NEW
-    icon: RefreshCw,           // ← NEW (need to import)
+    label: 'Performance',      // ✨ NEW: Performance Dashboard
+    href: '/performance',       // ✨ NEW
+    icon: Gauge,               // ✨ NEW: Beautiful gauge icon
   },
   {
-    label: 'Configuration',     // ← NEW
-    href: '/configuration',     // ← NEW
-    icon: FileJson,            // ← NEW (need to import)
+    label: 'Updates',
+    href: '/updates',
+    icon: RefreshCw,
+  },
+  {
+    label: 'Configuration',
+    href: '/configuration',
+    icon: FileJson,
   },
   {
     label: 'Settings',
