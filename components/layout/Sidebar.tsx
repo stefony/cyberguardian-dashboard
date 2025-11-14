@@ -28,7 +28,10 @@ import {
   ShieldAlert,
   RefreshCw,      // Updates
   FileJson,       // Configuration
-  Gauge,          // ✨ Performance (NEW!)
+  Gauge,          // Performance
+  Building2,      // ✨ Organizations (NEW!)
+  ShieldCheck,    // ✨ Roles (NEW!)
+  Users,          // ✨ Users (NEW!)
 } from 'lucide-react'
 
 interface SubItem {
@@ -135,9 +138,24 @@ const navItems: NavItem[] = [
     icon: Target,
   },
   {
-    label: 'Performance',      // ✨ NEW: Performance Dashboard
-    href: '/performance',       // ✨ NEW
-    icon: Gauge,               // ✨ NEW: Beautiful gauge icon
+    label: 'Performance',
+    href: '/performance',
+    icon: Gauge,
+  },
+  {
+    label: 'Organizations',      // ✨ NEW: Enterprise feature
+    href: '/admin/organizations',
+    icon: Building2,
+  },
+  {
+    label: 'Roles',              // ✨ NEW: Enterprise feature
+    href: '/admin/roles',
+    icon: ShieldCheck,
+  },
+  {
+    label: 'Users',              // ✨ NEW: Enterprise feature
+    href: '/admin/users',
+    icon: Users,
   },
   {
     label: 'Updates',
