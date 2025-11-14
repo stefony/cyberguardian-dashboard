@@ -33,13 +33,13 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // Save token to localStorage
-localStorage.setItem("token", data.access_token);
-localStorage.setItem("user", JSON.stringify(data.user));
+      // ✅ FIXED: Use correct localStorage key
+      localStorage.setItem("access_token", data.access_token);  // ← Changed from "token"
+      localStorage.setItem("user", JSON.stringify(data.user));
 
-login(data.access_token, data.user);
+      // Call AuthContext login
+      login(data.access_token, data.user);
       
-
       // Redirect to dashboard
       router.push('/');
     } catch (err: any) {
