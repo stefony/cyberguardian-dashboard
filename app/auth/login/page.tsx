@@ -53,10 +53,10 @@ export default function LoginPage() {
       console.log('✅ AuthContext login() called');
       console.log('✅ Redirecting to dashboard...');
       
-      // Redirect to dashboard
-      router.push('/');
-
-      console.log('✅ router.push() called');
+      // ✅ FIX: Use window.location for immediate redirect (bypasses React Router issues)
+      window.location.href = '/';
+      
+      console.log('✅ Redirect initiated');
     } catch (err: any) {
       console.error('❌ Login error:', err);
       setError(err.message || 'An error occurred');
