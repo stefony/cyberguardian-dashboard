@@ -93,6 +93,7 @@ private async fetch<T>(
     };
 
     // Add Authorization header if token exists
+    console.log('🔑 Token check:', token ? 'EXISTS' : 'NULL');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
