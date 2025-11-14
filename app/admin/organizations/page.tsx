@@ -11,8 +11,8 @@ import {
   CheckCircleIcon,
   XCircleIcon
 } from '@heroicons/react/24/outline';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// ✅ Import API client
+import { api } from '@/lib/api';
 
 interface Organization {
   id: string;
@@ -41,9 +41,16 @@ export default function OrganizationsPage() {
     fetchOrganizations();
   }, []);
 
+  // ✅ Use API client with Authorization header
   const fetchOrganizations = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/organizations/`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/organizations/`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
       const data = await response.json();
       
       if (data.success) {
@@ -56,13 +63,15 @@ export default function OrganizationsPage() {
     }
   };
 
+  // ✅ Use API client with Authorization header
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
-      const response = await fetch(`${API_URL}/api/organizations/`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/organizations/`, {
         method: 'POST',
         headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData)
@@ -95,7 +104,7 @@ export default function OrganizationsPage() {
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600"></div>
       </div>
     );
-  }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 p-6">
@@ -265,7 +274,7 @@ export default function OrganizationsPage() {
                     onChange={(e) => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-') })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                     placeholder="acme-corp"
-                    />
+                  />
                 </div>
 
                 <div>
