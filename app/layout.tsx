@@ -5,6 +5,7 @@ import "leaflet/dist/leaflet.css";
 import { ConditionalLayout } from "@/components/layout/ConditionalLayout";
 import { AuthProvider } from "@/lib/contexts/AuthContext";
 import { WebSocketProvider } from "@/lib/contexts/WebSocketContext";
+import { OrganizationProvider } from "@/app/contexts/OrganizationContext"; // ✨ NEW
 import { Toaster } from "sonner";
 
 const inter = Inter({
@@ -31,9 +32,11 @@ export default function RootLayout({
         className={`${inter.variable} font-sans antialiased bg-dark-bg text-dark-text`}
       >
         <AuthProvider>
-          <WebSocketProvider>
-            <ConditionalLayout>{children}</ConditionalLayout>
-          </WebSocketProvider>
+          <OrganizationProvider> {/* ✨ NEW: Wrap with Organization Provider */}
+            <WebSocketProvider>
+              <ConditionalLayout>{children}</ConditionalLayout>
+            </WebSocketProvider>
+          </OrganizationProvider> {/* ✨ NEW */}
         </AuthProvider>
 
         {/* Global toast notifications */}

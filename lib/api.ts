@@ -79,13 +79,15 @@ private async fetch<T>(
 ): Promise<ApiResponse<T>> {
   // 🔎 DEBUG (временен): ако е към quarantine, логни реалния URL
   if (endpoint.startsWith("/api/quarantine")) {
-    // eslint-disable-next-line no-console
     console.log("QUAR FETCH →", this.baseUrl, endpoint);
   }
 
   try {
     // Get JWT token from localStorage
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    
+    // ✨ NEW: Get current organization ID
+    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('current_organization_id') : null;
     
     // Build headers with JWT token
     const headers: Record<string, string> = {
@@ -96,6 +98,12 @@ private async fetch<T>(
     console.log('🔑 Token check:', token ? 'EXISTS' : 'NULL');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // ✨ NEW: Add X-Organization-ID header if organization exists
+    if (organizationId) {
+      headers['X-Organization-ID'] = organizationId;
+      console.log('🏢 Organization ID:', organizationId);
     }
 
     // Merge with provided headers
@@ -127,8 +135,6 @@ private async fetch<T>(
         };
       }
 
-      // 🔎 DEBUG (временен): логни статуса при грешка
-      // eslint-disable-next-line no-console
       console.warn("FETCH ERROR →", `${this.baseUrl}${endpoint}`, response.status);
       const error = await response.json().catch(() => ({ message: "Unknown error" }));
       return {
@@ -143,8 +149,6 @@ private async fetch<T>(
       data,
     };
   } catch (error) {
-    // 🔎 DEBUG (временен): логни мрежова грешка
-   
     console.error("NETWORK ERROR →", `${this.baseUrl}${endpoint}`, error);
     return {
       success: false,

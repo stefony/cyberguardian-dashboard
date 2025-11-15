@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { cn } from '@/lib/utils'
+import OrganizationSelector from '@/components/OrganizationSelector'
 
 import {
   Shield,
@@ -197,7 +198,7 @@ export function Sidebar() {
         collapsed ? 'w-20' : 'w-64'
       )}
     >
-      {/* Header */}
+{/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-dark-border px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
@@ -232,6 +233,13 @@ export function Sidebar() {
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
+
+      {/* ✨ NEW: Organization Selector */}
+      {!collapsed && (
+        <div className="border-b border-dark-border px-3 py-3">
+          <OrganizationSelector />
+        </div>
+      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
