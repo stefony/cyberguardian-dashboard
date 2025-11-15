@@ -36,36 +36,46 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return;
       }
 
-      const response = await fetch('http://localhost:8000/api/organizations/', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+  const fetchOrganizations = async () => {
+  try {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      setLoading(false);
+      return;
+    }
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.organizations) {
-          setOrganizations(data.organizations);
-          
-          // Set current organization from localStorage or use first one
-          const savedOrgId = localStorage.getItem('current_organization_id');
-          const currentOrg = savedOrgId 
-            ? data.organizations.find((org: Organization) => org.id === savedOrgId)
-            : data.organizations[0];
-          
-          if (currentOrg) {
-            setCurrentOrganization(currentOrg);
-            localStorage.setItem('current_organization_id', currentOrg.id);
-          }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    
+    const response = await fetch(`${API_URL}/api/organizations/`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.success && data.organizations) {
+        setOrganizations(data.organizations);
+        
+        // Set current organization from localStorage or use first one
+        const savedOrgId = localStorage.getItem('current_organization_id');
+        const currentOrg = savedOrgId 
+          ? data.organizations.find((org: Organization) => org.id === savedOrgId)
+          : data.organizations[0];
+        
+        if (currentOrg) {
+          setCurrentOrganization(currentOrg);
+          localStorage.setItem('current_organization_id', currentOrg.id);
         }
       }
-    } catch (error) {
-      console.error('Failed to fetch organizations:', error);
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    console.error('Failed to fetch organizations:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const switchOrganization = (orgId: string) => {
     const org = organizations.find(o => o.id === orgId);
