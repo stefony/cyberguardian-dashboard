@@ -83,11 +83,8 @@ private async fetch<T>(
   }
 
   try {
-    // Get JWT token from localStorage
+   // Get JWT token from localStorage
     const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
-    
-    // ✨ NEW: Get current organization ID
-    const organizationId = typeof window !== 'undefined' ? localStorage.getItem('current_organization_id') : null;
     
     // Build headers with JWT token
     const headers: Record<string, string> = {
@@ -98,12 +95,6 @@ private async fetch<T>(
     console.log('🔑 Token check:', token ? 'EXISTS' : 'NULL');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    // ✨ NEW: Add X-Organization-ID header if organization exists
-    if (organizationId) {
-      headers['X-Organization-ID'] = organizationId;
-      console.log('🏢 Organization ID:', organizationId);
     }
 
     // Merge with provided headers

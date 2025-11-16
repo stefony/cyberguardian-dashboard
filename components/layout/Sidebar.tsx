@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/AuthContext'
 import { cn } from '@/lib/utils'
-import OrganizationSelector from '@/components/OrganizationSelector'
 
 import {
   Shield,
@@ -30,9 +29,6 @@ import {
   RefreshCw,      // Updates
   FileJson,       // Configuration
   Gauge,          // Performance
-  Building2,      // ✨ Organizations (NEW!)
-  ShieldCheck,    // ✨ Roles (NEW!)
-  Users,          // ✨ Users (NEW!)
 } from 'lucide-react'
 
 interface SubItem {
@@ -72,15 +68,15 @@ const navItems: NavItem[] = [
     icon: Zap,
   },
   {
-    label: 'Protection',      
-    href: '/protection',       
-    icon: Shield,              
-  },    
+    label: 'Protection',
+    href: '/protection',
+    icon: Shield,
+  },
   {
     label: 'Scans',
     href: '/scans',
     icon: Calendar,
-  },   
+  },
   {
     label: 'Quarantine',
     href: '/quarantine',
@@ -89,7 +85,7 @@ const navItems: NavItem[] = [
   {
     label: 'Integrity',
     href: '/security/integrity',
-    icon: Fingerprint, 
+    icon: Fingerprint,
   },
   {
     label: 'Tamper Protection',
@@ -115,7 +111,7 @@ const navItems: NavItem[] = [
   },
   {
     label: 'Insights',
-    href: '/insights', 
+    href: '/insights',
     icon: Brain,
   },
   {
@@ -144,21 +140,6 @@ const navItems: NavItem[] = [
     icon: Gauge,
   },
   {
-    label: 'Organizations',      // ✨ NEW: Enterprise feature
-    href: '/admin/organizations',
-    icon: Building2,
-  },
-  {
-    label: 'Roles',              // ✨ NEW: Enterprise feature
-    href: '/admin/roles',
-    icon: ShieldCheck,
-  },
-  {
-    label: 'Users',              // ✨ NEW: Enterprise feature
-    href: '/admin/users',
-    icon: Users,
-  },
-  {
     label: 'Updates',
     href: '/updates',
     icon: RefreshCw,
@@ -182,8 +163,8 @@ export function Sidebar() {
   const pathname = usePathname()
 
   const toggleExpanded = (label: string) => {
-    setExpandedItems(prev => 
-      prev.includes(label) 
+    setExpandedItems(prev =>
+      prev.includes(label)
         ? prev.filter(item => item !== label)
         : [...prev, label]
     )
@@ -198,7 +179,7 @@ export function Sidebar() {
         collapsed ? 'w-20' : 'w-64'
       )}
     >
-{/* Header */}
+      {/* Header */}
       <div className="flex h-16 items-center justify-between border-b border-dark-border px-4">
         {!collapsed && (
           <div className="flex items-center gap-2">
@@ -213,7 +194,7 @@ export function Sidebar() {
             </div>
           </div>
         )}
-        
+
         {collapsed && (
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyber-purple to-cyber-blue">
             <Shield className="h-6 w-6 text-white" />
@@ -234,21 +215,14 @@ export function Sidebar() {
         </button>
       </div>
 
-      {/* ✨ NEW: Organization Selector */}
-      {!collapsed && (
-        <div className="border-b border-dark-border px-3 py-3">
-          <OrganizationSelector />
-        </div>
-      )}
-
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || 
+          const isActive = pathname === item.href ||
                           (item.subItems && item.subItems.some(sub => pathname === sub.href))
           const isExpanded = expandedItems.includes(item.label)
-          
+
           return (
             <div key={item.href}>
               {/* Main Item */}
@@ -262,7 +236,7 @@ export function Sidebar() {
                     }
                   }}
                   className={cn(
-                    'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200',
+                    'group relative flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all duration-200', 
                     'hover:bg-dark-bg',
                     isActive && 'bg-dark-bg text-purple-500',
                     !isActive && 'text-muted-foreground hover:text-foreground'
@@ -272,20 +246,20 @@ export function Sidebar() {
                     <div className="absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-purple-500" />
                   )}
 
-                  <Icon 
+                  <Icon
                     className={cn(
                       'h-5 w-5 flex-shrink-0 transition-colors',
                       isActive && 'text-purple-500',
                       !isActive && 'text-muted-foreground group-hover:text-foreground'
-                    )} 
+                    )}
                   />
-                  
+
                   {!collapsed && (
                     <>
                       <span className="flex-1 text-sm font-medium">
                         {item.label}
                       </span>
-                      
+
                       {item.badge && item.badge > 0 && (
                         <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-threat-critical px-1.5 text-xs font-bold text-white">
                           {item.badge}
@@ -293,7 +267,7 @@ export function Sidebar() {
                       )}
 
                       {item.subItems && (
-                        <ChevronDown 
+                        <ChevronDown
                           className={cn(
                             'h-4 w-4 transition-transform duration-200',
                             isExpanded && 'rotate-180'
@@ -307,7 +281,7 @@ export function Sidebar() {
                     <div className="pointer-events-none absolute left-full ml-2 hidden rounded-md bg-dark-bg px-2 py-1 text-sm font-medium shadow-lg group-hover:block whitespace-nowrap">
                       {item.label}
                       {item.badge && item.badge > 0 && (
-                        <span className="ml-2 rounded-full bg-threat-critical px-1.5 text-xs text-white">
+                        <span className="ml-2 rounded-full bg-threat-critical px-1.5 text-xs text-white">        
                           {item.badge}
                         </span>
                       )}
@@ -327,7 +301,7 @@ export function Sidebar() {
                         href={subItem.href}
                         className={cn(
                           'block rounded-md px-3 py-2 text-sm transition-colors',
-                          isSubActive 
+                          isSubActive
                             ? 'bg-purple-500/10 text-purple-400 font-medium'
                             : 'text-muted-foreground hover:text-foreground hover:bg-dark-bg'
                         )}
@@ -359,8 +333,8 @@ export function Sidebar() {
                 </span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-dark-bg overflow-hidden">
-                <div 
-                  className="h-full bg-gradient-to-r from-cyber-blue to-cyber-green transition-all duration-500"
+                <div
+                  className="h-full bg-gradient-to-r from-cyber-blue to-cyber-green transition-all duration-500" 
                   style={{ width: '94%' }}
                 />
               </div>
