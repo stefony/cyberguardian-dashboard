@@ -326,15 +326,12 @@ export default function DetectionPage() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Maximum file size: 32MB
                 </p>
-                <label 
-                  htmlFor="file-upload-input"
-                  className="inline-block px-6 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer"
-                >
-                  <span className="flex items-center gap-2">
-                    <FileIcon className="h-4 w-4" />
-                    Select File
-                  </span>
-                </label>
+                <div className="inline-block px-6 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer">
+  <span className="flex items-center gap-2">
+    <FileIcon className="h-4 w-4" />
+    Select File
+  </span>
+</div>
               </>
             )}
           </div>
