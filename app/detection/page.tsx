@@ -67,66 +67,69 @@ export default function DetectionPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Fetch detection status
- const fetchStatus = async () => {
-  try {
-    const response = await detectionApi.getStatus();
-    if (response.success && response.data) {
-      setStatus(response.data);
+  const fetchStatus = useCallback(async () => {
+    try {
+      const response = await detectionApi.getStatus();
+      if (response.success && response.data) {
+        setStatus(response.data);
+      }
+    } catch (err) {
+      console.error("Error fetching status:", err);
     }
-  } catch (err) {
-    console.error("Error fetching status:", err);
-  }
-};
+  }, []);
 
   // Fetch scans
- const fetchScans = async () => {
-  try {
-    setIsLoading(true);
-    const response = await detectionApi.getScans(10);
-    if (response.success && response.data) {
-      setScans(response.data);
-      setError(null);
-    } else {
-      setError(response.error || "Failed to fetch scans");
+  const fetchScans = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await detectionApi.getScans(10);
+      if (response.success && response.data) {
+        setScans(response.data);
+        setError(null);
+      } else {
+        setError(response.error || "Failed to fetch scans");
+      }
+    } catch (err) {
+      console.error("Error fetching scans:", err);
+      setError("Could not load scans");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error("Error fetching scans:", err);
-    setError("Could not load scans");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  }, []);
 
   // Initial load
   useEffect(() => {
     fetchScans();
     fetchStatus();
-  }, []);
+  }, [fetchScans, fetchStatus]);
 
-  // File upload handler
- const handleFileUpload = async (file: File) => {
-  setIsUploading(true);
-  setUploadError(null);
-  setUploadResult(null);
+  // File input handler - inline logic with useCallback
+  const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    
+    const file = files[0];
+    
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadResult(null);
 
-  try {
-    const response = await detectionApi.uploadFile(file);
+    try {
+      const response = await detectionApi.uploadFile(file);
 
-    if (response.success && response.data) {
-      setUploadResult(response.data);
-      
-      // Refresh scans list
-      fetchScans();
-      fetchStatus();
-    } else {
-      setUploadError(response.error || 'Upload failed');
+      if (response.success && response.data) {
+        setUploadResult(response.data);
+        fetchScans();
+        fetchStatus();
+      } else {
+        setUploadError(response.error || 'Upload failed');
+      }
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload file');
+    } finally {
+      setIsUploading(false);
     }
-  } catch (err: any) {
-    setUploadError(err.message || 'Failed to upload file');
-  } finally {
-    setIsUploading(false);
-  }
-};
+  }, [fetchScans, fetchStatus]);
 
   // Drag and drop handlers
   const handleDragOver = useCallback((e: React.DragEvent) => {
@@ -139,23 +142,35 @@ export default function DetectionPage() {
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(false);
 
     const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileUpload(files[0]);
-    }
-  }, []);
+    if (files.length === 0) return;
+    
+    const file = files[0];
+    
+    setIsUploading(true);
+    setUploadError(null);
+    setUploadResult(null);
 
-  // File input handler
-  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleFileUpload(files[0]);
+    try {
+      const response = await detectionApi.uploadFile(file);
+
+      if (response.success && response.data) {
+        setUploadResult(response.data);
+        fetchScans();
+        fetchStatus();
+      } else {
+        setUploadError(response.error || 'Upload failed');
+      }
+    } catch (err: any) {
+      setUploadError(err.message || 'Failed to upload file');
+    } finally {
+      setIsUploading(false);
     }
-  };
+  }, [fetchScans, fetchStatus]);
 
   // Get severity color
   const getSeverityColor = (severity: string) => {
@@ -196,120 +211,120 @@ export default function DetectionPage() {
         </div>
       </div>
 
-     {/* Status Cards */}
-{status && (
-  <div className="section">
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
-        <div className="flex items-center gap-3 mb-2">
-          <Shield className="h-5 w-5 text-green-500" />
-          <div className="text-sm text-muted-foreground">Engine Status</div>
-        </div>
-        <div className="text-2xl font-bold text-green-500">
-          {status.engine_status}
-        </div>
-      </div>
+      {/* Status Cards */}
+      {status && (
+        <div className="section">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Shield className="h-5 w-5 text-green-500" />
+                <div className="text-sm text-muted-foreground">Engine Status</div>
+              </div>
+              <div className="text-2xl font-bold text-green-500">
+                {status.engine_status}
+              </div>
+            </div>
 
-      <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
-        <div className="flex items-center gap-3 mb-2">
-          <Activity className="h-5 w-5 text-blue-500" />
-          <div className="text-sm text-muted-foreground">Signatures</div>
-        </div>
-        <div className="text-2xl font-bold text-blue-500">
-          {status.signatures_count.toLocaleString()}
-        </div>
-      </div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Activity className="h-5 w-5 text-blue-500" />
+                <div className="text-sm text-muted-foreground">Signatures</div>
+              </div>
+              <div className="text-2xl font-bold text-blue-500">
+                {status.signatures_count.toLocaleString()}
+              </div>
+            </div>
 
-      <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
-        <div className="flex items-center gap-3 mb-2">
-          <Search className="h-5 w-5 text-purple-500" />
-          <div className="text-sm text-muted-foreground">Scans Today</div>
-        </div>
-        <div className="text-2xl font-bold text-purple-500">
-          {status.scans_today}
-        </div>
-      </div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <Search className="h-5 w-5 text-purple-500" />
+                <div className="text-sm text-muted-foreground">Scans Today</div>
+              </div>
+              <div className="text-2xl font-bold text-purple-500">
+                {status.scans_today}
+              </div>
+            </div>
 
-      <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
-        <div className="flex items-center gap-3 mb-2">
-          <AlertTriangle className="h-5 w-5 text-red-500" />
-          <div className="text-sm text-muted-foreground">Threats Blocked</div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
+              <div className="flex items-center gap-3 mb-2">
+                <AlertTriangle className="h-5 w-5 text-red-500" />
+                <div className="text-sm text-muted-foreground">Threats Blocked</div>
+              </div>
+              <div className="text-2xl font-bold text-red-500">
+                {status.threats_blocked}
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="text-2xl font-bold text-red-500">
-          {status.threats_blocked}
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
-{/* File Upload Zone */}
-<div className="section">
-  <div className="card-premium p-8">
-    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-      <Upload className="h-5 w-5 text-purple-500" />
-      Upload File for Scanning
-    </h2>
-
-    {/* ✅ INPUT ИЗВЪН CONDITIONAL RENDERING */}
-    <input
-      type="file"
-      id="file-upload-input"
-      className="hidden"
-      onChange={handleFileInput}
-      disabled={isUploading}
-      accept="*/*"
-    />
-
-    <div
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-      className={`
-        border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
-        ${isDragging 
-          ? 'border-purple-500 bg-purple-500/10 scale-105' 
-          : 'border-border hover:border-purple-400 hover:bg-purple-500/5'
-        }
-        ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-      `}
-    >
-      {isUploading ? (
-        <div className="flex flex-col items-center gap-4">
-          <Activity className="h-12 w-12 text-purple-500 animate-spin" />
-          <p className="text-lg font-medium">Scanning file...</p>
-          <p className="text-sm text-muted-foreground">Please wait while we analyze your file</p>
-        </div>
-      ) : (
-        <>
-          <Upload className="h-12 w-12 mx-auto mb-4 text-purple-500" />
-          <p className="text-lg font-medium mb-2">
-            Drag & drop a file here, or click to browse
-          </p>
-          <p className="text-sm text-muted-foreground mb-4">
-            Maximum file size: 32MB
-          </p>
-          <label 
-            htmlFor="file-upload-input"
-            className="inline-block px-6 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer"
-          >
-            <span className="flex items-center gap-2">
-              <FileIcon className="h-4 w-4" />
-              Select File
-            </span>
-          </label>
-        </>
       )}
-    </div>
 
-    {uploadError && (
-      <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
-        <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-        <p className="text-red-500">{uploadError}</p>
+      {/* File Upload Zone */}
+      <div className="section">
+        <div className="card-premium p-8">
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+            <Upload className="h-5 w-5 text-purple-500" />
+            Upload File for Scanning
+          </h2>
+
+          {/* ✅ INPUT ИЗВЪН CONDITIONAL RENDERING */}
+          <input
+            type="file"
+            id="file-upload-input"
+            className="hidden"
+            onChange={handleFileInput}
+            disabled={isUploading}
+            accept="*/*"
+          />
+
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+              border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
+              ${isDragging 
+                ? 'border-purple-500 bg-purple-500/10 scale-105' 
+                : 'border-border hover:border-purple-400 hover:bg-purple-500/5'
+              }
+              ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+            `}
+          >
+            {isUploading ? (
+              <div className="flex flex-col items-center gap-4">
+                <Activity className="h-12 w-12 text-purple-500 animate-spin" />
+                <p className="text-lg font-medium">Scanning file...</p>
+                <p className="text-sm text-muted-foreground">Please wait while we analyze your file</p>
+              </div>
+            ) : (
+              <>
+                <Upload className="h-12 w-12 mx-auto mb-4 text-purple-500" />
+                <p className="text-lg font-medium mb-2">
+                  Drag & drop a file here, or click to browse
+                </p>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Maximum file size: 32MB
+                </p>
+                <label 
+                  htmlFor="file-upload-input"
+                  className="inline-block px-6 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <FileIcon className="h-4 w-4" />
+                    Select File
+                  </span>
+                </label>
+              </>
+            )}
+          </div>
+
+          {uploadError && (
+            <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+              <p className="text-red-500">{uploadError}</p>
+            </div>
+          )}
+        </div>
       </div>
-    )}
-  </div>
-</div>
 
       {/* Upload Results */}
       {uploadResult && (
