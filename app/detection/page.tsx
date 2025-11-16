@@ -293,18 +293,24 @@ export default function DetectionPage() {
           />
 
           <div
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={`
-              border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
-              ${isDragging 
-                ? 'border-purple-500 bg-purple-500/10 scale-105' 
-                : 'border-border hover:border-purple-400 hover:bg-purple-500/5'
-              }
-              ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-            `}
-          >
+  onClick={() => {
+    const input = document.getElementById('file-upload-input') as HTMLInputElement;
+    if (input && !isUploading) {
+      input.click();
+    }
+  }}
+  onDragOver={handleDragOver}
+  onDragLeave={handleDragLeave}
+  onDrop={handleDrop}
+  className={`
+    border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
+    ${isDragging 
+      ? 'border-purple-500 bg-purple-500/10 scale-105' 
+      : 'border-border hover:border-purple-400 hover:bg-purple-500/5'
+    }
+    ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+  `}
+>
             {isUploading ? (
               <div className="flex flex-col items-center gap-4">
                 <Activity className="h-12 w-12 text-purple-500 animate-spin" />
