@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback,useRef } from "react";
-import { Shield, Activity, Search, Upload, File as FileIcon, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
+import { Shield, Activity, Search, Upload, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
 import { detectionApi } from "@/lib/api";
  
 
@@ -62,7 +62,6 @@ export default function DetectionPage() {
   const [error, setError] = useState<string | null>(null);
   
   // File upload states
-  const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -151,46 +150,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
     };
   }, [fetchScans, fetchStatus]);
 
-  // Drag and drop handlers
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-  }, []);
-
-  const handleDrop = useCallback(async (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length === 0) return;
-    
-    const file = files[0];
-    
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadResult(null);
-
-    try {
-      const response = await detectionApi.uploadFile(file);
-
-      if (response.success && response.data) {
-        setUploadResult(response.data);
-        fetchScans();
-        fetchStatus();
-      } else {
-        setUploadError(response.error || 'Upload failed');
-      }
-    } catch (err: any) {
-      setUploadError(err.message || 'Failed to upload file');
-    } finally {
-      setIsUploading(false);
-    }
-  }, [fetchScans, fetchStatus]);
+ 
 
   // Get severity color
   const getSeverityColor = (severity: string) => {
@@ -278,75 +238,47 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         </div>
       )}
 
-      {/* File Upload Zone */}
-      <div className="section">
-        <div className="card-premium p-8">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Upload className="h-5 w-5 text-purple-500" />
-            Upload File for Scanning
-          </h2>
+{/* File Upload Zone */}
+<div className="section">
+  <div className="card-premium p-8">
+    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+      <Upload className="h-5 w-5 text-purple-500" />
+      Upload File for Scanning
+    </h2>
 
-          {/* ✅ CHANGED: Removed onChange - using vanilla JS listener instead */}
-          <input
-  ref={fileInputRef}
-  type="file"
-  id="file-upload-input"
-  className="hidden"
-  disabled={isUploading}
-  accept="*/*"
-/>
+    <input
+      ref={fileInputRef}
+      type="file"
+      id="file-upload-input"
+      className="hidden"
+      disabled={isUploading}
+      accept="*/*"
+    />
 
- <div
-  onClick={() => {
-    if (fileInputRef.current && !isUploading) {
-      fileInputRef.current.click();
-    }
-  }}
-  onDragOver={handleDragOver}
-  onDragLeave={handleDragLeave}
-  onDrop={handleDrop}
-  className={`
-    border-2 border-dashed rounded-lg p-12 text-center transition-all duration-300
-    ${isDragging 
-      ? 'border-purple-500 bg-purple-500/10 scale-105' 
-      : 'border-border hover:border-purple-400 hover:bg-purple-500/5'
-    }
-    ${isUploading ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-  `}
->
-            {isUploading ? (
-              <div className="flex flex-col items-center gap-4">
-                <Activity className="h-12 w-12 text-purple-500 animate-spin" />
-                <p className="text-lg font-medium">Scanning file...</p>
-                <p className="text-sm text-muted-foreground">Please wait while we analyze your file</p>
-              </div>
-            ) : (
-              <>
-                <Upload className="h-12 w-12 mx-auto mb-4 text-purple-500" />
-                <p className="text-lg font-medium mb-2">
-                  Drag & drop a file here, or click to browse
-                </p>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Maximum file size: 32MB
-                </p>
-                <div className="inline-block px-6 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer">
-  <span className="flex items-center gap-2">
-    <FileIcon className="h-4 w-4" />
-    Select File
-  </span>
-</div>
-              </>
-            )}
-          </div>
-
-          {uploadError && (
-            <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-              <p className="text-red-500">{uploadError}</p>
-            </div>
-          )}
+    <div className="text-center">
+      {isUploading ? (
+        <div className="flex flex-col items-center gap-4">
+          <Activity className="h-12 w-12 text-purple-500 animate-spin" />
+          <p className="text-lg font-medium">Scanning file...</p>
         </div>
+      ) : (
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="px-8 py-4 rounded-lg bg-purple-500 text-white hover:bg-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 text-lg font-semibold"
+        >
+          📤 Select File to Scan
+        </button>
+      )}
+    </div>
+
+    {uploadError && (
+      <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+        <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+        <p className="text-red-500">{uploadError}</p>
       </div>
+    )}
+  </div>
+</div>
 
       {/* Upload Results */}
       {uploadResult && (
