@@ -103,32 +103,49 @@ export default function DetectionPage() {
     fetchStatus();
   }, [fetchScans, fetchStatus]);
 
-  // File input handler - inline logic with useCallback
-  const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
+  // ✅ NEW: Direct DOM event listener for file input (bypasses React)
+  useEffect(() => {
+    const input = document.getElementById('file-upload-input') as HTMLInputElement;
     
-    const file = files[0];
-    
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadResult(null);
+    const handleChange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) return;
+      
+      const file = files[0];
+      
+      setIsUploading(true);
+      setUploadError(null);
+      setUploadResult(null);
 
-    try {
-      const response = await detectionApi.uploadFile(file);
+      try {
+        const response = await detectionApi.uploadFile(file);
 
-      if (response.success && response.data) {
-        setUploadResult(response.data);
-        fetchScans();
-        fetchStatus();
-      } else {
-        setUploadError(response.error || 'Upload failed');
+        if (response.success && response.data) {
+          setUploadResult(response.data);
+          await fetchScans();
+          await fetchStatus();
+        } else {
+          setUploadError(response.error || 'Upload failed');
+        }
+      } catch (err: any) {
+        setUploadError(err.message || 'Failed to upload file');
+      } finally {
+        setIsUploading(false);
+        // Reset input
+        if (target) target.value = '';
       }
-    } catch (err: any) {
-      setUploadError(err.message || 'Failed to upload file');
-    } finally {
-      setIsUploading(false);
+    };
+
+    if (input) {
+      input.addEventListener('change', handleChange);
     }
+
+    return () => {
+      if (input) {
+        input.removeEventListener('change', handleChange);
+      }
+    };
   }, [fetchScans, fetchStatus]);
 
   // Drag and drop handlers
@@ -266,12 +283,11 @@ export default function DetectionPage() {
             Upload File for Scanning
           </h2>
 
-          {/* ✅ INPUT ИЗВЪН CONDITIONAL RENDERING */}
+          {/* ✅ CHANGED: Removed onChange - using vanilla JS listener instead */}
           <input
             type="file"
             id="file-upload-input"
             className="hidden"
-            onChange={handleFileInput}
             disabled={isUploading}
             accept="*/*"
           />
