@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback,useRef } from "react";
 import { Shield, Activity, Search, Upload, File as FileIcon, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
 import { detectionApi } from "@/lib/api";
+ 
 
 // Types
 type Scan = {
   id: number;
-  scan_type: string;
+  scan_type: string;  
   status: string;
   started_at: string;
   completed_at?: string;
@@ -65,6 +66,8 @@ export default function DetectionPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  // Ref for file input
+const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch detection status
   const fetchStatus = useCallback(async () => {
@@ -285,18 +288,18 @@ export default function DetectionPage() {
 
           {/* ✅ CHANGED: Removed onChange - using vanilla JS listener instead */}
           <input
-            type="file"
-            id="file-upload-input"
-            className="hidden"
-            disabled={isUploading}
-            accept="*/*"
-          />
+  ref={fileInputRef}
+  type="file"
+  id="file-upload-input"
+  className="hidden"
+  disabled={isUploading}
+  accept="*/*"
+/>
 
-          <div
+ <div
   onClick={() => {
-    const input = document.getElementById('file-upload-input') as HTMLInputElement;
-    if (input && !isUploading) {
-      input.click();
+    if (fileInputRef.current && !isUploading) {
+      fileInputRef.current.click();
     }
   }}
   onDragOver={handleDragOver}
