@@ -345,8 +345,8 @@ uploadFile: async (file: File): Promise<ApiResponse<any>> => {
     
     const token = localStorage.getItem('access_token')
     
-    // ✅ USE CORRECT ENDPOINT
-    const response = await fetch(`${API_BASE_URL}/api/detection/scan`, {
+    // ✅ USE V2 ENDPOINT
+    const response = await fetch(`${API_BASE_URL}/api/detection/scan/v2`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
