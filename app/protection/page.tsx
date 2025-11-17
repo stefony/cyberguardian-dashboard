@@ -99,12 +99,14 @@ export default function ProtectionPage() {
     setRefreshing(false);
   };
 
-  const formatUptime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
+ const formatUptime = (seconds: number | null | undefined) => {
+  if (!seconds || isNaN(seconds)) return "00:00:00";
+  
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+};
 
   const toggle = async () => {
     console.log("🔵 TOGGLE CLICKED!", {
@@ -283,7 +285,6 @@ export default function ProtectionPage() {
               placeholder="C:\\Users\\Downloads; D:\\Projects"
               className="w-full px-3 py-2 rounded-lg bg-card border-2 border-border text-foreground focus:border-blue-500 focus:outline-none relative z-50"
               style={{ pointerEvents: 'auto' }}
-              disabled={enabled}
             />
             <p className="text-xs text-muted-foreground mt-2">
               Separate multiple paths with semicolon (;)
@@ -304,7 +305,6 @@ export default function ProtectionPage() {
                     type="checkbox"
                     checked={autoQuarantine}
                     onChange={(e) => setAutoQuarantine(e.target.checked)}
-                    disabled={enabled}
                     className="peer sr-only"
                   />
                   <div className={`
@@ -342,7 +342,6 @@ export default function ProtectionPage() {
                   type="number"
                   value={threatThreshold}
                   onChange={(e) => setThreatThreshold(Number(e.target.value))}
-                  disabled={enabled}
                   min={0}
                   max={100}
                   className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none relative z-50"
