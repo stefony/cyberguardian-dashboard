@@ -343,17 +343,15 @@ uploadFile: async (file: File): Promise<ApiResponse<any>> => {
     const formData = new FormData()
     formData.append('file', file)
     
-    // ✅ GET TOKEN
     const token = localStorage.getItem('access_token')
     
-    const response = await fetch(`${API_BASE_URL}/api/detection/scan/upload`, {
+    // ✅ USE CORRECT ENDPOINT
+    const response = await fetch(`${API_BASE_URL}/api/detection/scan`, {
       method: 'POST',
       headers: {
-        // ✅ ADD AUTHORIZATION
         'Authorization': `Bearer ${token}`,
       },
       body: formData,
-      // Don't set Content-Type - browser sets it with boundary
     })
 
     if (!response.ok) {
