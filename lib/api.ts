@@ -335,7 +335,7 @@ export const detectionApi = {
     return client.get<any[]>(`/api/detection/scans${limit ? `?limit=${limit}` : ''}`)
   },
 
-  /**
+/**
  * Upload file for scanning
  */
 uploadFile: async (file: File): Promise<ApiResponse<any>> => {
@@ -343,10 +343,17 @@ uploadFile: async (file: File): Promise<ApiResponse<any>> => {
     const formData = new FormData()
     formData.append('file', file)
     
+    // ✅ GET TOKEN
+    const token = localStorage.getItem('access_token')
+    
     const response = await fetch(`${API_BASE_URL}/api/detection/scan/upload`, {
       method: 'POST',
+      headers: {
+        // ✅ ADD AUTHORIZATION
+        'Authorization': `Bearer ${token}`,
+      },
       body: formData,
-      // Don't set Content-Type header - browser will set it with boundary
+      // Don't set Content-Type - browser sets it with boundary
     })
 
     if (!response.ok) {
