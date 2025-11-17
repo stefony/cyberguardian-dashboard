@@ -67,12 +67,7 @@ const navItems: NavItem[] = [
     href: '/detection',
     icon: Zap,
   },
-  {
-  label: 'Detection v2',
-  href: '/detection-v2',
-  icon: Zap,  // или Shield, или TestTube за "experimental"
-},
-  {
+   {
     label: 'Protection',
     href: '/protection',
     icon: Shield,

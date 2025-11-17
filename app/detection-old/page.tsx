@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, ChangeEvent, useEffect, useCallback } from "react";
+import { useEffect, useState, useCallback,useRef } from "react";
 import { Shield, Activity, Search, Upload, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
 import { detectionApi } from "@/lib/api";
+ 
 
 // Types
 type Scan = {
   id: number;
-  scan_type: string;
+  scan_type: string;  
   status: string;
   started_at: string;
   completed_at?: string;
@@ -54,8 +55,7 @@ type UploadResult = {
   };
 };
 
-export default function DetectionPageV2() {
-  // State
+export default function DetectionPage() {
   const [scans, setScans] = useState<Scan[]>([]);
   const [status, setStatus] = useState<DetectionStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -65,6 +65,8 @@ export default function DetectionPageV2() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  // Ref for file input
+const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch detection status
   const fetchStatus = useCallback(async () => {
@@ -103,37 +105,52 @@ export default function DetectionPageV2() {
     fetchStatus();
   }, [fetchScans, fetchStatus]);
 
-  // ✅ SIMPLIFIED FILE UPLOAD - Direct onChange handler
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    console.log("File selected:", file.name);
+  // ✅ NEW: Direct DOM event listener for file input (bypasses React)
+  useEffect(() => {
+    const input = document.getElementById('file-upload-input') as HTMLInputElement;
     
-    setIsUploading(true);
-    setUploadError(null);
-    setUploadResult(null);
+    const handleChange = async (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const files = target.files;
+      if (!files || files.length === 0) return;
+      
+      const file = files[0];
+      
+      setIsUploading(true);
+      setUploadError(null);
+      setUploadResult(null);
 
-    try {
-      const response = await detectionApi.uploadFile(file);
+      try {
+        const response = await detectionApi.uploadFile(file);
 
-      if (response.success && response.data) {
-        console.log("Upload successful:", response.data);
-        setUploadResult(response.data);
-        await fetchScans();
-        await fetchStatus();
-      } else {
-        setUploadError(response.error || 'Upload failed');
+        if (response.success && response.data) {
+          setUploadResult(response.data);
+          await fetchScans();
+          await fetchStatus();
+        } else {
+          setUploadError(response.error || 'Upload failed');
+        }
+      } catch (err: any) {
+        setUploadError(err.message || 'Failed to upload file');
+      } finally {
+        setIsUploading(false);
+        // Reset input
+        if (target) target.value = '';
       }
-    } catch (err: any) {
-      console.error("Upload error:", err);
-      setUploadError(err.message || 'Failed to upload file');
-    } finally {
-      setIsUploading(false);
-      // Reset input to allow same file upload
-      e.target.value = '';
+    };
+
+    if (input) {
+      input.addEventListener('change', handleChange);
     }
-  };
+
+    return () => {
+      if (input) {
+        input.removeEventListener('change', handleChange);
+      }
+    };
+  }, [fetchScans, fetchStatus]);
+
+ 
 
   // Get severity color
   const getSeverityColor = (severity: string) => {
@@ -166,7 +183,7 @@ export default function DetectionPageV2() {
       <div className="page-container page-hero pt-12 md:pt-16">
         <div>
           <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
-            Threat Detection v2
+            Threat Detection
           </h1>
           <p className="mt-2 text-muted-foreground">
             Advanced real-time file scanning with VirusTotal integration
@@ -221,70 +238,52 @@ export default function DetectionPageV2() {
         </div>
       )}
 
-      {/* ✅ NEW SIMPLIFIED FILE UPLOAD - Styled Visible Input */}
-      <div className="section">
-        <div className="bg-card border border-border rounded-lg p-8">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Upload className="h-5 w-5 text-purple-500" />
-            Upload File for Scanning
-          </h2>
+{/* File Upload Zone */}
+<div className="section">
+  <div className="card-premium p-8">
+    <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+      <Upload className="h-5 w-5 text-purple-500" />
+      Upload File for Scanning
+    </h2>
 
-          <div className="text-center">
-            {isUploading ? (
-              <div className="flex flex-col items-center gap-4 py-8">
-                <Activity className="h-12 w-12 text-purple-500 animate-spin" />
-                <p className="text-lg font-medium">Scanning file...</p>
-                <p className="text-sm text-muted-foreground">Please wait while we analyze your file</p>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <Upload className="h-12 w-12 mx-auto mb-4 text-purple-500" />
-                <p className="text-lg font-medium mb-2">
-                  Select a file to scan
-                </p>
-                <p className="text-sm text-muted-foreground mb-6">
-                  Maximum file size: 32MB
-                </p>
-                
-                {/* ✅ STYLED VISIBLE FILE INPUT - No hidden tricks! */}
-                <div className="flex justify-center">
-                  <label className="relative cursor-pointer">
-                    <input
-                      type="file"
-                      onChange={handleFileChange}
-                      disabled={isUploading}
-                      accept="*/*"
-                      className="
-                        block w-full max-w-xs text-sm text-muted-foreground
-                        file:mr-4 file:py-3 file:px-6
-                        file:rounded-lg file:border-0
-                        file:text-sm file:font-semibold
-                        file:bg-purple-500 file:text-white
-                        hover:file:bg-purple-600
-                        file:transition-all file:duration-300
-                        file:cursor-pointer
-                        disabled:opacity-50 disabled:cursor-not-allowed
-                      "
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
+    <input
+      ref={fileInputRef}
+      type="file"
+      id="file-upload-input"
+      className="hidden"
+      disabled={isUploading}
+      accept="*/*"
+    />
 
-          {uploadError && (
-            <div className="mt-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
-              <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-              <p className="text-red-500">{uploadError}</p>
-            </div>
-          )}
+    <div className="text-center">
+      {isUploading ? (
+        <div className="flex flex-col items-center gap-4">
+          <Activity className="h-12 w-12 text-purple-500 animate-spin" />
+          <p className="text-lg font-medium">Scanning file...</p>
         </div>
+      ) : (
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          className="px-8 py-4 rounded-lg bg-purple-500 text-white hover:bg-purple-600 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50 text-lg font-semibold"
+        >
+          📤 Select File to Scan
+        </button>
+      )}
+    </div>
+
+    {uploadError && (
+      <div className="mt-4 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+        <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
+        <p className="text-red-500">{uploadError}</p>
       </div>
+    )}
+  </div>
+</div>
 
       {/* Upload Results */}
       {uploadResult && (
         <div className="section">
-          <div className="bg-card border border-border rounded-lg p-6">
+          <div className="card-premium p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <Shield className="h-5 w-5 text-cyan-500" />
               Scan Results
@@ -352,7 +351,7 @@ export default function DetectionPageV2() {
                     <span className="text-sm text-muted-foreground">Engines Scanned</span>
                     <span className="font-bold">{uploadResult.stats.total_engines}</span>
                   </div>
-                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div className="h-2 bg-dark-bg rounded-full overflow-hidden">
                     <div 
                       className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500"
                       style={{ width: '100%' }}
@@ -374,7 +373,7 @@ export default function DetectionPageV2() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">SHA256:</span>
-                      <span className="text-cyan-400 text-xs break-all">{uploadResult.hashes.sha256}</span>
+                      <span className="text-cyan-400 text-xs">{uploadResult.hashes.sha256}</span>
                     </div>
                   </div>
                 </div>
@@ -384,7 +383,7 @@ export default function DetectionPageV2() {
                   href={uploadResult.vt_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50"
                 >
                   <ExternalLink className="h-4 w-4" />
                   View Full Report on VirusTotal
@@ -403,9 +402,7 @@ export default function DetectionPageV2() {
                         <div className="font-medium">{detection.engine}</div>
                         <div className="text-sm text-muted-foreground">{detection.result}</div>
                       </div>
-                      <span className="px-3 py-1 rounded-full bg-red-500 text-white text-xs font-semibold uppercase">
-                        {detection.category}
-                      </span>
+                      <span className="badge badge--err capitalize">{detection.category}</span>
                     </div>
                   ))}
                 </div>
@@ -417,7 +414,7 @@ export default function DetectionPageV2() {
 
       {/* Recent Scans */}
       <div className="section">
-        <div className="bg-card border border-border rounded-lg p-6">
+        <div className="card-premium p-6">
           <h2 className="text-xl font-semibold mb-6">Recent Scans</h2>
 
           {isLoading ? (
@@ -437,37 +434,35 @@ export default function DetectionPageV2() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="table w-full">
                 <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-sm font-semibold">ID</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Type</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Status</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Started</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Duration</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Items</th>
-                    <th className="text-left py-3 px-4 text-sm font-semibold">Threats</th>
+                  <tr>
+                    <th>ID</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Started</th>
+                    <th>Duration</th>
+                    <th>Items</th>
+                    <th>Threats</th>
                   </tr>
                 </thead>
                 <tbody>
                   {scans.map((scan) => (
-                    <tr key={scan.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4">#{scan.id}</td>
-                      <td className="py-3 px-4">
-                        <span className="px-2 py-1 rounded-full bg-blue-500/10 text-blue-500 text-xs font-semibold">
-                          {scan.scan_type}
-                        </span>
+                    <tr key={scan.id}>
+                      <td>#{scan.id}</td>
+                      <td>
+                        <span className="badge badge--info">{scan.scan_type}</span>
                       </td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          scan.status === 'completed' ? 'bg-green-500/10 text-green-500' : 
-                          scan.status === 'running' ? 'bg-yellow-500/10 text-yellow-500' : 
-                          'bg-red-500/10 text-red-500'
+                      <td>
+                        <span className={`badge ${
+                          scan.status === 'completed' ? 'badge--ok' : 
+                          scan.status === 'running' ? 'badge--warn' : 
+                          'badge--err'
                         }`}>
                           {scan.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-sm">
+                      <td className="text-sm">
                         {new Date(scan.started_at).toLocaleString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -475,10 +470,10 @@ export default function DetectionPageV2() {
                           minute: '2-digit'
                         })}
                       </td>
-                      <td className="py-3 px-4">{scan.duration_seconds ? `${scan.duration_seconds.toFixed(2)}s` : '—'}</td>
-                      <td className="py-3 px-4">{scan.items_scanned}</td>
-                      <td className="py-3 px-4">
-                        <span className={`font-bold ${scan.threats_found > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                      <td>{scan.duration_seconds ? `${scan.duration_seconds.toFixed(2)}s` : '—'}</td>
+                      <td>{scan.items_scanned}</td>
+                      <td>
+                        <span className={scan.threats_found > 0 ? 'text-red-500 font-bold' : 'text-green-500'}>
                           {scan.threats_found}
                         </span>
                       </td>
