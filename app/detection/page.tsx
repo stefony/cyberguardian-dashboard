@@ -103,7 +103,7 @@ export default function DetectionPageV2() {
     fetchStatus();
   }, [fetchScans, fetchStatus]);
 
-  // ✅ SIMPLIFIED FILE UPLOAD - Direct onChange handler
+  // File upload handler
   const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -130,7 +130,6 @@ export default function DetectionPageV2() {
       setUploadError(err.message || 'Failed to upload file');
     } finally {
       setIsUploading(false);
-      // Reset input to allow same file upload
       e.target.value = '';
     }
   };
@@ -160,6 +159,14 @@ export default function DetectionPageV2() {
     return colors[severity] || 'bg-gray-500/10 border-gray-500/30';
   };
 
+  // Get row hover gradient based on threats
+  const getRowHoverGradient = (threatsCount: number) => {
+    if (threatsCount > 0) {
+      return "hover:bg-gradient-to-r hover:from-red-500/10 hover:via-red-500/5 hover:to-transparent";
+    }
+    return "hover:bg-gradient-to-r hover:from-green-500/10 hover:via-green-500/5 hover:to-transparent";
+  };
+
   return (
     <main className="pb-12">
       {/* Hero */}
@@ -178,58 +185,90 @@ export default function DetectionPageV2() {
       {status && (
         <div className="section">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Shield className="h-5 w-5 text-green-500" />
-                <div className="text-sm text-muted-foreground">Engine Status</div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30 group cursor-pointer relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="flex items-center gap-3 mb-2 relative z-10">
+                <div className="p-2 bg-green-500/10 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-green-500/50">
+                  <Shield className="h-5 w-5 text-green-500 transition-transform duration-300 group-hover:rotate-12" />
+                </div>
+                <div className="text-sm text-muted-foreground transition-colors duration-300 group-hover:text-gray-300">Engine Status</div>
               </div>
-              <div className="text-2xl font-bold text-green-500">
+              <div className="text-2xl font-bold text-green-500 transition-all duration-300 group-hover:scale-110 origin-left">
                 {status.engine_status}
               </div>
+              
+              {status.engine_status === 'online' && (
+                <div className="absolute top-4 right-4 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </div>
+              )}
             </div>
 
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Activity className="h-5 w-5 text-blue-500" />
-                <div className="text-sm text-muted-foreground">Signatures</div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30 group cursor-pointer relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="flex items-center gap-3 mb-2 relative z-10">
+                <div className="p-2 bg-blue-500/10 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-blue-500/50">
+                  <Activity className="h-5 w-5 text-blue-500 transition-transform duration-300 group-hover:rotate-12" />
+                </div>
+                <div className="text-sm text-muted-foreground transition-colors duration-300 group-hover:text-gray-300">Signatures</div>
               </div>
-              <div className="text-2xl font-bold text-blue-500">
+              <div className="text-2xl font-bold text-blue-500 transition-all duration-300 group-hover:scale-110 origin-left">
                 {status.signatures_count.toLocaleString()}
               </div>
             </div>
 
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Search className="h-5 w-5 text-purple-500" />
-                <div className="text-sm text-muted-foreground">Scans Today</div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30 group cursor-pointer relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="flex items-center gap-3 mb-2 relative z-10">
+                <div className="p-2 bg-purple-500/10 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-purple-500/50">
+                  <Search className="h-5 w-5 text-purple-500 transition-transform duration-300 group-hover:rotate-12" />
+                </div>
+                <div className="text-sm text-muted-foreground transition-colors duration-300 group-hover:text-gray-300">Scans Today</div>
               </div>
-              <div className="text-2xl font-bold text-purple-500">
+              <div className="text-2xl font-bold text-purple-500 transition-all duration-300 group-hover:scale-110 origin-left">
                 {status.scans_today}
               </div>
             </div>
 
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <AlertTriangle className="h-5 w-5 text-red-500" />
-                <div className="text-sm text-muted-foreground">Threats Blocked</div>
+            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30 group cursor-pointer relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="flex items-center gap-3 mb-2 relative z-10">
+                <div className="p-2 bg-red-500/10 rounded-lg transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-red-500/50">
+                  <AlertTriangle className="h-5 w-5 text-red-500 transition-transform duration-300 group-hover:rotate-12" />
+                </div>
+                <div className="text-sm text-muted-foreground transition-colors duration-300 group-hover:text-gray-300">Threats Blocked</div>
               </div>
-              <div className="text-2xl font-bold text-red-500">
+              <div className="text-2xl font-bold text-red-500 transition-all duration-300 group-hover:scale-110 origin-left">
                 {status.threats_blocked}
               </div>
+              
+              {status.threats_blocked > 0 && (
+                <div className="absolute top-4 right-4 flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* ✅ NEW SIMPLIFIED FILE UPLOAD - Styled Visible Input */}
+      {/* File Upload Section */}
       <div className="section">
-        <div className="bg-card border border-border rounded-lg p-8">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Upload className="h-5 w-5 text-purple-500" />
+        <div className="bg-card border border-border rounded-lg p-8 transition-all duration-300 hover:border-purple-500/30 group relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          
+          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2 relative z-10">
+            <Upload className="h-5 w-5 text-purple-500 transition-transform duration-300 group-hover:scale-110" />
             Upload File for Scanning
           </h2>
 
-          <div className="text-center">
+          <div className="text-center relative z-10">
             {isUploading ? (
               <div className="flex flex-col items-center gap-4 py-8">
                 <Activity className="h-12 w-12 text-purple-500 animate-spin" />
@@ -238,7 +277,9 @@ export default function DetectionPageV2() {
               </div>
             ) : (
               <div className="space-y-4">
-                <Upload className="h-12 w-12 mx-auto mb-4 text-purple-500" />
+                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-purple-500/20 to-cyan-500/20 mb-4 animate-float">
+                  <Upload className="h-10 w-10 text-purple-500" />
+                </div>
                 <p className="text-lg font-medium mb-2">
                   Select a file to scan
                 </p>
@@ -246,7 +287,6 @@ export default function DetectionPageV2() {
                   Maximum file size: 32MB
                 </p>
                 
-                {/* ✅ STYLED VISIBLE FILE INPUT - No hidden tricks! */}
                 <div className="flex justify-center">
                   <label className="relative cursor-pointer">
                     <input
@@ -263,6 +303,7 @@ export default function DetectionPageV2() {
                         hover:file:bg-purple-600
                         file:transition-all file:duration-300
                         file:cursor-pointer
+                        hover:file:scale-105 hover:file:shadow-lg hover:file:shadow-purple-500/50
                         disabled:opacity-50 disabled:cursor-not-allowed
                       "
                     />
@@ -273,7 +314,7 @@ export default function DetectionPageV2() {
           </div>
 
           {uploadError && (
-            <div className="mt-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3">
+            <div className="mt-6 p-4 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
               <XCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
               <p className="text-red-500">{uploadError}</p>
             </div>
@@ -283,7 +324,7 @@ export default function DetectionPageV2() {
 
       {/* Upload Results */}
       {uploadResult && (
-        <div className="section">
+        <div className="section animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="bg-card border border-border rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
               <Shield className="h-5 w-5 text-cyan-500" />
@@ -293,7 +334,7 @@ export default function DetectionPageV2() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Threat Score Gauge */}
               <div className="lg:col-span-1">
-                <div className={`p-6 rounded-lg border-2 ${getSeverityBg(uploadResult.severity)}`}>
+                <div className={`p-6 rounded-lg border-2 ${getSeverityBg(uploadResult.severity)} transition-all duration-300 hover:scale-105`}>
                   <div className="text-center">
                     <div className={`text-6xl font-bold mb-2 ${getSeverityColor(uploadResult.severity)}`}>
                       {uploadResult.threat_score}
@@ -328,19 +369,19 @@ export default function DetectionPageV2() {
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Detection Statistics</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30">
+                    <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-red-500/30">
                       <div className="text-2xl font-bold text-red-500">{uploadResult.stats.malicious}</div>
                       <div className="text-sm text-muted-foreground">Malicious</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
+                    <div className="p-4 rounded-lg bg-orange-500/10 border border-orange-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-orange-500/30">
                       <div className="text-2xl font-bold text-orange-500">{uploadResult.stats.suspicious}</div>
                       <div className="text-sm text-muted-foreground">Suspicious</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30">
+                    <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
                       <div className="text-2xl font-bold text-green-500">{uploadResult.stats.harmless}</div>
                       <div className="text-sm text-muted-foreground">Harmless</div>
                     </div>
-                    <div className="p-4 rounded-lg bg-gray-500/10 border border-gray-500/30">
+                    <div className="p-4 rounded-lg bg-gray-500/10 border border-gray-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-gray-500/30">
                       <div className="text-2xl font-bold text-gray-400">{uploadResult.stats.undetected}</div>
                       <div className="text-sm text-muted-foreground">Undetected</div>
                     </div>
@@ -354,7 +395,7 @@ export default function DetectionPageV2() {
                   </div>
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500"
+                      className="h-full bg-gradient-to-r from-purple-500 to-cyan-500 transition-all duration-500 animate-fillBar"
                       style={{ width: '100%' }}
                     />
                   </div>
@@ -384,7 +425,7 @@ export default function DetectionPageV2() {
                   href={uploadResult.vt_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-purple-500/10 text-purple-500 hover:bg-purple-500/20 border-2 border-purple-500/30 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50"
                 >
                   <ExternalLink className="h-4 w-4" />
                   View Full Report on VirusTotal
@@ -398,7 +439,7 @@ export default function DetectionPageV2() {
                 <h3 className="text-lg font-semibold mb-3 text-red-500">⚠️ Detections Found</h3>
                 <div className="space-y-2">
                   {uploadResult.detections.map((detection, index) => (
-                    <div key={index} className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between">
+                    <div key={index} className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-between transition-all duration-300 hover:bg-red-500/20 hover:scale-[1.02]">
                       <div>
                         <div className="font-medium">{detection.engine}</div>
                         <div className="text-sm text-muted-foreground">{detection.result}</div>
@@ -451,23 +492,38 @@ export default function DetectionPageV2() {
                 </thead>
                 <tbody>
                   {scans.map((scan) => (
-                    <tr key={scan.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4">#{scan.id}</td>
+                    <tr 
+                      key={scan.id} 
+                      className={`
+                        border-b border-border transition-all duration-300 group
+                        ${getRowHoverGradient(scan.threats_found)}
+                        hover:shadow-lg
+                        ${scan.threats_found > 0 ? 'hover:shadow-red-500/20' : 'hover:shadow-green-500/20'}
+                      `}
+                    >
+                      <td className="py-3 px-4 transition-colors duration-300 group-hover:text-foreground">#{scan.id}</td>
                       <td className="py-3 px-4">
-                        <span className="px-2 py-1 rounded-full bg-blue-500/10 text-blue-500 text-xs font-semibold">
+                        <span className="px-2 py-1 rounded-full bg-blue-500/10 text-blue-500 text-xs font-semibold transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-blue-500/50">
                           {scan.scan_type}
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                          scan.status === 'completed' ? 'bg-green-500/10 text-green-500' : 
-                          scan.status === 'running' ? 'bg-yellow-500/10 text-yellow-500' : 
-                          'bg-red-500/10 text-red-500'
-                        }`}>
+                        <span className={`
+                          px-2 py-1 rounded-full text-xs font-semibold transition-all duration-300 group-hover:scale-105 relative
+                          ${scan.status === 'completed' ? 'bg-green-500/10 text-green-500 group-hover:shadow-lg group-hover:shadow-green-500/50' : 
+                            scan.status === 'running' ? 'bg-yellow-500/10 text-yellow-500 group-hover:shadow-lg group-hover:shadow-yellow-500/50' : 
+                            'bg-red-500/10 text-red-500 group-hover:shadow-lg group-hover:shadow-red-500/50'}
+                        `}>
+                          {scan.status === 'completed' && (
+                            <span className="absolute -top-1 -right-1 flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                            </span>
+                          )}
                           {scan.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-sm">
+                      <td className="py-3 px-4 text-sm transition-colors duration-300 group-hover:text-foreground">
                         {new Date(scan.started_at).toLocaleString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -475,10 +531,12 @@ export default function DetectionPageV2() {
                           minute: '2-digit'
                         })}
                       </td>
-                      <td className="py-3 px-4">{scan.duration_seconds ? `${scan.duration_seconds.toFixed(2)}s` : '—'}</td>
-                      <td className="py-3 px-4">{scan.items_scanned}</td>
+                      <td className="py-3 px-4 transition-colors duration-300 group-hover:text-foreground">
+                        {scan.duration_seconds ? `${scan.duration_seconds.toFixed(2)}s` : '—'}
+                      </td>
+                      <td className="py-3 px-4 transition-colors duration-300 group-hover:text-foreground">{scan.items_scanned}</td>
                       <td className="py-3 px-4">
-                        <span className={`font-bold ${scan.threats_found > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                        <span className={`font-bold transition-all duration-300 group-hover:scale-110 inline-block ${scan.threats_found > 0 ? 'text-red-500' : 'text-green-500'}`}>
                           {scan.threats_found}
                         </span>
                       </td>
