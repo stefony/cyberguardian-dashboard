@@ -65,7 +65,8 @@ const loadHistory = async () => {
     if (res.success && res.data) {
       console.log("🔍 Is array?", Array.isArray(res.data));
       console.log("🔍 Array length:", res.data.length);
-      setHistory(Array.isArray(res.data) ? res.data : []);
+      const historyData = (res.data as any)?.data || res.data;
+      setHistory(Array.isArray(historyData) ? historyData : []);
     } else {
       console.log("❌ No success or no data");
       setHistory([]);
