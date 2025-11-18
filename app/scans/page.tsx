@@ -60,9 +60,14 @@ export default function ScansPage() {
 const loadHistory = async () => {
   try {
     const res = await scansApi.getHistory(20);
+    console.log("🔍 History response:", res);
+    console.log("🔍 res.data:", res.data);
     if (res.success && res.data) {
+      console.log("🔍 Is array?", Array.isArray(res.data));
+      console.log("🔍 Array length:", res.data.length);
       setHistory(Array.isArray(res.data) ? res.data : []);
     } else {
+      console.log("❌ No success or no data");
       setHistory([]);
     }
   } catch (err) {
