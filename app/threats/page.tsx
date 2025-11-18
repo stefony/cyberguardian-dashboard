@@ -510,10 +510,22 @@ export default function ThreatsPage() {
           {/* Table */}
           {!isLoading && !error && (
             <div className="overflow-x-auto">
-              <table className="table w-full">
+              <table className="table w-full table-fixed">
+                <colgroup>
+                  <col style={{ width: '3%' }} /> {/* Checkbox */}
+                  <col style={{ width: '6%' }} /> {/* Time */}
+                  <col style={{ width: '10%' }} /> {/* Source IP */}
+                  <col style={{ width: '9%' }} /> {/* Type */}
+                  <col style={{ width: '25%' }} /> {/* Description - WIDER */}
+                  <col style={{ width: '8%' }} /> {/* Severity */}
+                  <col style={{ width: '11%' }} /> {/* Confidence */}
+                  <col style={{ width: '10%' }} /> {/* IOC Match */}
+                  <col style={{ width: '8%' }} /> {/* Status */}
+                  <col style={{ width: '10%' }} /> {/* Actions */}
+                </colgroup>
                 <thead>
                   <tr>
-                    <th className="w-12">
+                    <th className="px-2">
                       <div className="flex items-center justify-center">
                         <input
                           type="checkbox"
@@ -524,15 +536,15 @@ export default function ThreatsPage() {
                         />
                       </div>
                     </th>
-                    <th>Time</th>
-                    <th>Source IP</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                    <th>Severity</th>
-                    <th>Confidence</th>
-                    <th>IOC Match</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th className="px-2">Time</th>
+                    <th className="px-2">Source IP</th>
+                    <th className="px-2">Type</th>
+                    <th className="px-3">Description</th>
+                    <th className="px-2">Severity</th>
+                    <th className="px-2">Confidence</th>
+                    <th className="px-2">IOC Match</th>
+                    <th className="px-2">Status</th>
+                    <th className="px-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -558,7 +570,7 @@ export default function ThreatsPage() {
                         `}
                       >
                         {/* Checkbox */}
-                        <td onClick={(e) => e.stopPropagation()}>
+                        <td className="px-2" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center relative z-[60]">
                             <input
                               type="checkbox"
@@ -572,50 +584,52 @@ export default function ThreatsPage() {
                         </td>
                         
                         {/* Time */}
-                        <td className="font-mono text-sm transition-colors duration-300 group-hover:text-blue-400">
+                        <td className="px-2 font-mono text-xs transition-colors duration-300 group-hover:text-blue-400">
                           {formatTime(threat.timestamp)}
                         </td>
                         
                         {/* Source IP - 🆕 Enhanced with copy functionality */}
-                        <td className="font-mono text-sm">
-                          <div className="flex items-center gap-2">
-                            <span className="text-blue-400 transition-all duration-300 group-hover:text-blue-300 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]">
+                        <td className="px-2 font-mono text-xs">
+                          <div className="flex items-center gap-1">
+                            <span className="text-blue-400 transition-all duration-300 group-hover:text-blue-300 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)] truncate">
                               {threat.source_ip}
                             </span>
                             <button
                               onClick={() => copyIpToClipboard(threat.source_ip)}
-                              className="opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 text-gray-400 hover:text-blue-400 relative z-50"
+                              className="opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 text-gray-400 hover:text-blue-400 relative z-50 flex-shrink-0"
                               style={{ pointerEvents: 'auto' }}
                               title="Copy IP"
                             >
                               {copiedIp === threat.source_ip ? (
-                                <CheckCircle2 className="h-4 w-4 text-green-400" />
+                                <CheckCircle2 className="h-3 w-3 text-green-400" />
                               ) : (
-                                <Copy className="h-4 w-4" />
+                                <Copy className="h-3 w-3" />
                               )}
                             </button>
                           </div>
                         </td>
                         
                         {/* Type */}
-                        <td className="font-semibold transition-colors duration-300 group-hover:text-purple-400">
+                        <td className="px-2 font-semibold text-sm transition-colors duration-300 group-hover:text-purple-400 truncate">
                           {threat.threat_type}
                         </td>
                         
-                        {/* Description */}
-                        <td className="max-w-xs truncate transition-colors duration-300 group-hover:text-foreground">
-                          {threat.description}
+                        {/* Description - FIXED with proper truncation */}
+                        <td className="px-3 text-sm" title={threat.description}>
+                          <div className="truncate transition-colors duration-300 group-hover:text-foreground">
+                            {threat.description}
+                          </div>
                         </td>
                         
                         {/* Severity - 🆕 Enhanced badge with pulse */}
-                        <td>
+                        <td className="px-2">
                           <span className={`
                             ${getSeverityBadgeClass(threat.severity)}
                             transition-all duration-300
                             group-hover:scale-110
                             ${threat.severity === 'critical' ? 'group-hover:shadow-lg group-hover:shadow-red-500/50' : ''}
                             ${threat.severity === 'high' ? 'group-hover:shadow-lg group-hover:shadow-orange-500/50' : ''}
-                            relative
+                            relative inline-block whitespace-nowrap
                           `}>
                             {threat.severity === 'critical' && (
                               <span className="absolute -top-1 -right-1 flex h-2 w-2">
@@ -628,9 +642,9 @@ export default function ThreatsPage() {
                         </td>
                         
                         {/* Confidence Score - 🆕 Enhanced with shimmer */}
-                        <td>
+                        <td className="px-2">
                           <div className="flex items-center gap-2">
-                            <div className="w-16 bg-gray-700 rounded-full h-2 overflow-hidden relative group-hover:shadow-md">
+                            <div className="w-14 bg-gray-700 rounded-full h-2 overflow-hidden relative group-hover:shadow-md flex-shrink-0">
                               {/* Shimmer effect */}
                               <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
@@ -650,43 +664,43 @@ export default function ThreatsPage() {
                                 }}
                               />
                             </div>
-                            <span className="text-sm font-mono transition-all duration-300 group-hover:text-foreground group-hover:font-semibold">
+                            <span className="text-xs font-mono transition-all duration-300 group-hover:text-foreground group-hover:font-semibold whitespace-nowrap">
                               {(threat.confidence_score || 0).toFixed(1)}%
                             </span>
                           </div>
                         </td>
                         
                         {/* IOC Match - 🆕 Enhanced badge */}
-                        <td>
+                        <td className="px-2">
                           {threat.correlation && threat.correlation.match_count > 0 ? (
                             <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2">
-                                <span className="px-2 py-1 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-400 font-medium transition-all duration-300 group-hover:bg-purple-500/30 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-purple-500/50">
+                              <div className="flex items-center gap-1">
+                                <span className="px-2 py-0.5 bg-purple-500/20 border border-purple-500/30 rounded text-xs text-purple-400 font-medium transition-all duration-300 group-hover:bg-purple-500/30 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-purple-500/50 whitespace-nowrap">
                                   🔗 {threat.correlation.match_count} IOC{threat.correlation.match_count > 1 ? 's' : ''}
                                 </span>
                               </div>
                               <div className="flex items-center gap-1">
-                                <span className="text-xs text-gray-400 transition-colors duration-300 group-hover:text-purple-300">
-                                  {threat.correlation.correlation_score}% confidence
+                                <span className="text-xs text-gray-400 transition-colors duration-300 group-hover:text-purple-300 whitespace-nowrap">
+                                  {threat.correlation.correlation_score}% conf
                                 </span>
                               </div>
                             </div>
                           ) : (
-                            <span className="text-xs text-gray-500 transition-colors duration-300 group-hover:text-gray-400">
+                            <span className="text-xs text-gray-500 transition-colors duration-300 group-hover:text-gray-400 whitespace-nowrap">
                               No match
                             </span>
                           )}
                         </td>
                         
                         {/* Status - 🆕 Enhanced badge */}
-                        <td>
+                        <td className="px-2">
                           <span className={`
                             ${getStatusBadgeClass(threat.status)}
                             transition-all duration-300
                             group-hover:scale-110
                             ${threat.status === 'active' ? 'group-hover:shadow-lg group-hover:shadow-red-500/50' : ''}
                             ${threat.status === 'blocked' ? 'group-hover:shadow-lg group-hover:shadow-green-500/50' : ''}
-                            relative
+                            relative inline-block whitespace-nowrap
                           `}>
                             {threat.status === 'active' && (
                               <span className="absolute -top-1 -right-1 flex h-2 w-2">
@@ -699,13 +713,13 @@ export default function ThreatsPage() {
                         </td>
                         
                         {/* Actions - 🆕 Enhanced buttons */}
-                        <td>
-                          <div className="flex gap-2">
+                        <td className="px-2">
+                          <div className="flex gap-1.5">
                             {threat.status === "active" && (
                               <>
                                 <button
                                   onClick={() => blockThreat(threat.id)}
-                                  className="btn btn-ghost text-red-500 hover:bg-red-500/10 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-red-500/50 relative z-50"
+                                  className="btn btn-ghost text-red-500 hover:bg-red-500/10 transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-red-500/50 relative z-50 p-1.5"
                                   style={{ pointerEvents: 'auto' }}
                                   title="Block Threat"
                                 >
@@ -713,7 +727,7 @@ export default function ThreatsPage() {
                                 </button>
                                 <button
                                   onClick={() => dismissThreat(threat.id)}
-                                  className="btn btn-ghost hover:bg-muted transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-gray-500/50 relative z-50"
+                                  className="btn btn-ghost hover:bg-muted transition-all duration-300 hover:scale-110 hover:shadow-lg hover:shadow-gray-500/50 relative z-50 p-1.5"
                                   style={{ pointerEvents: 'auto' }}
                                   title="Dismiss Threat"
                                 >
@@ -722,7 +736,7 @@ export default function ThreatsPage() {
                               </>
                             )}
                             {threat.status !== "active" && (
-                              <span className="text-xs text-muted-foreground transition-colors duration-300 group-hover:text-foreground">
+                              <span className="text-xs text-muted-foreground transition-colors duration-300 group-hover:text-foreground whitespace-nowrap">
                                 {threat.status}
                               </span>
                             )}
