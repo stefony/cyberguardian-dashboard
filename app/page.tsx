@@ -94,18 +94,31 @@ function ThreatActivityChart() {
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-semibold">Threat Activity</h3>
         <div className="flex gap-2">
-          {(["24h", "7d", "30d"] as RangeKey[]).map((label) => (
-            <button
-              key={label}
-              onClick={() => setRange(label)}
-              className={`btn btn-ghost motion-safe:transition-transform motion-safe:duration-300 will-change-transform hover:-translate-y-1 hover:scale-[1.03] ${
-                range === label ? "bg-primary/20 border-primary/50 text-primary shadow-lg" : ""
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+  {(["24h", "7d", "30d"] as RangeKey[]).map((label) => (
+    <button
+      key={label}
+      onClick={() => setRange(label)}
+      className={`group relative px-4 py-2 rounded-lg font-semibold text-sm transition-all duration-300 overflow-hidden ${
+        range === label 
+          ? "bg-gradient-to-r from-purple-600 to-cyan-600 text-white shadow-lg shadow-purple-500/50 scale-105" 
+          : "bg-slate-800/50 text-slate-400 border border-slate-700 hover:border-purple-500/50 hover:text-slate-200 hover:shadow-lg hover:shadow-purple-500/20 hover:scale-105"
+      }`}
+    >
+      {/* Active state glow */}
+      {range === label && (
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      )}
+      
+      {/* Button text */}
+      <span className="relative z-10">{label}</span>
+      
+      {/* Pulse indicator for active */}
+      {range === label && (
+        <span className="absolute top-1 right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping"></span>
+      )}
+    </button>
+  ))}
+</div>
       </div>
 
       <div style={{ width: "100%", height: 300 }}>
@@ -449,68 +462,116 @@ export default function DashboardPage() {
   </div>
 </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <CardTilt>
-          <div className="stat-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-green-500/20 rounded-xl">
-                <Shield className="w-6 h-6 text-green-400" />
-              </div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider">System</span>
+{/* Stats Grid - Enhanced */}
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  {/* Protected Card */}
+  <CardTilt>
+    <div className="group relative stat-card p-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-green-500/20">
+      {/* Glow effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-green-500/0 to-green-500/0 group-hover:from-green-500/10 group-hover:to-transparent transition-all duration-500 rounded-xl"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative">
+            {/* Icon with animated glow */}
+            <div className="p-3 bg-green-500/20 rounded-xl group-hover:bg-green-500/30 transition-all duration-300 group-hover:scale-110">
+              <Shield className="w-6 h-6 text-green-400 group-hover:animate-pulse" />
             </div>
-            <h3 className="text-2xl font-bold mb-1">
-              {health?.status === "healthy" ? "Protected" : "Warning"}
-            </h3>
-            <p className="text-sm text-slate-400">{health?.system?.platform || health?.platform || "Windows"}</p>
+            {/* Pulsing ring */}
+            <div className="absolute inset-0 bg-green-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 animate-pulse"></div>
           </div>
-        </CardTilt>
-
-        <CardTilt>
-          <div className="stat-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <Activity className="w-6 h-6 text-blue-400" />
-              </div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider">Monitors</span>
-            </div>
-            <h3 className="text-2xl font-bold mb-1">
-              <CountUp end={monitorCount} />
-            </h3>
-            <p className="text-sm text-slate-400">Real-time scanning</p>
-          </div>
-        </CardTilt>
-
-        <CardTilt>
-          <div className="stat-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-red-500/20 rounded-xl">
-                <AlertTriangle className="w-6 h-6 text-red-400" />
-              </div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider">Threats</span>
-            </div>
-            <h3 className="text-2xl font-bold mb-1">
-              <CountUp end={threatCount} />
-            </h3>
-            <p className="text-sm text-slate-400">Last 24 hours</p>
-          </div>
-        </CardTilt>
-
-        <CardTilt>
-          <div className="stat-card p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-purple-500/20 rounded-xl">
-                <Eye className="w-6 h-6 text-purple-400" />
-              </div>
-              <span className="text-xs text-slate-400 uppercase tracking-wider">Honeypots</span>
-            </div>
-            <h3 className="text-2xl font-bold mb-1">
-              <CountUp end={honeypotCount} />
-            </h3>
-            <p className="text-sm text-slate-400">Deception layer ready</p>
-          </div>
-        </CardTilt>
+          <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">System</span>
+        </div>
+        
+        <h3 className="text-2xl font-bold mb-1 group-hover:text-green-400 transition-colors duration-300">
+          {health?.status === "healthy" ? "Protected" : "Warning"}
+        </h3>
+        <p className="text-sm text-slate-400">{health?.system?.platform || health?.platform || "Linux"}</p>
       </div>
+      
+      {/* Decorative corner glow */}
+      <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-green-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    </div>
+  </CardTilt>
+
+  {/* Monitors Card */}
+  <CardTilt>
+    <div className="group relative stat-card p-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 to-blue-500/0 group-hover:from-blue-500/10 group-hover:to-transparent transition-all duration-500 rounded-xl"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative">
+            <div className="p-3 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-all duration-300 group-hover:scale-110">
+              <Activity className="w-6 h-6 text-blue-400 group-hover:animate-pulse" />
+            </div>
+            <div className="absolute inset-0 bg-blue-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 animate-pulse"></div>
+          </div>
+          <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Monitors</span>
+        </div>
+        
+        <h3 className="text-2xl font-bold mb-1 group-hover:text-blue-400 transition-colors duration-300">
+          <CountUp end={monitorCount} />
+        </h3>
+        <p className="text-sm text-slate-400">Real-time scanning</p>
+      </div>
+      
+      <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-blue-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    </div>
+  </CardTilt>
+
+  {/* Threats Card */}
+  <CardTilt>
+    <div className="group relative stat-card p-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-red-500/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 to-red-500/0 group-hover:from-red-500/10 group-hover:to-transparent transition-all duration-500 rounded-xl"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative">
+            <div className="p-3 bg-red-500/20 rounded-xl group-hover:bg-red-500/30 transition-all duration-300 group-hover:scale-110">
+              <AlertTriangle className="w-6 h-6 text-red-400 group-hover:animate-pulse" />
+            </div>
+            <div className="absolute inset-0 bg-red-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 animate-pulse"></div>
+          </div>
+          <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Threats</span>
+        </div>
+        
+        <h3 className="text-2xl font-bold mb-1 group-hover:text-red-400 transition-colors duration-300">
+          <CountUp end={threatCount} />
+        </h3>
+        <p className="text-sm text-slate-400">Last 24 hours</p>
+      </div>
+      
+      <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-red-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    </div>
+  </CardTilt>
+
+  {/* Honeypots Card */}
+  <CardTilt>
+    <div className="group relative stat-card p-6 overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-purple-500/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-500/0 to-purple-500/0 group-hover:from-purple-500/10 group-hover:to-transparent transition-all duration-500 rounded-xl"></div>
+      
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-4">
+          <div className="relative">
+            <div className="p-3 bg-purple-500/20 rounded-xl group-hover:bg-purple-500/30 transition-all duration-300 group-hover:scale-110">
+              <Eye className="w-6 h-6 text-purple-400 group-hover:animate-pulse" />
+            </div>
+            <div className="absolute inset-0 bg-purple-500/20 rounded-xl blur-xl opacity-0 group-hover:opacity-100 animate-pulse"></div>
+          </div>
+          <span className="text-xs text-slate-400 uppercase tracking-wider font-semibold">Honeypots</span>
+        </div>
+        
+        <h3 className="text-2xl font-bold mb-1 group-hover:text-purple-400 transition-colors duration-300">
+          <CountUp end={honeypotCount} />
+        </h3>
+        <p className="text-sm text-slate-400">Deception layer ready</p>
+      </div>
+      
+      <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-purple-500/20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    </div>
+  </CardTilt>
+</div>
 
       {/* Dashboard Connected Indicator */}
       <div className="flex items-center justify-center p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl border border-green-500/20">
