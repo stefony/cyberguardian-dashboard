@@ -695,103 +695,173 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {recentIncidents.map((incident) => (
-                  <tr 
-                    key={incident.id} 
-                    className="border-b border-slate-700/50 hover:bg-slate-800/30 transition-colors"
-                  >
-                    <td className="py-3 px-4 text-sm text-slate-300">
-                      {new Date(incident.timestamp).toLocaleTimeString('en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </td>
-                    <td className="py-3 px-4 text-sm font-mono text-slate-300">
-                      {incident.source_ip}
-                    </td>
-                    <td className="py-3 px-4 text-sm font-medium">
-                      {incident.threat_type}
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        incident.severity === 'critical' ? 'bg-red-500/20 text-red-400' :
-                        incident.severity === 'high' ? 'bg-orange-500/20 text-orange-400' :
-                        incident.severity === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                        'bg-blue-500/20 text-blue-400'
-                      }`}>
-                        {incident.severity.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        incident.status === 'active' ? 'bg-red-500/20 text-red-400' :
-                        incident.status === 'blocked' ? 'bg-green-500/20 text-green-400' :
-                        'bg-gray-500/20 text-gray-400'
-                      }`}>
-                        {incident.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-sm text-slate-400">
-                      {incident.description}
-                    </td>
-                  </tr>
-                ))}
+              {recentIncidents.map((incident) => (
+  <tr 
+    key={incident.id} 
+    className="group border-b border-slate-700/50 hover:bg-slate-800/50 transition-all duration-300 cursor-pointer relative overflow-hidden"
+  >
+    {/* Hover glow effect */}
+    <td colSpan={6} className="absolute inset-0 pointer-events-none">
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+        incident.severity === 'critical' ? 'bg-gradient-to-r from-red-500/10 to-transparent' :
+        incident.severity === 'high' ? 'bg-gradient-to-r from-orange-500/10 to-transparent' :
+        incident.severity === 'medium' ? 'bg-gradient-to-r from-yellow-500/10 to-transparent' :
+        'bg-gradient-to-r from-blue-500/10 to-transparent'
+      }`}></div>
+    </td>
+    
+    {/* Time */}
+    <td className="py-3 px-4 text-sm text-slate-300 relative z-10">
+      {new Date(incident.timestamp).toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      })}
+    </td>
+    
+    {/* Source IP */}
+    <td className="py-3 px-4 text-sm font-mono text-slate-300 relative z-10 group-hover:text-cyan-400 transition-colors">
+      {incident.source_ip}
+    </td>
+    
+    {/* Threat Type */}
+    <td className="py-3 px-4 text-sm font-medium relative z-10 group-hover:text-white transition-colors">
+      {incident.threat_type}
+    </td>
+    
+    {/* Severity - Enhanced Badge */}
+    <td className="py-3 px-4 text-sm relative z-10">
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg ${
+        incident.severity === 'critical' 
+          ? 'bg-red-500/20 text-red-400 border-red-500/50 group-hover:bg-red-500/30 group-hover:border-red-400 group-hover:shadow-red-500/50' 
+          : incident.severity === 'high' 
+          ? 'bg-orange-500/20 text-orange-400 border-orange-500/50 group-hover:bg-orange-500/30 group-hover:border-orange-400 group-hover:shadow-orange-500/50'
+          : incident.severity === 'medium' 
+          ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/50 group-hover:bg-yellow-500/30 group-hover:border-yellow-400 group-hover:shadow-yellow-500/50'
+          : 'bg-blue-500/20 text-blue-400 border-blue-500/50 group-hover:bg-blue-500/30 group-hover:border-blue-400 group-hover:shadow-blue-500/50'
+      }`}>
+        {incident.severity === 'critical' && <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></span>}
+        {incident.severity.toUpperCase()}
+      </span>
+    </td>
+    
+    {/* Status - Enhanced Badge */}
+    <td className="py-3 px-4 text-sm relative z-10">
+      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all duration-300 group-hover:scale-110 ${
+        incident.status === 'active' 
+          ? 'bg-red-500/20 text-red-400 border-red-500/50 group-hover:bg-red-500/30' 
+          : incident.status === 'blocked' 
+          ? 'bg-green-500/20 text-green-400 border-green-500/50 group-hover:bg-green-500/30'
+          : 'bg-gray-500/20 text-gray-400 border-gray-500/50'
+      }`}>
+        {incident.status === 'active' && <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></span>}
+        {incident.status.toUpperCase()}
+      </span>
+    </td>
+    
+    {/* Description */}
+    <td className="py-3 px-4 text-sm text-slate-400 relative z-10 group-hover:text-slate-300 transition-colors">
+      {incident.description}
+    </td>
+  </tr>
+))}
               </tbody>
             </table>
           </div>
         </div>
       )}
 
-      {/* System Metrics */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="stat-card p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-            Detection Rate
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Success Rate</span>
-              <span className="font-semibold text-green-400">99.8%</span>
-            </div>
-            <div className="w-full bg-slate-700/50 rounded-full h-2">
-              <div className="bg-gradient-to-r from-green-400 to-emerald-500 h-2 rounded-full" style={{ width: "99.8%" }}></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-            Response Time
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">Average</span>
-              <span className="font-semibold text-blue-400">&lt; 100ms</span>
-            </div>
-            <div className="w-full bg-slate-700/50 rounded-full h-2">
-              <div className="bg-gradient-to-r from-blue-400 to-cyan-500 h-2 rounded-full" style={{ width: "85%" }}></div>
-            </div>
-          </div>
-        </div>
-
-        <div className="stat-card p-6">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-            Protection
-          </h3>
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-400">24/7 Active</span>
-              <span className="font-semibold text-purple-400">Online</span>
-            </div>
-            <div className="w-full bg-slate-700/50 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-400 to-pink-500 h-2 rounded-full" style={{ width: "100%" }}></div>
-            </div>
-          </div>
+   {/* System Metrics - Enhanced */}
+<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  {/* Detection Rate */}
+  <div className="group stat-card p-6 hover:shadow-2xl hover:shadow-green-500/20 transition-all duration-300">
+    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+      Detection Rate
+    </h3>
+    <div className="space-y-3">
+      <div className="flex justify-between text-sm">
+        <span className="text-slate-400 group-hover:text-slate-300 transition-colors">Success Rate</span>
+        <span className="font-bold text-2xl text-green-400 group-hover:scale-110 transition-transform inline-block">
+          <CountUp end={99.8} duration={1500} suffix="%" />
+        </span>
+      </div>
+      <div className="relative w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+        {/* Animated background shimmer */}
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-400/20 to-transparent animate-shimmer"></div>
+        
+        {/* Animated progress bar */}
+        <div 
+          className="bg-gradient-to-r from-green-400 to-emerald-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-lg shadow-green-500/50 relative overflow-hidden"
+          style={{ 
+            width: "0%",
+            animation: "fillBar 2s ease-out forwards"
+          }}
+        >
+          {/* Glow effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
         </div>
       </div>
+    </div>
+  </div>
+
+  {/* Response Time */}
+  <div className="group stat-card p-6 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300">
+    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+      <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+      Response Time
+    </h3>
+    <div className="space-y-3">
+      <div className="flex justify-between text-sm">
+        <span className="text-slate-400 group-hover:text-slate-300 transition-colors">Average</span>
+        <span className="font-bold text-2xl text-blue-400 group-hover:scale-110 transition-transform inline-block">
+          &lt; <CountUp end={100} duration={1500} />ms
+        </span>
+      </div>
+      <div className="relative w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent animate-shimmer"></div>
+        
+        <div 
+          className="bg-gradient-to-r from-blue-400 to-cyan-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-lg shadow-blue-500/50 relative overflow-hidden"
+          style={{ 
+            width: "0%",
+            animation: "fillBar 2s ease-out 0.3s forwards"
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Protection */}
+  <div className="group stat-card p-6 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300">
+    <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+      Protection
+    </h3>
+    <div className="space-y-3">
+      <div className="flex justify-between text-sm">
+        <span className="text-slate-400 group-hover:text-slate-300 transition-colors">24/7 Active</span>
+        <span className="font-bold text-2xl text-purple-400 group-hover:scale-110 transition-transform inline-block">
+          Online
+        </span>
+      </div>
+      <div className="relative w-full bg-slate-700/50 rounded-full h-3 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-400/20 to-transparent animate-shimmer"></div>
+        
+        <div 
+          className="bg-gradient-to-r from-purple-400 to-pink-500 h-3 rounded-full transition-all duration-1000 ease-out shadow-lg shadow-purple-500/50 relative overflow-hidden"
+          style={{ 
+            width: "0%",
+            animation: "fillBar 2s ease-out 0.6s forwards"
+          }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
       {/* Live Threat Notification */}
       <LiveThreatNotification 
