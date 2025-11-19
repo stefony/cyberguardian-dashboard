@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import CountUp from "react-countup";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -187,17 +189,37 @@ export default function RegistryCleanupPage() {
 
   const getRiskBadge = (score: number) => {
     if (score >= 80) {
-      return <Badge className="bg-red-500/20 text-red-400">Critical ({score})</Badge>;
+      return (
+        <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+          <Badge className="bg-red-500/20 text-red-400 border border-red-500/30 transition-all duration-300">
+            Critical ({score})
+          </Badge>
+        </motion.div>
+      );
     } else if (score >= 60) {
       return (
-        <Badge className="bg-orange-500/20 text-orange-400">High ({score})</Badge>
+        <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+          <Badge className="bg-orange-500/20 text-orange-400 border border-orange-500/30 transition-all duration-300">
+            High ({score})
+          </Badge>
+        </motion.div>
       );
     } else if (score >= 40) {
       return (
-        <Badge className="bg-yellow-500/20 text-yellow-400">Medium ({score})</Badge>
+        <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+          <Badge className="bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 transition-all duration-300">
+            Medium ({score})
+          </Badge>
+        </motion.div>
       );
     } else {
-      return <Badge className="bg-blue-500/20 text-blue-400">Low ({score})</Badge>;
+      return (
+        <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400 }}>
+          <Badge className="bg-blue-500/20 text-blue-400 border border-blue-500/30 transition-all duration-300">
+            Low ({score})
+          </Badge>
+        </motion.div>
+      );
     }
   };
 
@@ -224,288 +246,365 @@ export default function RegistryCleanupPage() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="container mx-auto p-6 space-y-6"
+    >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="flex items-center justify-between"
+      >
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-3">
-            <Database className="h-8 w-8 text-blue-500" />
+            <motion.div
+              animate={{ rotate: [0, 360] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear", repeatDelay: 3 }}
+            >
+              <Database className="h-8 w-8 text-blue-500" />
+            </motion.div>
             Registry Cleanup
           </h1>
           <p className="text-muted-foreground mt-2">
             Scan and remove malicious Windows registry entries
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowBackups(!showBackups)}>
-            <History className="mr-2 h-4 w-4" />
-            Backups ({backups.length})
-          </Button>
-          <Button onClick={handleScan} disabled={scanning}>
-            {scanning ? (
-              <>
-                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                Scanning...
-              </>
-            ) : (
-              <>
-                <Search className="mr-2 h-4 w-4" />
-                Scan Registry
-              </>
-            )}
-          </Button>
-        </div>
-      </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="flex gap-2"
+        >
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button variant="outline" onClick={() => setShowBackups(!showBackups)}>
+              <History className="mr-2 h-4 w-4" />
+              Backups ({backups.length})
+            </Button>
+          </motion.div>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <Button onClick={handleScan} disabled={scanning}>
+              {scanning ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <Search className="mr-2 h-4 w-4" />
+                  Scan Registry
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Statistics */}
       {stats && (
         <div className="grid gap-4 md:grid-cols-5">
-          <Card
-            className="cursor-pointer hover:border-primary/50 transition-all"
-            onClick={() => setSelectedSeverity("all")}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <Database className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_suspicious}</div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:border-red-500/50 transition-all"
-            onClick={() => setSelectedSeverity("critical")}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Critical</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-500">
-                {stats.critical_risk}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:border-orange-500/50 transition-all"
-            onClick={() => setSelectedSeverity("high")}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">High</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-500">
-                {stats.high_risk}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:border-yellow-500/50 transition-all"
-            onClick={() => setSelectedSeverity("medium")}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Medium</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-500">
-                {stats.medium_risk}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card
-            className="cursor-pointer hover:border-blue-500/50 transition-all"
-            onClick={() => setSelectedSeverity("low")}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Low</CardTitle>
-              <Info className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-500">
-                {stats.low_risk}
-              </div>
-            </CardContent>
-          </Card>
+          {[
+            { label: "Total", value: stats.total_suspicious, icon: Database, color: "gray", severity: "all" },
+            { label: "Critical", value: stats.critical_risk, icon: AlertTriangle, color: "red", severity: "critical" },
+            { label: "High", value: stats.high_risk, icon: AlertTriangle, color: "orange", severity: "high" },
+            { label: "Medium", value: stats.medium_risk, icon: AlertTriangle, color: "yellow", severity: "medium" },
+            { label: "Low", value: stats.low_risk, icon: Info, color: "blue", severity: "low" },
+          ].map((stat, index) => {
+            const Icon = stat.icon;
+            return (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + index * 0.1 }}
+                whileHover={{ scale: 1.02, y: -4 }}
+              >
+                <Card
+                  className={`cursor-pointer hover:border-${stat.color}-500/50 transition-all duration-300 hover:shadow-xl hover:shadow-${stat.color}-500/20 ${
+                    selectedSeverity === stat.severity ? `border-${stat.color}-500/50 shadow-lg shadow-${stat.color}-500/20` : ""
+                  }`}
+                  onClick={() => setSelectedSeverity(stat.severity)}
+                >
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">{stat.label}</CardTitle>
+                    <motion.div
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Icon className={`h-4 w-4 text-${stat.color}-500`} />
+                    </motion.div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className={`text-2xl font-bold text-${stat.color}-500`}>
+                      <CountUp end={stat.value} duration={2} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            );
+          })}
         </div>
       )}
 
       {/* Backups Panel */}
-      {showBackups && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Registry Backups</CardTitle>
-            <CardDescription>
-              Restore previously removed registry entries
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {backups.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No backups available</p>
-            ) : (
-              <div className="space-y-2">
-                {backups.map((backup) => (
-                  <div
-                    key={backup.filename}
-                    className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50"
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">{backup.value_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {backup.hive}\{backup.key_path}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(backup.backed_up_at).toLocaleString()}
-                      </p>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRestore(backup)}
-                    >
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Restore
-                    </Button>
+      <AnimatePresence>
+        {showBackups && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, y: -20 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -20 }}
+            transition={{ duration: 0.4 }}
+          >
+            <Card className="hover:shadow-lg transition-shadow duration-300">
+              <CardHeader>
+                <CardTitle>Registry Backups</CardTitle>
+                <CardDescription>
+                  Restore previously removed registry entries
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                {backups.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No backups available</p>
+                ) : (
+                  <div className="space-y-2">
+                    {backups.map((backup, index) => (
+                      <motion.div
+                        key={backup.filename}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        whileHover={{ scale: 1.01, x: 4 }}
+                        className="flex items-center justify-between p-3 border rounded-lg hover:bg-accent/50 transition-all duration-300"
+                      >
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{backup.value_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {backup.hive}\{backup.key_path}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(backup.backed_up_at).toLocaleString()}
+                          </p>
+                        </div>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRestore(backup)}
+                          >
+                            <RotateCcw className="mr-2 h-4 w-4" />
+                            Restore
+                          </Button>
+                        </motion.div>
+                      </motion.div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search and Filters */}
-      <div className="flex gap-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.6 }}
+        className="flex gap-4"
+      >
         <div className="flex-1">
           <Input
             placeholder="Search by name, value, or path..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full"
+            className="w-full transition-all duration-300 focus:shadow-lg focus:shadow-primary/10"
           />
         </div>
-        <Badge
-          variant={selectedSeverity === "all" ? "default" : "outline"}
-          className="cursor-pointer px-4"
-          onClick={() => setSelectedSeverity("all")}
-        >
-          All
-        </Badge>
-      </div>
+        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <Badge
+            variant={selectedSeverity === "all" ? "default" : "outline"}
+            className="cursor-pointer px-4 transition-all duration-300"
+            onClick={() => setSelectedSeverity("all")}
+          >
+            All
+          </Badge>
+        </motion.div>
+      </motion.div>
 
       {/* Entries Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Suspicious Registry Entries</CardTitle>
-          <CardDescription>
-            Found {filteredEntries.length} entries matching your criteria
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {filteredEntries.length === 0 ? (
-            <div className="text-center py-12">
-              <Shield className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-              <p className="text-lg font-medium">No suspicious entries found</p>
-              <p className="text-sm text-muted-foreground">
-                {entries.length === 0
-                  ? "Click 'Scan Registry' to start scanning"
-                  : "Try adjusting your filters"}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {filteredEntries.map((entry) => (
-                <div key={entry.id} className="border rounded-lg p-4 space-y-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <button
-                          onClick={() =>
-                            setExpandedEntry(
-                              expandedEntry === entry.id ? null : entry.id
-                            )
-                          }
-                        >
-                          {expandedEntry === entry.id ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4" />
-                          )}
-                        </button>
-                        <p className="font-medium">{entry.value_name}</p>
-                        {getRiskBadge(entry.risk_score)}
-                      </div>
-                      <p className="text-xs text-muted-foreground ml-6">
-                        {entry.hive}\{entry.key_path}
-                      </p>
-                      {expandedEntry === entry.id && (
-                        <div className="mt-4 ml-6 space-y-2 border-l-2 border-primary/20 pl-4">
-                          <div>
-                            <p className="text-xs font-medium">Value Data:</p>
-                            <p className="text-xs text-muted-foreground break-all">
-                              {entry.value_data}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium">Type:</p>
-                            <p className="text-xs text-muted-foreground">
-                              {entry.value_type}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs font-medium">Indicators:</p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {entry.indicators.map((indicator, idx) => (
-                                <Badge
-                                  key={idx}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {indicator}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.7 }}
+      >
+        <Card className="hover:shadow-xl transition-shadow duration-300">
+          <CardHeader>
+            <CardTitle>Suspicious Registry Entries</CardTitle>
+            <CardDescription>
+              Found <CountUp end={filteredEntries.length} duration={1} /> entries matching your criteria
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {filteredEntries.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="text-center py-12"
+              >
+                <motion.div
+                  animate={{
+                    scale: [1, 1.1, 1],
+                    rotate: [0, 5, -5, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                >
+                  <Shield className="mx-auto h-16 w-16 text-green-500/50 mb-4" />
+                </motion.div>
+                <p className="text-lg font-medium">No suspicious entries found</p>
+                <p className="text-sm text-muted-foreground">
+                  {entries.length === 0
+                    ? "Click 'Scan Registry' to start scanning"
+                    : "Try adjusting your filters"}
+                </p>
+              </motion.div>
+            ) : (
+              <div className="space-y-2">
+                {filteredEntries.map((entry, index) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    whileHover={{ scale: 1.01, x: 4 }}
+                    className="border rounded-lg p-4 space-y-2 hover:bg-accent/5 transition-all duration-300 hover:shadow-md"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <motion.button
+                            whileHover={{ scale: 1.2 }}
+                            whileTap={{ scale: 0.9 }}
+                            onClick={() =>
+                              setExpandedEntry(
+                                expandedEntry === entry.id ? null : entry.id
+                              )
+                            }
+                          >
+                            <motion.div
+                              animate={{ rotate: expandedEntry === entry.id ? 0 : -90 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <ChevronDown className="h-4 w-4" />
+                            </motion.div>
+                          </motion.button>
+                          <p className="font-medium">{entry.value_name}</p>
+                          {getRiskBadge(entry.risk_score)}
                         </div>
-                      )}
+                        <p className="text-xs text-muted-foreground ml-6">
+                          {entry.hive}\{entry.key_path}
+                        </p>
+                        <AnimatePresence>
+                          {expandedEntry === entry.id && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="mt-4 ml-6 space-y-2 border-l-2 border-primary/20 pl-4"
+                            >
+                              <div>
+                                <p className="text-xs font-medium">Value Data:</p>
+                                <p className="text-xs text-muted-foreground break-all">
+                                  {entry.value_data}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium">Type:</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {entry.value_type}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium">Indicators:</p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {entry.indicators.map((indicator, idx) => (
+                                    <motion.div
+                                      key={idx}
+                                      initial={{ opacity: 0, scale: 0.8 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      transition={{ duration: 0.2, delay: idx * 0.05 }}
+                                      whileHover={{ scale: 1.05 }}
+                                    >
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs transition-all duration-300"
+                                      >
+                                        {indicator}
+                                      </Badge>
+                                    </motion.div>
+                                  ))}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleRemove(entry)}
+                          disabled={removing === entry.id}
+                          className="transition-all duration-300"
+                        >
+                          {removing === entry.id ? (
+                            <RefreshCw className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Remove
+                            </>
+                          )}
+                        </Button>
+                      </motion.div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => handleRemove(entry)}
-                      disabled={removing === entry.id}
-                    >
-                      {removing === entry.id ? (
-                        <RefreshCw className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Trash2 className="mr-2 h-4 w-4" />
-                          Remove
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Warning */}
-      <Alert className="border-yellow-500/50 bg-yellow-500/10">
-        <AlertTriangle className="h-4 w-4 text-yellow-500" />
-        <AlertDescription>
-          <strong>Warning:</strong> Removing registry entries can affect system
-          stability. All entries are automatically backed up before removal and can
-          be restored if needed.
-        </AlertDescription>
-      </Alert>
-    </div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.8 }}
+        whileHover={{ scale: 1.01 }}
+      >
+        <Alert className="border-yellow-500/50 bg-yellow-500/10 hover:shadow-lg hover:shadow-yellow-500/20 transition-all duration-300">
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
+          >
+            <AlertTriangle className="h-4 w-4 text-yellow-500" />
+          </motion.div>
+          <AlertDescription>
+            <strong>Warning:</strong> Removing registry entries can affect system
+            stability. All entries are automatically backed up before removal and can
+            be restored if needed.
+          </AlertDescription>
+        </Alert>
+      </motion.div>
+    </motion.div>
   );
 }
