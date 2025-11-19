@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import CountUp from "react-countup";
 import {
   Shield,
   Trash2,
@@ -130,38 +132,82 @@ export default function QuarantinePage() {
     file.original_path?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Loading Skeletons
   if (loading) {
     return (
       <main className="pb-12">
-        <div className="flex items-center justify-center h-screen">
-          <RefreshCw className="h-8 w-8 animate-spin text-primary" />
+        <div className="page-container page-hero pt-12 md:pt-16">
+          <div className="animate-pulse space-y-8">
+            {/* Hero Skeleton */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="h-10 w-64 bg-muted/30 rounded-lg"></div>
+                <div className="h-4 w-48 bg-muted/20 rounded"></div>
+              </div>
+              <div className="h-10 w-32 bg-muted/30 rounded-lg"></div>
+            </div>
+
+            {/* Stats Skeleton */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="card-premium p-6">
+                  <div className="h-4 w-24 bg-muted/20 rounded mb-4"></div>
+                  <div className="h-8 w-16 bg-muted/30 rounded"></div>
+                </div>
+              ))}
+            </div>
+
+            {/* Content Skeleton */}
+            <div className="card-premium p-6">
+              <div className="h-6 w-48 bg-muted/30 rounded mb-4"></div>
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-16 bg-muted/10 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main className="pb-12">
+    <motion.main
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      className="pb-12"
+    >
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
         <div className="flex items-center justify-between">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
               Quarantine Vault
             </h1>
             <p className="mt-2 text-muted-foreground">
               Isolated threats and suspicious files
             </p>
-          </div>
+          </motion.div>
 
-          <button
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.2 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={refresh}
             disabled={refreshing}
-            className="btn btn-primary"
+            className="btn btn-primary hover:shadow-lg hover:shadow-primary/20 transition-all duration-300"
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
-          </button>
+          </motion.button>
         </div>
       </div>
 
@@ -170,18 +216,30 @@ export default function QuarantinePage() {
         <div className="section">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Total Files */}
-            <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="card-premium p-6 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <FileWarning className="h-5 w-5 text-purple-400" />
                 <span className="text-sm text-muted-foreground">Total Files</span>
               </div>
               <div className="text-3xl font-bold text-purple-400">
-                {stats.total_files || 0}
+                <CountUp end={stats.total_files || 0} duration={2} separator="," />
               </div>
-            </div>
+            </motion.div>
 
             {/* Total Size */}
-            <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-blue-500/20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="card-premium p-6 hover:shadow-2xl hover:shadow-blue-500/20 transition-all duration-300"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <HardDrive className="h-5 w-5 text-blue-400" />
                 <span className="text-sm text-muted-foreground">Total Size</span>
@@ -189,58 +247,84 @@ export default function QuarantinePage() {
               <div className="text-3xl font-bold text-blue-400">
                 {formatBytes(stats.total_size_bytes || 0)}
               </div>
-            </div>
+            </motion.div>
 
             {/* Critical Threats */}
-            <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-red-500/20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="card-premium p-6 hover:shadow-2xl hover:shadow-red-500/20 transition-all duration-300"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <AlertTriangle className="h-5 w-5 text-red-400" />
                 <span className="text-sm text-muted-foreground">Critical</span>
               </div>
               <div className="text-3xl font-bold text-red-400">
-                {stats.threat_counts?.critical || 0}
+                <CountUp end={stats.threat_counts?.critical || 0} duration={2} />
               </div>
-            </div>
+            </motion.div>
 
             {/* High Threats */}
-            <div className="card-premium p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-orange-500/20">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              className="card-premium p-6 hover:shadow-2xl hover:shadow-orange-500/20 transition-all duration-300"
+            >
               <div className="flex items-center gap-3 mb-2">
                 <Shield className="h-5 w-5 text-orange-400" />
                 <span className="text-sm text-muted-foreground">High Risk</span>
               </div>
               <div className="text-3xl font-bold text-orange-400">
-                {stats.threat_counts?.high || 0}
+                <CountUp end={stats.threat_counts?.high || 0} duration={2} />
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       )}
 
-        {/* Auto-Purge Settings */}
-      <div className="section">
+      {/* Auto-Purge Settings */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+        className="section"
+      >
         <AutoPurgeSettings onSettingsChanged={loadData} />
-      </div>
+      </motion.div>
 
       {/* Search */}
-      {/* Search */}
-<div className="section">
-  <div className="card-premium p-4">
-    <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
-      <input
-        type="text"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        placeholder="Search by filename or path..."
-        className="w-full pl-10 pr-4 py-3 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none transition-colors"
-        autoComplete="off"
-      />
-    </div>
-  </div>
-</div>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.6 }}
+        className="section"
+      >
+        <div className="card-premium p-4 hover:shadow-lg transition-all duration-300">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground pointer-events-none" />
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search by filename or path..."
+              className="w-full pl-10 pr-4 py-3 rounded-lg bg-card border-2 border-border text-foreground focus:border-purple-500 focus:outline-none transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/10"
+              autoComplete="off"
+            />
+          </div>
+        </div>
+      </motion.div>
 
       {/* Files Table */}
-      <div className="section">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.7 }}
+        className="section"
+      >
         <div className="card-premium p-6">
           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
             <Shield className="h-5 w-5 text-purple-500" />
@@ -248,14 +332,31 @@ export default function QuarantinePage() {
           </h2>
 
           {filteredFiles.length === 0 ? (
-            <div className="text-center py-12">
-              <Shield className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
-              <p className="text-muted-foreground">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center py-12"
+            >
+              <motion.div
+                animate={{
+                  scale: [1, 1.1, 1],
+                  rotate: [0, 5, -5, 0],
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                }}
+              >
+                <Shield className="h-16 w-16 text-green-500/50 mx-auto mb-4" />
+              </motion.div>
+              <p className="text-lg font-medium text-muted-foreground">
                 {searchTerm
                   ? "No files match your search"
                   : "No quarantined files. Your system is clean!"}
               </p>
-            </div>
+            </motion.div>
           ) : (
             <div className="overflow-x-auto">
               <table className="table w-full">
@@ -271,8 +372,14 @@ export default function QuarantinePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredFiles.map((file) => (
-                    <tr key={file.id}>
+                  {filteredFiles.map((file, index) => (
+                    <motion.tr
+                      key={file.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="hover:bg-accent/5 transition-colors duration-200"
+                    >
                       <td className="font-medium">
                         <div className="flex items-center gap-2">
                           <FileWarning className="h-4 w-4 text-red-400" />
@@ -284,14 +391,17 @@ export default function QuarantinePage() {
                       </td>
                       <td className="text-sm">{formatBytes(file.file_size || 0)}</td>
                       <td className={`font-bold ${getThreatColor(file.threat_level)}`}>
-                        {Math.round(file.threat_score || 0)}
+                        <CountUp end={Math.round(file.threat_score || 0)} duration={1.5} />
                       </td>
                       <td>
-                        <span className={`badge border-2 ${getThreatBg(file.threat_level)}`}>
+                        <motion.span
+                          whileHover={{ scale: 1.05 }}
+                          className={`badge border-2 ${getThreatBg(file.threat_level)} transition-all duration-300`}
+                        >
                           <span className={getThreatColor(file.threat_level)}>
                             {file.threat_level?.toUpperCase() || "UNKNOWN"}
                           </span>
-                        </span>
+                        </motion.span>
                       </td>
                       <td className="text-sm">
                         <div className="flex items-center gap-1 text-muted-foreground">
@@ -301,30 +411,34 @@ export default function QuarantinePage() {
                       </td>
                       <td>
                         <div className="flex gap-2">
-                          <button
+                          <motion.button
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => handleRestore(file.id, file.original_name)}
-                            className="p-2 rounded-lg hover:bg-card transition-colors group"
+                            className="p-2 rounded-lg hover:bg-green-500/10 transition-all duration-300 group"
                             title="Restore file"
                           >
-                            <RotateCcw className="h-4 w-4 text-green-500 group-hover:text-green-400" />
-                          </button>
-                          <button
+                            <RotateCcw className="h-4 w-4 text-green-500 group-hover:text-green-400 transition-colors" />
+                          </motion.button>
+                          <motion.button
+                            whileHover={{ scale: 1.15 }}
+                            whileTap={{ scale: 0.95 }}
                             onClick={() => handleDelete(file.id, file.original_name)}
-                            className="p-2 rounded-lg hover:bg-card transition-colors group"
+                            className="p-2 rounded-lg hover:bg-red-500/10 transition-all duration-300 group"
                             title="Delete permanently"
                           >
-                            <Trash2 className="h-4 w-4 text-red-500 group-hover:text-red-400" />
-                          </button>
+                            <Trash2 className="h-4 w-4 text-red-500 group-hover:text-red-400 transition-colors" />
+                          </motion.button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
         </div>
-      </div>
-    </main>
+      </motion.div>
+    </motion.main>
   );
 }
