@@ -1869,6 +1869,143 @@ export const processProtectionApi = {
 }
 
 // ============================================
+// PROCESS MONITOR API
+// ============================================
+
+export const processMonitorApi = {
+  /**
+   * Get all running processes
+   */
+  getProcesses: async (limit?: number): Promise<ApiResponse<{
+    total: number
+    processes: Array<{
+      pid: number
+      name: string
+      username: string
+      cpu_percent: number
+      memory_mb: number
+      exe_path: string
+      cmdline: string
+      created_at: string
+      suspicious: boolean
+    }>
+  }>> => {
+    return client.get<any>(`/api/process-monitor/processes${limit ? `?limit=${limit}` : ''}`)
+  },
+
+  /**
+   * Get detected threats
+   */
+  getThreats: async (params?: {
+    threat_type?: string
+    severity?: string
+    limit?: number
+  }): Promise<ApiResponse<{
+    total: number
+    threats: Array<{
+      type: string
+      pid: number
+      process_name: string
+      severity: string
+      description: string
+      details: any
+      detected_at: string
+    }>
+  }>> => {
+    const query = new URLSearchParams(params as any).toString()
+    return client.get<any>(`/api/process-monitor/threats${query ? `?${query}` : ''}`)
+  },
+
+  /**
+   * Get statistics
+   */
+  getStatistics: async (): Promise<ApiResponse<{
+    total_processes: number
+    suspicious_processes: number
+    total_threats: number
+    threats_by_type: Record<string, number>
+    threats_by_severity: Record<string, number>
+    monitoring_active: boolean
+    platform: string
+    last_scan: string
+  }>> => {
+    return client.get<any>('/api/process-monitor/stats')
+  },
+
+  /**
+   * Trigger manual scan
+   */
+  triggerScan: async (): Promise<ApiResponse<{
+    threats_found: number
+    breakdown: {
+      process_injection: number
+      dll_hijacking: number
+      process_hollowing: number
+    }
+    threats: any[]
+  }>> => {
+    return client.post<any>('/api/process-monitor/scan', {})
+  },
+
+  /**
+   * Scan specific process memory
+   */
+  scanProcessMemory: async (pid: number): Promise<ApiResponse<{
+    scan_result: {
+      pid: number
+      process_name: string
+      total_memory_scanned: number
+      suspicious_patterns_found: number
+      threat_detected: boolean
+      scan_time: string
+    }
+  }>> => {
+    return client.get<any>(`/api/process-monitor/scan-memory/${pid}`)
+  },
+
+  /**
+   * Start background monitoring
+   */
+  startMonitoring: async (): Promise<ApiResponse<{
+    message: string
+    scan_interval: number
+  }>> => {
+    return client.post<any>('/api/process-monitor/start', {})
+  },
+
+  /**
+   * Stop background monitoring
+   */
+  stopMonitoring: async (): Promise<ApiResponse<{
+    message: string
+  }>> => {
+    return client.post<any>('/api/process-monitor/stop', {})
+  },
+
+  /**
+   * Get monitoring status
+   */
+  getMonitoringStatus: async (): Promise<ApiResponse<{
+    monitoring: {
+      active: boolean
+      scan_interval: number
+      platform: string
+    }
+  }>> => {
+    return client.get<any>('/api/process-monitor/status')
+  },
+
+  /**
+   * Clear all threats
+   */
+  clearThreats: async (): Promise<ApiResponse<{
+    message: string
+  }>> => {
+    return client.delete<any>('/api/process-monitor/threats')
+  },
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 export const api = {
@@ -1879,19 +2016,20 @@ export const api = {
   deception: deceptionApi,
   ai: aiApi,
   honeypot: honeypotApi,
-   ml: mlApi,
-   analytics: analyticsApi,
-   emails: emailsApi,
-   settings: settingsApi, 
-   protection: protectionApi,
-   scans: scansApi,
-   quarantine: quarantineApi,
-   geoAttacks: geoAttacksApi,
-   whatIf: whatIfApi,
-   exclusions: exclusionsApi,
-   profiles: profilesApi, 
-   remediation: remediationApi, 
+  ml: mlApi,
+  analytics: analyticsApi,
+  emails: emailsApi,
+  settings: settingsApi, 
+  protection: protectionApi,
+  scans: scansApi,
+  quarantine: quarantineApi,
+  geoAttacks: geoAttacksApi,
+  whatIf: whatIfApi,
+  exclusions: exclusionsApi,
+  profiles: profilesApi, 
+  remediation: remediationApi,
+  processProtection: processProtectionApi,
+  processMonitor: processMonitorApi,  // ← ДОБАВЕН
 }
 
 export default api
-
