@@ -88,31 +88,41 @@ export default function ProcessProtectionPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [scanningProcess, setScanningProcess] = useState<number | null>(null);
 
-  const fetchData = async (showRefreshing = false) => {
-    if (showRefreshing) setRefreshing(true);
+const fetchData = async (showRefreshing = false) => {
+  if (showRefreshing) setRefreshing(true);
+  
+  try {
+    const [statusRes, statsRes, monitorStatsRes, monitorStatusRes, processesRes, threatsRes] = await Promise.all([
+      processProtectionApi.getStatus(),
+      processProtectionApi.getStatistics(),
+      processMonitorApi.getStatistics(),
+      processMonitorApi.getMonitoringStatus(),
+      processMonitorApi.getProcesses(50),
+      processMonitorApi.getThreats({ limit: 20 })
+    ]);
+
+    if (statusRes.success && statusRes.data) setStatus(statusRes.data);
+    if (statsRes.success && statsRes.data) setStatistics(statsRes.data);
+    if (monitorStatsRes.success && monitorStatsRes.data) setMonitorStats(monitorStatsRes.data);
     
-    try {
-      const [statusRes, statsRes, monitorStatsRes, processesRes, threatsRes] = await Promise.all([
-        processProtectionApi.getStatus(),
-        processProtectionApi.getStatistics(),
-        processMonitorApi.getStatistics(),
-        processMonitorApi.getProcesses(50),
-        processMonitorApi.getThreats({ limit: 20 })
-      ]);
-
-      if (statusRes.success && statusRes.data) setStatus(statusRes.data);
-      if (statsRes.success && statsRes.data) setStatistics(statsRes.data);
-      if (monitorStatsRes.success && monitorStatsRes.data) setMonitorStats(monitorStatsRes.data);
-      if (processesRes.success && processesRes.data) setProcesses(processesRes.data.processes);
-      if (threatsRes.success && threatsRes.data) setThreats(threatsRes.data.threats);
-
-    } catch (error) {
-      console.error('Error fetching process data:', error);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    // Update monitoring_active от /status endpoint
+    if (monitorStatusRes.success && monitorStatusRes.data?.monitoring) {
+      setMonitorStats(prev => ({
+        ...prev!,
+        monitoring_active: monitorStatusRes.data!.monitoring.active
+      }));
     }
-  };
+    
+    if (processesRes.success && processesRes.data) setProcesses(processesRes.data.processes);
+    if (threatsRes.success && threatsRes.data) setThreats(threatsRes.data.threats);
+
+  } catch (error) {
+    console.error('Error fetching process data:', error);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
+};
 
   useEffect(() => {
     fetchData();
