@@ -1744,6 +1744,131 @@ export const remediationApi = {
 }
 
 // ============================================
+// PROCESS PROTECTION API
+// ============================================
+
+export const processProtectionApi = {
+  /**
+   * Get process protection status
+   */
+  getStatus: async (): Promise<ApiResponse<{
+    platform: string
+    is_protected: boolean
+    service_installed: boolean
+    can_protect: boolean
+    is_admin: boolean
+    is_root: boolean
+    username: string
+    recommendations: string[]
+  }>> => {
+    return client.get<any>('/api/process-protection/status')
+  },
+
+  /**
+   * Get protection capabilities
+   */
+  getCapabilities: async (): Promise<ApiResponse<{
+    platform: string
+    is_protected: boolean
+    service_installed: boolean
+    can_protect: boolean
+    is_admin: boolean
+    is_root: boolean
+    username: string
+    recommendations: string[]
+  }>> => {
+    return client.get<any>('/api/process-protection/capabilities')
+  },
+
+  /**
+   * Check current privileges
+   */
+  checkPrivileges: async (): Promise<ApiResponse<{
+    platform: string
+    is_admin: boolean
+    is_root: boolean
+    can_protect: boolean
+    username: string
+  }>> => {
+    return client.get<any>('/api/process-protection/privileges')
+  },
+
+  /**
+   * Enable anti-termination protection
+   */
+  enableAntiTermination: async (): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    privileges?: any
+  }>> => {
+    return client.post<any>('/api/process-protection/enable-anti-termination', {})
+  },
+
+  /**
+   * Enable self-healing mechanisms
+   */
+  enableSelfHealing: async (): Promise<ApiResponse<{
+    success: boolean
+    message: string
+  }>> => {
+    return client.post<any>('/api/process-protection/enable-self-healing', {})
+  },
+
+  /**
+   * Enable maximum protection
+   */
+  enableMaximumProtection: async (): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    protection: any
+  }>> => {
+    return client.post<any>('/api/process-protection/enable-maximum-protection', {})
+  },
+
+  /**
+   * Install as system service
+   */
+  installService: async (serviceName?: string): Promise<ApiResponse<{
+    success: boolean
+    message: string
+    service_name?: string
+    privileges?: any
+  }>> => {
+    const params = serviceName ? `?service_name=${serviceName}` : ''
+    return client.post<any>(`/api/process-protection/install-service${params}`, {})
+  },
+
+  /**
+   * Get security recommendations
+   */
+  getRecommendations: async (): Promise<ApiResponse<{
+    recommendations: string[]
+    current_status: {
+      is_protected: boolean
+      service_installed: boolean
+      can_protect: boolean
+    }
+  }>> => {
+    return client.get<any>('/api/process-protection/recommendations')
+  },
+
+  /**
+   * Get process protection statistics
+   */
+  getStatistics: async (): Promise<ApiResponse<{
+    platform: string
+    is_protected: boolean
+    service_installed: boolean
+    has_admin_rights: boolean
+    has_root_rights: boolean
+    can_enable_protection: boolean
+    recommendations_count: number
+  }>> => {
+    return client.get<any>('/api/process-protection/statistics')
+  },
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 export const api = {
