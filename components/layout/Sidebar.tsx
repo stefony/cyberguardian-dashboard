@@ -140,6 +140,11 @@ const navItems: NavItem[] = [
     icon: Gauge,
   },
   {
+  label: 'Process Protection',  // ← ДОБАВИ ТОВА
+  href: '/process',
+  icon: ShieldAlert,
+},
+  {
     label: 'Updates',
     href: '/updates',
     icon: RefreshCw,
