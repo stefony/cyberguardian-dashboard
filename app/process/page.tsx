@@ -467,7 +467,7 @@ export default function ProcessProtectionPage() {
         )}
 
         {/* Recommendations */}
-        {status && status.recommendations.length > 0 && (
+        {status && status.recommendations && status.recommendations.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -512,7 +512,7 @@ export default function ProcessProtectionPage() {
         )}
 
         {/* All Good Message */}
-        {status && status.recommendations.length === 0 && (
+       {status && (!status.recommendations || status.recommendations.length === 0) && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
