@@ -50,16 +50,16 @@ export default function ProcessProtectionPage() {
   const fetchData = async (showRefreshing = false) => {
     if (showRefreshing) setRefreshing(true);
     
-    try {
-      const [statusRes, statsRes] = await Promise.all([
-        processProtectionApi.getStatus(),
-        processProtectionApi.getStatistics()
-      ]);
+  try {
+  const [statusRes, statsRes] = await Promise.all([
+    processProtectionApi.getStatus(),
+    processProtectionApi.getStatistics()
+  ]);
 
-      if (statusRes.success) setStatus(statusRes.data);
-      if (statsRes.success) setStatistics(statsRes.data);
+  if (statusRes.success && statusRes.data) setStatus(statusRes.data);
+  if (statsRes.success && statsRes.data) setStatistics(statsRes.data);
 
-    } catch (error) {
+} catch (error) {
       console.error('Error fetching process protection data:', error);
     } finally {
       setLoading(false);
