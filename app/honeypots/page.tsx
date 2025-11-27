@@ -113,12 +113,26 @@ export default function HoneypotsPage() {
   }
 
   const getHoneypotColor = (type: string) => {
-    return type === 'ssh' ? 'text-cyan-400' : 'text-purple-400'
+  const colors: Record<string, string> = {
+    ssh: 'text-cyan-400',
+    http: 'text-purple-400',
+    ftp: 'text-green-400',
+    telnet: 'text-orange-400',
+    mysql: 'text-blue-400'
   }
+  return colors[type] || 'text-gray-400'
+}
 
-  const getHoneypotBg = (type: string) => {
-    return type === 'ssh' ? 'bg-cyan-500/10 border-cyan-500/20' : 'bg-purple-500/10 border-purple-500/20'
+const getHoneypotBg = (type: string) => {
+  const backgrounds: Record<string, string> = {
+    ssh: 'bg-cyan-500/10 border-cyan-500/20',
+    http: 'bg-purple-500/10 border-purple-500/20',
+    ftp: 'bg-green-500/10 border-green-500/20',
+    telnet: 'bg-orange-500/10 border-orange-500/20',
+    mysql: 'bg-blue-500/10 border-blue-500/20'
   }
+  return backgrounds[type] || 'bg-gray-500/10 border-gray-500/20'
+}
 
   // Loading skeleton
   if (loading) {
@@ -208,7 +222,7 @@ export default function HoneypotsPage() {
           </div>
           <h3 className="text-sm text-dark-text/70 mb-1">Active Honeypots</h3>
           <p className="text-2xl font-bold text-green-500">
-            <CountUp end={stats?.active_honeypots || 0} duration={2} />/2
+            <CountUp end={stats?.active_honeypots || 0} duration={2} />/5
           </p>
         </motion.div>
 
@@ -267,8 +281,12 @@ export default function HoneypotsPage() {
             transition={{ duration: 0.4, delay: 0.5 + index * 0.1 }}
             whileHover={{ scale: 1.01, y: -4 }}
             className={`p-6 rounded-xl border transition-all duration-300 ${getHoneypotBg(honeypot.type)} hover:shadow-xl ${
-              honeypot.type === 'ssh' ? 'hover:shadow-cyan-500/20' : 'hover:shadow-purple-500/20'
-            }`}
+  honeypot.type === 'ssh' ? 'hover:shadow-cyan-500/20' :
+  honeypot.type === 'http' ? 'hover:shadow-purple-500/20' :
+  honeypot.type === 'ftp' ? 'hover:shadow-green-500/20' :
+  honeypot.type === 'telnet' ? 'hover:shadow-orange-500/20' :
+  honeypot.type === 'mysql' ? 'hover:shadow-blue-500/20' : 'hover:shadow-gray-500/20'
+}`}
           >
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -421,10 +439,13 @@ export default function HoneypotsPage() {
                         <motion.span
                           whileHover={{ scale: 1.05 }}
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                            attack.honeypot_type === 'ssh'
-                              ? 'bg-cyan-500/20 text-cyan-400'
-                              : 'bg-purple-500/20 text-purple-400'
-                          }`}
+  attack.honeypot_type === 'ssh' ? 'bg-cyan-500/20 text-cyan-400' :
+  attack.honeypot_type === 'http' ? 'bg-purple-500/20 text-purple-400' :
+  attack.honeypot_type === 'ftp' ? 'bg-green-500/20 text-green-400' :
+  attack.honeypot_type === 'telnet' ? 'bg-orange-500/20 text-orange-400' :
+  attack.honeypot_type === 'mysql' ? 'bg-blue-500/20 text-blue-400' :
+  'bg-gray-500/20 text-gray-400'
+}`}
                         >
                           {attack.honeypot_type.toUpperCase()}
                         </motion.span>
