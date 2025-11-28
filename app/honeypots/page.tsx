@@ -112,14 +112,16 @@ export default function HoneypotsPage() {
     return date.toLocaleString()
   }
 
- const getHoneypotColor = (type: string) => {
+const getHoneypotColor = (type: string) => {
   const colors: Record<string, string> = {
     ssh: 'text-cyan-400',
     http: 'text-purple-400',
     ftp: 'text-green-400',
     telnet: 'text-orange-400',
     mysql: 'text-blue-400',
-    redis: 'text-red-400'  // 🆕 ДОБАВИ ТОЗИ РЕД
+    redis: 'text-red-400',
+    elasticsearch: 'text-yellow-400',  // 🆕 ДОБАВИ ТОЗИ РЕД
+    mongodb: 'text-lime-400'           // 🆕 ДОБАВИ ТОЗИ РЕД
   }
   return colors[type] || 'text-gray-400'
 }
@@ -131,7 +133,9 @@ const getHoneypotBg = (type: string) => {
     ftp: 'bg-green-500/10 border-green-500/20',
     telnet: 'bg-orange-500/10 border-orange-500/20',
     mysql: 'bg-blue-500/10 border-blue-500/20',
-    redis: 'bg-red-500/10 border-red-500/20'  // 🆕 ДОБАВИ ТОЗИ РЕД
+    redis: 'bg-red-500/10 border-red-500/20',
+    elasticsearch: 'bg-yellow-500/10 border-yellow-500/20',  // 🆕 ДОБАВИ
+    mongodb: 'bg-lime-500/10 border-lime-500/20'             // 🆕 ДОБАВИ
   }
   return backgrounds[type] || 'bg-gray-500/10 border-gray-500/20'
 }
@@ -224,7 +228,7 @@ const getHoneypotBg = (type: string) => {
           </div>
           <h3 className="text-sm text-dark-text/70 mb-1">Active Honeypots</h3>
           <p className="text-2xl font-bold text-green-500">
-            <CountUp end={stats?.active_honeypots || 0} duration={2} />/6
+            <CountUp end={stats?.active_honeypots || 0} duration={2} />/8
           </p>
         </motion.div>
 
@@ -288,7 +292,9 @@ const getHoneypotBg = (type: string) => {
   honeypot.type === 'ftp' ? 'hover:shadow-green-500/20' :
   honeypot.type === 'telnet' ? 'hover:shadow-orange-500/20' :
   honeypot.type === 'mysql' ? 'hover:shadow-blue-500/20' :
-  honeypot.type === 'redis' ? 'hover:shadow-red-500/20' :  // 🆕 ДОБАВИ
+  honeypot.type === 'redis' ? 'hover:shadow-red-500/20' :
+  honeypot.type === 'elasticsearch' ? 'hover:shadow-yellow-500/20' :  // 🆕 ДОБАВИ
+  honeypot.type === 'mongodb' ? 'hover:shadow-lime-500/20' :          // 🆕 ДОБАВИ
   'hover:shadow-gray-500/20'
 }`}
           >
@@ -442,13 +448,15 @@ const getHoneypotBg = (type: string) => {
                       <div className="flex items-center gap-3 mb-2">
                         <motion.span
                           whileHover={{ scale: 1.05 }}
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${
+className={`px-3 py-1 rounded-full text-xs font-semibold ${
   attack.honeypot_type === 'ssh' ? 'bg-cyan-500/20 text-cyan-400' :
   attack.honeypot_type === 'http' ? 'bg-purple-500/20 text-purple-400' :
   attack.honeypot_type === 'ftp' ? 'bg-green-500/20 text-green-400' :
   attack.honeypot_type === 'telnet' ? 'bg-orange-500/20 text-orange-400' :
   attack.honeypot_type === 'mysql' ? 'bg-blue-500/20 text-blue-400' :
-  attack.honeypot_type === 'redis' ? 'bg-red-500/20 text-red-400' :  // 🆕 ДОБАВИ
+  attack.honeypot_type === 'redis' ? 'bg-red-500/20 text-red-400' :
+  attack.honeypot_type === 'elasticsearch' ? 'bg-yellow-500/20 text-yellow-400' :  // 🆕 ДОБАВИ
+  attack.honeypot_type === 'mongodb' ? 'bg-lime-500/20 text-lime-400' :            // 🆕 ДОБАВИ
   'bg-gray-500/20 text-gray-400'
 }`}
                         >
