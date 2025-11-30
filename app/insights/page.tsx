@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { Brain, TrendingUp, AlertCircle, Lightbulb, Activity, Shield } from "lucide-react";
-import { aiApi } from "@/lib/api"; 
+import { aiApi } from "@/lib/api";
+import LiveThreatFeed from "@/components/LiveThreatFeed";
 
 // Types
 type Prediction = {
@@ -109,168 +110,179 @@ export default function AIInsightsPage() {
         </div>
       </div>
 
-      {/* Status Cards */}
-      {status && (
-        <div className="section">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Brain className="h-5 w-5 text-purple-500" />
-                <div className="text-sm text-muted-foreground">AI Engine</div>
-              </div>
-              <div className="text-2xl font-bold text-purple-500">
-                {status.ai_engine_status}
-              </div>
-            </div>
-
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Shield className="h-5 w-5 text-blue-500" />
-                <div className="text-sm text-muted-foreground">Models Loaded</div>
-              </div>
-              <div className="text-2xl font-bold text-blue-500">
-                {status.models_loaded}
-              </div>
-            </div>
-
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <Activity className="h-5 w-5 text-green-500" />
-                <div className="text-sm text-muted-foreground">Accuracy</div>
-              </div>
-              <div className="text-2xl font-bold text-green-500">
-                {status.predictions_accuracy}%
-              </div>
-            </div>
-
-            <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30">
-              <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="h-5 w-5 text-cyan-500" />
-                <div className="text-sm text-muted-foreground">Predictions</div>
-              </div>
-              <div className="text-2xl font-bold text-cyan-500">
-                {predictions.length}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Risk Score */}
-      {riskScore && (
-        <div className="section">
-          <div className="card-premium p-6">
-            <h2 className="text-xl font-semibold mb-6">Overall Risk Score</h2>
-            <div className="flex items-center gap-8 mb-6">
-              <div className="text-center">
-                <div className={`text-6xl font-bold ${getRiskColor(riskScore.overall_score)}`}>
-                  {riskScore.overall_score}
+      {/* Main Content with Sidebar Layout */}
+      <div className="section">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          {/* Left Column - Main Content */}
+          <div className="lg:col-span-8 space-y-6">
+            
+            {/* Status Cards */}
+            {status && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-purple-500/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Brain className="h-5 w-5 text-purple-500" />
+                    <div className="text-sm text-muted-foreground">AI Engine</div>
+                  </div>
+                  <div className="text-2xl font-bold text-purple-500">
+                    {status.ai_engine_status}
+                  </div>
                 </div>
-                <div className="text-sm text-muted-foreground mt-2">Risk Level</div>
+
+                <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Shield className="h-5 w-5 text-blue-500" />
+                    <div className="text-sm text-muted-foreground">Models Loaded</div>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-500">
+                    {status.models_loaded}
+                  </div>
+                </div>
+
+                <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-green-500/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Activity className="h-5 w-5 text-green-500" />
+                    <div className="text-sm text-muted-foreground">Accuracy</div>
+                  </div>
+                  <div className="text-2xl font-bold text-green-500">
+                    {status.predictions_accuracy}%
+                  </div>
+                </div>
+
+                <div className="card-premium p-5 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/30">
+                  <div className="flex items-center gap-3 mb-2">
+                    <TrendingUp className="h-5 w-5 text-cyan-500" />
+                    <div className="text-sm text-muted-foreground">Predictions</div>
+                  </div>
+                  <div className="text-2xl font-bold text-cyan-500">
+                    {predictions.length}
+                  </div>
+                </div>
               </div>
-              <div className="flex-1">
-                <div className="space-y-3">
-                  {Object.entries(riskScore.factors).map(([factor, score]) => (
-                    <div key={factor}>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span className="capitalize">{factor.replace(/_/g, " ")}</span>
-                        <span className={getRiskColor(score)}>{score}</span>
+            )}
+
+            {/* Risk Score */}
+            {riskScore && (
+              <div className="card-premium p-6">
+                <h2 className="text-xl font-semibold mb-6">Overall Risk Score</h2>
+                <div className="flex items-center gap-8 mb-6">
+                  <div className="text-center">
+                    <div className={`text-6xl font-bold ${getRiskColor(riskScore.overall_score)}`}>
+                      {riskScore.overall_score}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">Risk Level</div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="space-y-3">
+                      {Object.entries(riskScore.factors).map(([factor, score]) => (
+                        <div key={factor}>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span className="capitalize">{factor.replace(/_/g, " ")}</span>
+                            <span className={getRiskColor(score)}>{score}</span>
+                          </div>
+                          <div className="h-2 bg-card rounded-full overflow-hidden">
+                            <div
+                              className={`h-full transition-all ${
+                                score >= 75 ? "bg-red-500" :
+                                score >= 50 ? "bg-orange-500" :
+                                score >= 25 ? "bg-yellow-500" : "bg-green-500"
+                              }`}
+                              style={{ width: `${score}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Threat Predictions */}
+            <div className="card-premium p-6">
+              <h2 className="text-xl font-semibold mb-6">Threat Predictions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {predictions.map((pred, idx) => (
+                  <div key={idx} className="card-premium p-4 transition-all duration-300 hover:scale-105">
+                    <div className="flex items-start justify-between mb-3">
+                      <h3 className="font-semibold">{pred.threat_type}</h3>
+                      <span className={`text-2xl font-bold ${getSeverityColor(pred.severity)}`}>
+                        {Math.round(pred.probability * 100)}%
+                      </span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Timeframe</span>
+                        <span>{pred.timeframe}</span>
                       </div>
-                      <div className="h-2 bg-card rounded-full overflow-hidden">
-                        <div
-                          className={`h-full transition-all ${
-                            score >= 75 ? "bg-red-500" :
-                            score >= 50 ? "bg-orange-500" :
-                            score >= 25 ? "bg-yellow-500" : "bg-green-500"
-                          }`}
-                          style={{ width: `${score}%` }}
-                        />
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Confidence</span>
+                        <span>{Math.round(pred.confidence * 100)}%</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Severity</span>
+                        <span className={`badge ${
+                          pred.severity === "critical" ? "badge--err" :
+                          pred.severity === "high" ? "badge--warn" :
+                          pred.severity === "medium" ? "badge--info" : "badge--ok"
+                        }`}>
+                          {pred.severity}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      {/* Threat Predictions */}
-      <div className="section">
-        <div className="card-premium p-6">
-          <h2 className="text-xl font-semibold mb-6">Threat Predictions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {predictions.map((pred, idx) => (
-              <div key={idx} className="card-premium p-4 transition-all duration-300 hover:scale-105">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-semibold">{pred.threat_type}</h3>
-                  <span className={`text-2xl font-bold ${getSeverityColor(pred.severity)}`}>
-                    {Math.round(pred.probability * 100)}%
-                  </span>
-                </div>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Timeframe</span>
-                    <span>{pred.timeframe}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Confidence</span>
-                    <span>{Math.round(pred.confidence * 100)}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Severity</span>
-                    <span className={`badge ${
-                      pred.severity === "critical" ? "badge--err" :
-                      pred.severity === "high" ? "badge--warn" :
-                      pred.severity === "medium" ? "badge--info" : "badge--ok"
-                    }`}>
-                      {pred.severity}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* AI Recommendations */}
-      <div className="section">
-        <div className="card-premium p-6">
-          <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-yellow-500" />
-            AI Recommendations
-          </h2>
-          <div className="space-y-4">
-            {recommendations.map((rec) => (
-              <div key={rec.id} className="card-premium p-5 transition-all duration-300 hover:shadow-lg">
-                <div className="flex items-start gap-4">
-                  <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-1 ${
-                    rec.priority === "critical" ? "text-red-500" :
-                    rec.priority === "high" ? "text-orange-500" :
-                    rec.priority === "medium" ? "text-yellow-500" : "text-blue-500"
-                  }`} />
-                  <div className="flex-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold text-lg">{rec.title}</h3>
-                        <div className="flex gap-2 mt-1">
-                          <span className={getPriorityBadge(rec.priority)}>
-                            {rec.priority}
-                          </span>
-                          <span className="badge">{rec.category}</span>
+            {/* AI Recommendations */}
+            <div className="card-premium p-6">
+              <h2 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-yellow-500" />
+                AI Recommendations
+              </h2>
+              <div className="space-y-4">
+                {recommendations.map((rec) => (
+                  <div key={rec.id} className="card-premium p-5 transition-all duration-300 hover:shadow-lg">
+                    <div className="flex items-start gap-4">
+                      <AlertCircle className={`h-5 w-5 flex-shrink-0 mt-1 ${
+                        rec.priority === "critical" ? "text-red-500" :
+                        rec.priority === "high" ? "text-orange-500" :
+                        rec.priority === "medium" ? "text-yellow-500" : "text-blue-500"
+                      }`} />
+                      <div className="flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="font-semibold text-lg">{rec.title}</h3>
+                            <div className="flex gap-2 mt-1">
+                              <span className={getPriorityBadge(rec.priority)}>
+                                {rec.priority}
+                              </span>
+                              <span className="badge">{rec.category}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-muted-foreground mb-2">{rec.description}</p>
+                        <div className="text-sm text-green-400">
+                          <strong>Impact:</strong> {rec.impact}
                         </div>
                       </div>
                     </div>
-                    <p className="text-muted-foreground mb-2">{rec.description}</p>
-                    <div className="text-sm text-green-400">
-                      <strong>Impact:</strong> {rec.impact}
-                    </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
+            </div>
+
           </div>
+
+          {/* Right Sidebar - Live Threat Feed */}
+          <div className="lg:col-span-4">
+            <div className="lg:sticky lg:top-6">
+              <LiveThreatFeed />
+            </div>
+          </div>
+
         </div>
       </div>
     </main>
