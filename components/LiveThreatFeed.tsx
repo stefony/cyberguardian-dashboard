@@ -162,7 +162,13 @@ export default function LiveThreatFeed() {
       </div>
 
       {/* Events list */}
-      <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+      <div 
+        className="flex-1 overflow-y-auto space-y-2 pr-2" 
+        style={{
+          scrollbarWidth: 'thin',
+          scrollbarColor: '#6366f1 #1e293b'
+        }}
+      >
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-muted-foreground">Loading events...</div>
