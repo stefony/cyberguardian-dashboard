@@ -114,7 +114,7 @@ export default function LiveThreatFeed() {
   };
 
   return (
-    <div className="card-premium p-6 h-[600px] flex flex-col">
+    <div className="card-premium p-6 h-[800px] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
