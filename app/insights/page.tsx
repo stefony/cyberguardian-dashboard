@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Brain, TrendingUp, AlertCircle, Lightbulb, Activity, Shield } from "lucide-react";
+import { Brain, TrendingUp, AlertCircle, Lightbulb, Activity, Shield, FileText } from "lucide-react";
 import { aiApi } from "@/lib/api";
 import LiveThreatFeed from "@/components/LiveThreatFeed";
+import ReportGenerator from "@/components/ReportGenerator";
 
 // Types
 type Prediction = {
@@ -42,6 +43,7 @@ export default function AIInsightsPage() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [status, setStatus] = useState<AIStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   useEffect(() => {
    const fetchData = async () => {
@@ -100,13 +102,22 @@ export default function AIInsightsPage() {
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
-        <div>
-          <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
-            AI Insights
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            AI-powered threat predictions and intelligent security recommendations
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="heading-accent gradient-cyber text-3xl md:text-4xl font-bold tracking-tight">
+              AI Insights
+            </h1>
+            <p className="mt-2 text-muted-foreground">
+              AI-powered threat predictions and intelligent security recommendations
+            </p>
+          </div>
+          <button
+            onClick={() => setIsReportModalOpen(true)}
+            className="btn btn--accent flex items-center gap-2 hover:scale-105 transition-transform"
+          >
+            <FileText className="h-5 w-5" />
+            Generate Report
+          </button>
         </div>
       </div>
 
@@ -285,6 +296,12 @@ export default function AIInsightsPage() {
 
         </div>
       </div>
+
+      {/* Report Generator Modal */}
+      <ReportGenerator 
+        isOpen={isReportModalOpen} 
+        onClose={() => setIsReportModalOpen(false)} 
+      />
     </main>
   );
 }

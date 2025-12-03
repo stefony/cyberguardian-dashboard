@@ -2006,6 +2006,73 @@ export const processMonitorApi = {
 }
 
 // ============================================
+// REPORTS API
+// ============================================
+
+export const reportsApi = {
+  /**
+   * Get available report types
+   */
+  getReportTypes: async (): Promise<ApiResponse<{
+    report_types: Array<{
+      id: string
+      name: string
+      description: string
+      suitable_for: string[]
+    }>
+  }>> => {
+    return client.get<any>('/api/reports/types')
+  },
+
+  /**
+   * Get reports status
+   */
+  getStatus: async (): Promise<ApiResponse<{
+    available_reports: string[]
+    description: string
+  }>> => {
+    return client.get<any>('/api/reports/status')
+  },
+
+  /**
+   * Generate compliance report and download PDF
+   */
+  generateReport: async (data: {
+    report_type: string
+    date_from?: string | null
+    date_to?: string | null
+  }): Promise<Blob> => {
+    try {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null
+      
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      }
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/reports/generate`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Report generation failed: ${response.statusText}`)
+      }
+
+      // Return PDF blob for download
+      return await response.blob()
+    } catch (error) {
+      console.error('Report generation error:', error)
+      throw error
+    }
+  },
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 export const api = {
@@ -2029,7 +2096,8 @@ export const api = {
   profiles: profilesApi, 
   remediation: remediationApi,
   processProtection: processProtectionApi,
-  processMonitor: processMonitorApi,  // ← ДОБАВЕН
+  processMonitor: processMonitorApi,  
+  reports: reportsApi,  
 }
 
 export default api
