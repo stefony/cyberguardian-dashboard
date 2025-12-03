@@ -88,10 +88,10 @@ export default function ReportGenerator({ isOpen, onClose }: ReportGeneratorProp
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="relative w-full max-w-2xl mx-4 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-lg shadow-2xl flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div className="flex items-center justify-between p-6 border-b border-slate-700 flex-shrink-0">
           <div className="flex items-center gap-3">
             <FileText className="w-6 h-6 text-blue-400" />
             <h2 className="text-xl font-bold text-white">Generate Compliance Report</h2>
@@ -105,8 +105,8 @@ export default function ReportGenerator({ isOpen, onClose }: ReportGeneratorProp
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6">
+        {/* Content - Scrollable */}
+        <div className="p-6 space-y-6 overflow-y-auto flex-1">
           {/* Report Type Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-3">
@@ -164,8 +164,8 @@ export default function ReportGenerator({ isOpen, onClose }: ReportGeneratorProp
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-700">
+        {/* Footer - Fixed at bottom */}
+        <div className="flex items-center justify-end gap-3 p-6 border-t border-slate-700 flex-shrink-0">
           <button
             onClick={onClose}
             disabled={isGenerating}
