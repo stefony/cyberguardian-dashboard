@@ -29,6 +29,7 @@ import {
   RefreshCw,      // Updates
   FileJson,       // Configuration
   Gauge,          // Performance
+  TrendingUp,
 } from 'lucide-react'
 
 interface SubItem {
@@ -49,6 +50,11 @@ const navItems: NavItem[] = [
     label: 'Dashboard',
     href: '/',
     icon: Activity,
+  },
+  {
+    label: 'Executive',           // ← ДОБАВИ ТОВА
+    href: '/executive',
+    icon: TrendingUp,
   },
   {
     label: 'Threats',

@@ -2073,6 +2073,72 @@ export const reportsApi = {
 }
 
 // ============================================
+// EXECUTIVE DASHBOARD API
+// ============================================
+
+export const executiveApi = {
+  /**
+   * Get executive overview with all KPIs
+   */
+  getOverview: async (): Promise<ApiResponse<{
+    success: boolean
+    kpis: {
+      security_score: number
+      threats_blocked: number
+      money_saved: number
+      mttr_minutes: number
+      mttd_minutes: number
+      active_honeypots: number
+      ai_accuracy: number
+    }
+    statistics: {
+      total_threats: number
+      critical_threats: number
+      block_rate: number
+    }
+    generated_at: string
+  }>> => {
+    return client.get<any>('/api/executive/overview')
+  },
+
+  /**
+   * Get executive trends for charts
+   */
+  getTrends: async (days?: number): Promise<ApiResponse<{
+    success: boolean
+    trends: {
+      timeline: Array<{ date: string; threats: number }>
+      threat_distribution: Array<{ type: string; count: number }>
+      severity_distribution: Array<{ severity: string; count: number }>
+    }
+    period_days: number
+  }>> => {
+    return client.get<any>(`/api/executive/trends${days ? `?days=${days}` : ''}`)
+  },
+
+  /**
+   * Get risk analysis
+   */
+  getRiskAnalysis: async (): Promise<ApiResponse<{
+    success: boolean
+    risk_level: string
+    risk_score: number
+    factors: {
+      critical_threats: number
+      unresolved_threats: number
+    }
+    recommendations: Array<{
+      priority: string
+      title: string
+      description: string
+      action: string
+    }>
+  }>> => {
+    return client.get<any>('/api/executive/risk-analysis')
+  },
+}
+
+// ============================================
 // EXPORTS
 // ============================================
 export const api = {
@@ -2098,6 +2164,7 @@ export const api = {
   processProtection: processProtectionApi,
   processMonitor: processMonitorApi,  
   reports: reportsApi,  
+   executive: executiveApi,  
 }
 
 export default api
