@@ -90,6 +90,9 @@ private async fetch<T>(
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
+    if (token) {
+  headers['Authorization'] = `Bearer ${token}`;
+}
 
     // Add Authorization header if token exists
     console.log('🔑 Token check:', token ? 'EXISTS' : 'NULL');
