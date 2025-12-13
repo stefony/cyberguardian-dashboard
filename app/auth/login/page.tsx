@@ -53,7 +53,7 @@ export default function LoginPage() {
       console.log('✅ AuthContext login() called');
       console.log('✅ Redirecting to dashboard...');
       
-      router.push('/dashboard');
+      router.push('/');
       
       console.log('✅ Redirect initiated');
     } catch (err: any) {
