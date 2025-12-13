@@ -50,7 +50,7 @@ export default function LoginPage() {
       // Use setTimeout to allow state to update before navigation
       setTimeout(() => {
         router.push('/');
-      }, 100);
+      }, 500);
     } catch (err: any) {
       console.error('❌ Login error:', err);
       setError(err.message || 'An error occurred');
