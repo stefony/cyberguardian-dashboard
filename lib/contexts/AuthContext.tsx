@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     setLoading(false);
     console.log('🔵 Loading set to false');
-  }, [pathname]);
+  }, []);
 
   const login = (token: string, userData: User) => {
     console.log('🔵 AuthContext.login() called with:', { token: token.substring(0, 20) + '...', user: userData.email });
