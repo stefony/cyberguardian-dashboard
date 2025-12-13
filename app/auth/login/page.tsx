@@ -40,22 +40,17 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      console.log('✅ Login successful, saving token...');
+      console.log('✅ Login successful, calling AuthContext login...');
 
-      localStorage.setItem("access_token", data.access_token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-
-      console.log('✅ Token saved to localStorage');
-      console.log('✅ Calling AuthContext login()...');
-
+      // Call AuthContext login - it will handle localStorage
       login(data.access_token, data.user);
 
-      console.log('✅ AuthContext login() called');
-      console.log('✅ Redirecting to dashboard...');
-      
-      router.push('/');
-      
-      console.log('✅ Redirect initiated');
+      console.log('✅ Login complete, navigating...');
+
+      // Use setTimeout to allow state to update before navigation
+      setTimeout(() => {
+        router.push('/');
+      }, 100);
     } catch (err: any) {
       console.error('❌ Login error:', err);
       setError(err.message || 'An error occurred');
