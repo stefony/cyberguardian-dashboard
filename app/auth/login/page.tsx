@@ -35,18 +35,18 @@ export default function LoginPage() {
         throw new Error(data.detail || 'Login failed');
       }
 
-      // Save to localStorage immediately
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // Save to BOTH localStorage AND sessionStorage
+    localStorage.setItem('access_token', data.access_token);
+    localStorage.setItem('user', JSON.stringify(data.user));
 
-      sessionStorage.setItem('access_token', data.access_token);  // ← ADD
-      sessionStorage.setItem('user', JSON.stringify(data.user));  // ← ADD
+    sessionStorage.setItem('access_token', data.access_token);
+    sessionStorage.setItem('user', JSON.stringify(data.user));
 
-      // Then call AuthContext
-      login(data.access_token, data.user);
+    // Then call AuthContext
+    login(data.access_token, data.user);
 
-      // Force page reload to ensure localStorage is read
-      window.location.href = '/';
+    // Navigate without reload
+      router.push('/');  // ← САМО ТОВА!
       
     } catch (err: any) {
       console.error('❌ Login error:', err);
