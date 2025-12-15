@@ -39,6 +39,9 @@ export default function LoginPage() {
       localStorage.setItem('access_token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
 
+      sessionStorage.setItem('access_token', data.access_token);  // ← ADD
+      sessionStorage.setItem('user', JSON.stringify(data.user));  // ← ADD
+
       // Then call AuthContext
       login(data.access_token, data.user);
 

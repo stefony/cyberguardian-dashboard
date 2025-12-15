@@ -33,8 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('🔵 Current pathname:', pathname);
     
     // Check if user is logged in on mount
-    const token = localStorage.getItem('access_token');
-    const userData = localStorage.getItem('user');
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');  // ← CHANGE
+    const userData = localStorage.getItem('user') || sessionStorage.getItem('user');  // ← CHANGE
 
     console.log('🔵 Token from localStorage:', token ? 'EXISTS' : 'NULL');
     console.log('🔵 User from localStorage:', userData ? 'EXISTS' : 'NULL');
