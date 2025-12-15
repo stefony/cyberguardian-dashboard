@@ -84,7 +84,9 @@ private async fetch<T>(
 
   try {
    // Get JWT token from localStorage
-    const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+    const token = typeof window !== 'undefined' 
+  ? (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'))
+  : null;
     
     // Build headers with JWT token
     const headers: Record<string, string> = {
