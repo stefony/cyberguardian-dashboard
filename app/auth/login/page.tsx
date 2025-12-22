@@ -24,16 +24,43 @@ export default function LoginPage() {
     }
 
     try {
-      // TODO: Backend API integration (Day 3)
-      // For now, just validate format and redirect
-      console.log('License key:', licenseKey);
+      // Generate device ID (browser fingerprint)
+      const deviceId = `web-${navigator.userAgent.substring(0, 20).replace(/\s/g, '-')}`;
       
-      // Temporary: Store key and redirect
-      localStorage.setItem('license_key', licenseKey);
-      router.push('/dashboard');
+      // Call backend API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/license/activate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            license_key: licenseKey,
+            device_id: deviceId,
+            hostname: window.location.hostname
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Save token and license key
+        localStorage.setItem('auth_token', data.access_token);
+        localStorage.setItem('license_key', licenseKey);
+        localStorage.setItem('license_plan', data.plan);
+        
+        // Redirect to dashboard
+        router.push('/dashboard');
+      } else {
+        setError(data.detail || data.message || 'License activation failed');
+        setLoading(false);
+      }
       
     } catch (err) {
-      setError('License activation failed. Please try again.');
+      console.error('Activation error:', err);
+      setError('License activation failed. Please check your connection and try again.');
       setLoading(false);
     }
   };
