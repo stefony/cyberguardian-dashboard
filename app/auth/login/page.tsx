@@ -16,9 +16,9 @@ export default function LoginPage() {
     setLoading(true);
 
     // Validate format
-    const keyPattern = /^CG-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+    const keyPattern = /^CG-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{8}$/;
     if (!keyPattern.test(licenseKey)) {
-      setError('Invalid license key format. Expected: CG-XXXX-XXXX-XXXX-XXXX');
+      setError('Invalid license key format. Expected: CG-XXXX-XXXX-XXXX-XXXX-XXXXXXXX');
       setLoading(false);
       return;
     }
@@ -65,12 +65,12 @@ export default function LoginPage() {
               required
               value={licenseKey}
               onChange={(e) => setLicenseKey(e.target.value.toUpperCase())}
-              placeholder="CG-XXXX-XXXX-XXXX-XXXX"
-              pattern="CG-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}"
+              placeholder="CG-XXXX-XXXX-XXXX-XXXX-XXXXXXXX"
+              pattern="CG-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{8}"
               className="appearance-none relative block w-full px-4 py-3 border border-gray-600 placeholder-gray-400 text-white bg-gray-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent focus:z-10 sm:text-sm font-mono"
             />
             <p className="mt-2 text-xs text-gray-400">
-              Enter your 20-character license key
+            Enter your license key (31 characters)
             </p>
           </div>
 
