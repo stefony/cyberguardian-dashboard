@@ -39,13 +39,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('🔵 Token from localStorage:', token ? 'EXISTS' : 'NULL');
     console.log('🔵 User from localStorage:', userData ? 'EXISTS' : 'NULL');
 
-    if (token && userData) {
-      const parsedUser = JSON.parse(userData);
-      console.log('✅ Setting user:', parsedUser);
-      setUser(parsedUser);
-    } else {
-      console.log('❌ No token or user found');
+   if (token) {
+  if (userData) {
+    const parsedUser = JSON.parse(userData);
+    console.log('✅ Setting user:', parsedUser);
+    setUser(parsedUser);
+  } else {
+    // License-based auth without user object
+    const licenseKey = localStorage.getItem('license_key');
+    if (licenseKey) {
+      console.log('✅ Setting user from license');
+      setUser({
+        id: 'license-user',
+        email: 'license@user',
+        username: 'License User',
+        is_admin: false
+      });
     }
+  }
+} else {
+  console.log('❌ No token found');
+}
     
     setLoading(false);
     console.log('🔵 Loading set to false');
