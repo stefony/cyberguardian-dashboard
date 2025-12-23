@@ -134,6 +134,18 @@ export default function SettingsPage() {
   }
 };
 
+// Fetch email accounts
+const fetchEmailAccounts = async () => {
+  try {
+    const response = await emailsApi.getAccounts();
+    if (response.success && Array.isArray(response.data)) {
+      setEmailAccounts(response.data);
+    }
+  } catch (err) {
+    console.error("Error fetching email accounts:", err);
+  }
+};
+
   // Add email account
   const handleAddEmailAccount = async () => {
     if (!newEmailForm.email_address || !newEmailForm.password || !newEmailForm.provider) {
