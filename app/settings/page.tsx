@@ -108,27 +108,31 @@ export default function SettingsPage() {
 
   // Fetch license info
   const fetchLicenseInfo = async () => {
-    try {
-      const response = await settingsApi.getLicense();
-      if (response.success) {
-        setLicenseInfo(response.data || null);
-      }
-    } catch (err) {
-      console.error("Error fetching license info:", err);
+  try {
+    // Read from localStorage instead of API
+    const licenseKey = localStorage.getItem('license_key');
+    const licensePlan = localStorage.getItem('license_plan');
+    const licenseExpires = localStorage.getItem('license_expires');
+    
+    if (licenseKey && licensePlan) {
+      setLicenseInfo({
+        license_type: licensePlan.toUpperCase(),
+        status: 'active',
+        expires_at: licenseExpires,
+        features: [
+          'Real-time threat detection',
+          'Advanced AI analysis',
+          'Honeypot deception layer',
+          licensePlan === 'business' || licensePlan === 'enterprise' ? 'Unlimited scans' : 'Limited scans',
+          licensePlan === 'business' || licensePlan === 'enterprise' ? 'Priority support' : 'Basic support',
+          licensePlan === 'enterprise' ? 'Custom alerts' : ''
+        ].filter(Boolean)
+      });
     }
-  };
-
-  // Fetch email accounts
-  const fetchEmailAccounts = async () => {
-    try {
-      const response = await emailsApi.getAccounts();
-      if (response.success) {
-        setEmailAccounts(response.data || []);
-      }
-    } catch (err) {
-      console.error("Error fetching email accounts:", err);
-    }
-  };
+  } catch (err) {
+    console.error("Error fetching license info:", err);
+  }
+};
 
   // Add email account
   const handleAddEmailAccount = async () => {
