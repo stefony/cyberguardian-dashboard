@@ -21,19 +21,7 @@ type AppearanceSettings = {
   animations_enabled: boolean;
 };
 
-type SecuritySettings = {
-  auto_block_threats: boolean;
-  honeypots_enabled: boolean;
-  real_time_scanning: boolean;
-  quarantine_auto: boolean;
-};
 
-type Settings = {
-  notifications: NotificationSettings;
-  appearance: AppearanceSettings;
-  security: SecuritySettings;
-  last_updated: string;
-};
 
 type SystemInfo = {
   os: string;
@@ -480,59 +468,7 @@ const fetchEmailAccounts = async () => {
               </div>
             </div>
 
-            {/* Security */}
-            <div className="card-premium p-6 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Shield className="h-5 w-5 text-pink-500" />
-                Security
-              </h3>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Auto-Block Threats</div>
-                    <div className="text-sm text-muted-foreground">Automatically block detected threats</div>
-                  </div>
-                  <Toggle
-                    enabled={settings.security.auto_block_threats}
-                    onChange={() => updateSettings('security', 'auto_block_threats', !settings.security.auto_block_threats)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Honeypots Enabled</div>
-                    <div className="text-sm text-muted-foreground">Activate deception layer</div>
-                  </div>
-                  <Toggle
-                    enabled={settings.security.honeypots_enabled}
-                    onChange={() => updateSettings('security', 'honeypots_enabled', !settings.security.honeypots_enabled)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Real-time Scanning</div>
-                    <div className="text-sm text-muted-foreground">Continuous file monitoring</div>
-                  </div>
-                  <Toggle
-                    enabled={settings.security.real_time_scanning}
-                    onChange={() => updateSettings('security', 'real_time_scanning', !settings.security.real_time_scanning)}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="font-medium">Auto Quarantine</div>
-                    <div className="text-sm text-muted-foreground">Automatically quarantine threats</div>
-                  </div>
-                  <Toggle
-                    enabled={settings.security.quarantine_auto}
-                    onChange={() => updateSettings('security', 'quarantine_auto', !settings.security.quarantine_auto)}
-                  />
-                </div>
-              </div>
-            </div>
+            
 
             {/* Email Accounts */}
             <div className="card-premium p-6 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
