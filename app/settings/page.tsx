@@ -842,6 +842,14 @@ const fetchEmailAccounts = async () => {
                   License Information
                 </h3>
 
+                <div className="flex justify-between items-start">
+                <span className="text-muted-foreground">License Key</span>
+                <span className="font-mono text-xs text-cyan-400 break-all text-right max-w-xs">
+                 {localStorage.getItem('license_key') || 'N/A'}
+                </span>
+            </div>
+
+
                 <div className="space-y-3 text-sm mb-4">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">License Type</span>
