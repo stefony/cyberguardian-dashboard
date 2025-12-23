@@ -23,6 +23,12 @@ type AppearanceSettings = {
 
 
 
+type Settings = {
+  notifications: NotificationSettings;
+  appearance: AppearanceSettings;
+  last_updated: string;
+};
+
 type SystemInfo = {
   os: string;
   os_version: string;
@@ -468,7 +474,7 @@ const fetchEmailAccounts = async () => {
               </div>
             </div>
 
-            
+           
 
             {/* Email Accounts */}
             <div className="card-premium p-6 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20">
