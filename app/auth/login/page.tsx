@@ -47,10 +47,10 @@ export default function LoginPage() {
 
       if (response.ok && data.success) {
         // Save token and license key
-        localStorage.setItem('auth_token', data.access_token);
+        localStorage.setItem('access_token', data.access_token);
         localStorage.setItem('license_key', licenseKey);
         localStorage.setItem('license_plan', data.plan);
-        
+        localStorage.setItem('license_expires', data.expires_at);
         // Redirect to dashboard
         router.push('/dashboard');
       } else {
