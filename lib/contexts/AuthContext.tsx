@@ -10,6 +10,9 @@ interface User {
   full_name?: string;
   company?: string;
   is_admin: boolean;
+  is_license?: boolean;
+  license_key?: string;
+  plan?: string;
 }
 
 interface AuthContextType {
@@ -32,34 +35,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     console.log('🔵 AuthProvider useEffect - checking auth...');
     console.log('🔵 Current pathname:', pathname);
     
-    // Check if user is logged in on mount
-    const token = localStorage.getItem('access_token');
+    // Check for token (priority: access_token > token)
+    const token = localStorage.getItem('access_token') || localStorage.getItem('token');
     const userData = localStorage.getItem('user');
 
     console.log('🔵 Token from localStorage:', token ? 'EXISTS' : 'NULL');
     console.log('🔵 User from localStorage:', userData ? 'EXISTS' : 'NULL');
 
-   if (token) {
-  if (userData) {
-    const parsedUser = JSON.parse(userData);
-    console.log('✅ Setting user:', parsedUser);
-    setUser(parsedUser);
-  } else {
-    // License-based auth without user object
-    const licenseKey = localStorage.getItem('license_key');
-    if (licenseKey) {
-      console.log('✅ Setting user from license');
-      setUser({
-        id: 'license-user',
-        email: 'license@user',
-        username: 'License User',
-        is_admin: false
-      });
+    if (token) {
+      if (userData) {
+        // Regular email/password login
+        const parsedUser = JSON.parse(userData);
+        console.log('✅ Setting user from userData:', parsedUser);
+        setUser(parsedUser);
+      } else {
+        // License-based auth - create minimal user object
+        const licenseKey = localStorage.getItem('license_key');
+        const licensePlan = localStorage.getItem('license_plan');
+        
+        console.log('✅ Setting user from license-based auth');
+        console.log('   License Key:', licenseKey ? licenseKey.substring(0, 10) + '...' : 'NULL');
+        console.log('   License Plan:', licensePlan || 'NULL');
+        
+        setUser({
+          id: 'license-user',
+          email: 'license@user',
+          username: 'License User',
+          is_admin: false,
+          is_license: true,
+          license_key: licenseKey || undefined,
+          plan: licensePlan || undefined
+        });
+      }
+    } else {
+      console.log('❌ No token found - user will remain null');
     }
-  }
-} else {
-  console.log('❌ No token found');
-}
     
     setLoading(false);
     console.log('🔵 Loading set to false');
@@ -76,7 +86,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     console.log('🔵 AuthContext.logout() called');
     localStorage.removeItem('access_token');
+    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    localStorage.removeItem('license_key');
+    localStorage.removeItem('license_plan');
+    localStorage.removeItem('license_expires');
     setUser(null);
     window.location.href = '/auth/login';
   };
