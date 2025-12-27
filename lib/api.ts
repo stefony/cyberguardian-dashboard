@@ -926,7 +926,7 @@ export const emailsApi = {
     scan_interval_hours?: number
     folders_to_scan?: string
   }): Promise<ApiResponse<any>> => {
-    return client.post<any>('/api/emails/accounts/add', data)
+    return client.post<any>('/api/emails/accounts', data)  // ✅ FIXED - removed /add
   },
 
   /**
