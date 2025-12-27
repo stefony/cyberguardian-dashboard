@@ -246,21 +246,32 @@ const handleStartScan = async (profileKey: string) => {
           </div>
         </div>
 
-        {/* Path Info - NEW */}
-        <div className="p-6 bg-orange-500/10 border-2 border-orange-500/30 rounded-xl backdrop-blur-sm">
+        {/* Path Info - UPDATED */}
+        <div className="p-6 bg-green-500/10 border-2 border-green-500/30 rounded-xl backdrop-blur-sm">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
-              <Info className="w-5 h-5 text-orange-400" />
+            <div className="p-2 bg-green-500/20 rounded-lg flex-shrink-0">
+              <Info className="w-5 h-5 text-green-400" />
             </div>
             <div className="flex-1">
-              <h4 className="font-semibold text-orange-400 mb-1">Railway Backend Paths</h4>
+              <h4 className="font-semibold text-green-400 mb-1">✅ Windows & Linux Support</h4>
               <p className="text-sm text-gray-400 mb-2">
-                Scans run on Railway's Linux servers. Default scan target: <code className="px-1 py-0.5 bg-orange-500/20 text-orange-300 rounded font-mono text-xs">/tmp</code>
+                Smart path detection works on both platforms automatically.
               </p>
-              <div className="flex flex-wrap gap-1">
-                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded font-mono">/tmp</span>
-                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded font-mono">/app</span>
-                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded font-mono">/home</span>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <p className="text-xs text-green-300 mb-1">Windows:</p>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-300 rounded font-mono">C:\Users\...</span>
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-300 rounded font-mono">D:\Projects</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs text-green-300 mb-1">Linux:</p>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-300 rounded font-mono">/tmp</span>
+                    <span className="text-xs px-2 py-1 bg-green-500/20 text-green-300 rounded font-mono">/app</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
