@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
-import { Zap, Shield, Search, CheckCircle2, AlertCircle, Clock, Cpu, FileSearch } from 'lucide-react'
+import { Zap, Shield, Search, CheckCircle2, AlertCircle, Clock, Cpu, FileSearch, Info } from 'lucide-react'
 
 type Profile = {
   name: string
@@ -228,18 +228,41 @@ const handleStartScan = async (profileKey: string) => {
         })}
       </div>
 
-      {/* Info Box */}
-      <div className="p-6 bg-blue-500/10 border-2 border-blue-500/30 rounded-xl backdrop-blur-sm">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
-            <FileSearch className="w-5 h-5 text-blue-400" />
+      {/* Info Boxes */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Scan Info */}
+        <div className="p-6 bg-blue-500/10 border-2 border-blue-500/30 rounded-xl backdrop-blur-sm">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
+              <FileSearch className="w-5 h-5 text-blue-400" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-blue-400 mb-1">Scan Profiles</h4>
+              <p className="text-sm text-gray-400">
+                Choose a predefined scan profile to quickly start scanning with optimal settings. 
+                Quick scans are fast but limited, while Deep scans are comprehensive but take longer.
+              </p>
+            </div>
           </div>
-          <div className="flex-1">
-            <h4 className="font-semibold text-blue-400 mb-1">Scan Profiles</h4>
-            <p className="text-sm text-gray-400">
-              Choose a predefined scan profile to quickly start scanning with optimal settings. 
-              Quick scans are fast but limited, while Deep scans are comprehensive but take longer.
-            </p>
+        </div>
+
+        {/* Path Info - NEW */}
+        <div className="p-6 bg-orange-500/10 border-2 border-orange-500/30 rounded-xl backdrop-blur-sm">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
+              <Info className="w-5 h-5 text-orange-400" />
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-orange-400 mb-1">Railway Backend Paths</h4>
+              <p className="text-sm text-gray-400 mb-2">
+                Scans run on Railway's Linux servers. Default scan target: <code className="px-1 py-0.5 bg-orange-500/20 text-orange-300 rounded font-mono text-xs">/tmp</code>
+              </p>
+              <div className="flex flex-wrap gap-1">
+                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded font-mono">/tmp</span>
+                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded font-mono">/app</span>
+                <span className="text-xs px-2 py-1 bg-orange-500/20 text-orange-300 rounded font-mono">/home</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

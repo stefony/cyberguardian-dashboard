@@ -461,7 +461,7 @@ const loadHistory = async () => {
           </select>
         </div>
 
-        <div>
+       <div>
           <label className="block text-sm font-medium mb-1">
             Target Path
           </label>
@@ -476,6 +476,9 @@ const loadHistory = async () => {
             required
             style={{ pointerEvents: 'auto' }}
           />
+          <p className="text-xs text-orange-400 mt-1">
+            ⚠️ Use Linux paths: /tmp, /app, /home (Railway backend runs on Linux)
+          </p>
         </div>
 
         <div>
