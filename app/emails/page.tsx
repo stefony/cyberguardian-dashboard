@@ -20,20 +20,28 @@ export default function EmailsPage() {
 
   // Fetch email accounts
   const fetchEmailAccounts = async () => {
-    try {
-      const response = await emailsApi.getAccounts();
-      if (response.success && response.data) {
-        setEmailAccounts(response.data);
-        if (response.data.length > 0 && !selectedAccountId) {
-          setSelectedAccountId(response.data[0].id);
-        }
+  console.log('🔵 Fetching email accounts...');
+  try {
+    const response = await emailsApi.getAccounts();
+    console.log('🔵 API Response:', response);
+    
+    if (response.success && response.data) {
+      console.log('✅ Setting email accounts:', response.data);
+      setEmailAccounts(response.data);
+      if (response.data.length > 0 && !selectedAccountId) {
+        console.log('✅ Setting selected account ID:', response.data[0].id);
+        setSelectedAccountId(response.data[0].id);
       }
-    } catch (err) {
-      console.error("Error fetching email accounts:", err);
-    } finally {
-      setLoading(false);
+    } else {
+      console.log('❌ Response not successful:', response);
     }
-  };
+  } catch (err) {
+    console.error("❌ Error fetching email accounts:", err);
+  } finally {
+    console.log('🔵 Setting loading to false');
+    setLoading(false);
+  }
+};
 
   // Fetch status
   const fetchStatus = async () => {
