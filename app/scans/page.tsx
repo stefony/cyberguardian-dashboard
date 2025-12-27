@@ -46,13 +46,21 @@ export default function ScansPage() {
  const loadSchedules = async () => {
   try {
     const res = await scansApi.getSchedules();
+    console.log("🔵 Schedules response:", res);
+    
     if (res.success && res.data) {
-      setSchedules(Array.isArray(res.data) ? res.data : []);
+      // Handle both nested and direct array responses
+      const schedulesData = Array.isArray(res.data) 
+        ? res.data 
+        : (res.data as any)?.data || [];
+      
+      console.log("✅ Setting schedules:", schedulesData);
+      setSchedules(schedulesData);
     } else {
       setSchedules([]);
     }
   } catch (err) {
-    console.error("Error loading schedules:", err);
+    console.error("❌ Error loading schedules:", err);
     setSchedules([]);
   }
 };
