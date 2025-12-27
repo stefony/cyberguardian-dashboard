@@ -91,6 +91,32 @@ export default function ProtectionPage() {
     }
   };
 
+  const saveSettings = async (newAutoQuarantine?: boolean, newThreshold?: number) => {
+    try {
+      const pathList = paths
+        .split(";")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      console.log("💾 Saving settings:", {
+        enabled,
+        autoQuarantine: newAutoQuarantine ?? autoQuarantine,
+        threatThreshold: newThreshold ?? threatThreshold,
+      });
+
+      const res = await protectionApi.toggle(
+        enabled,  // Keep current enabled state
+        pathList,
+        newAutoQuarantine ?? autoQuarantine,
+        newThreshold ?? threatThreshold
+      );
+
+      console.log("✅ Settings saved:", res);
+    } catch (err) {
+      console.error("❌ Error saving settings:", err);
+    }
+  };
+
   const refresh = async () => {
     console.log("🔄 REFRESH CLICKED");
     setRefreshing(true);
@@ -99,14 +125,14 @@ export default function ProtectionPage() {
     setRefreshing(false);
   };
 
- const formatUptime = (seconds: number | null | undefined) => {
-  if (!seconds || isNaN(seconds)) return "00:00:00";
-  
-  const hours = Math.floor(seconds / 3600);
-  const minutes = Math.floor((seconds % 3600) / 60);
-  const secs = seconds % 60;
-  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-};
+  const formatUptime = (seconds: number | null | undefined) => {
+    if (!seconds || isNaN(seconds)) return "00:00:00";
+    
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
 
   const toggle = async () => {
     console.log("🔵 TOGGLE CLICKED!", {
@@ -304,7 +330,12 @@ export default function ProtectionPage() {
                   <input
                     type="checkbox"
                     checked={autoQuarantine}
-                    onChange={(e) => setAutoQuarantine(e.target.checked)}
+                    disabled={enabled}
+                    onChange={async (e) => {
+                      const newValue = e.target.checked;
+                      setAutoQuarantine(newValue);
+                      await saveSettings(newValue, undefined);
+                    }}
                     className="peer sr-only"
                   />
                   <div className={`
@@ -341,7 +372,11 @@ export default function ProtectionPage() {
                 <input
                   type="number"
                   value={threatThreshold}
-                  onChange={(e) => setThreatThreshold(Number(e.target.value))}
+                  onChange={async (e) => {
+                    const newValue = Number(e.target.value);
+                    setThreatThreshold(newValue);
+                    await saveSettings(undefined, newValue);
+                  }}
                   min={0}
                   max={100}
                   className="w-full px-3 py-1 rounded-lg bg-card border-2 border-border text-foreground focus:border-cyan-500 focus:outline-none relative z-50"
@@ -369,8 +404,8 @@ export default function ProtectionPage() {
                 <span className="text-sm text-muted-foreground">Files Scanned</span>
               </div>
               <div className="text-2xl font-bold text-blue-400">
-  {(stats.files_scanned || 0).toLocaleString()}
-</div>
+                {(stats.files_scanned || 0).toLocaleString()}
+              </div>
             </div>
 
             {/* Threats Detected */}
@@ -379,9 +414,9 @@ export default function ProtectionPage() {
                 <AlertTriangle className="h-4 w-4 text-red-400" />
                 <span className="text-sm text-muted-foreground">Threats Detected</span>
               </div>
-             <div className="text-2xl font-bold text-red-400">
-  {(stats.threats_detected || 0).toLocaleString()}
-</div>
+              <div className="text-2xl font-bold text-red-400">
+                {(stats.threats_detected || 0).toLocaleString()}
+              </div>
             </div>
 
             {/* Uptime */}
@@ -507,7 +542,7 @@ export default function ProtectionPage() {
         </div>
         <ExclusionsManager />
       </div>
-       {/* Sensitivity Profiles */}
+      {/* Sensitivity Profiles */}
       <div className="section">
         <div className="mb-6">
           <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
