@@ -330,11 +330,10 @@ export default function ProtectionPage() {
                   <input
                     type="checkbox"
                     checked={autoQuarantine}
-                    disabled={enabled}
                     onChange={async (e) => {
                       const newValue = e.target.checked;
                       setAutoQuarantine(newValue);
-                      await saveSettings(newValue, undefined);
+                      saveSettings(newValue, undefined);
                     }}
                     className="peer sr-only"
                   />
@@ -372,10 +371,10 @@ export default function ProtectionPage() {
                 <input
                   type="number"
                   value={threatThreshold}
-                  onChange={async (e) => {
+                   onChange={(e) => {
                     const newValue = Number(e.target.value);
                     setThreatThreshold(newValue);
-                    await saveSettings(undefined, newValue);
+                    saveSettings(undefined, newValue);
                   }}
                   min={0}
                   max={100}
