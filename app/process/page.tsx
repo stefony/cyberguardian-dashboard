@@ -87,6 +87,7 @@ export default function ProcessProtectionPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [scanningProcess, setScanningProcess] = useState<number | null>(null);
+  const [detectionMode, setDetectionMode] = useState<'production' | 'demo' | 'testing'>('demo');
 
 const fetchData = async (showRefreshing = false) => {
   if (showRefreshing) setRefreshing(true);
@@ -409,22 +410,33 @@ const fetchData = async (showRefreshing = false) => {
             className="bg-dark-card rounded-2xl shadow-xl overflow-hidden border border-dark-border"
           >
             <div className="px-8 py-6 border-b border-dark-border">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <BoltIcon className="h-6 w-6 text-cyan-500" />
-                  <h2 className="text-2xl font-bold text-dark-text">Advanced Monitoring</h2>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                    monitorStats.monitoring_active 
-                      ? 'bg-green-500/20 text-green-400' 
-                      : 'bg-gray-500/20 text-gray-400'
-                  }`}>
-                    {monitorStats.monitoring_active ? '🟢 Active' : '🔴 Inactive'}
-                  </span>
-                </div>
-              </div>
-            </div>
+  <div className="flex items-center justify-between">
+    <div className="flex items-center space-x-3">
+      <BoltIcon className="h-6 w-6 text-cyan-500" />
+      <h2 className="text-2xl font-bold text-dark-text">Advanced Monitoring</h2>
+    </div>
+    <div className="flex items-center space-x-3">
+      {/* Detection Mode Dropdown */}
+      <select
+        value={detectionMode}
+        onChange={(e) => setDetectionMode(e.target.value as any)}
+        className="px-4 py-2 rounded-lg bg-dark-bg border-2 border-dark-border text-dark-text font-semibold cursor-pointer hover:border-cyan-500 transition-colors"
+      >
+        <option value="production">Production Mode</option>
+        <option value="demo">Demo Mode</option>
+        <option value="testing">Testing Mode</option>
+      </select>
+      
+      <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+        monitorStats.monitoring_active 
+          ? 'bg-green-500/20 text-green-400' 
+          : 'bg-gray-500/20 text-gray-400'
+      }`}>
+        {monitorStats.monitoring_active ? '🟢 Active' : '🔴 Inactive'}
+      </span>
+    </div>
+  </div>
+</div>
 
             <div className="p-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
