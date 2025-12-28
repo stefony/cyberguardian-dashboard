@@ -88,6 +88,18 @@ export default function ProcessProtectionPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [scanningProcess, setScanningProcess] = useState<number | null>(null);
   const [detectionMode, setDetectionMode] = useState<'production' | 'demo' | 'testing'>('demo');
+  // ← ДОБАВИ ТАЗИ ФУНКЦИЯ ТУК:
+const handleModeChange = async (newMode: 'production' | 'demo' | 'testing') => {
+  try {
+    const response = await processMonitorApi.setDetectionMode(newMode);
+    if (response.success) {
+      setDetectionMode(newMode);
+      console.log(`✅ Detection mode changed to: ${newMode}`);
+    }
+  } catch (error) {
+    console.error('❌ Error changing detection mode:', error);
+  }
+};
 
 const fetchData = async (showRefreshing = false) => {
   if (showRefreshing) setRefreshing(true);
@@ -419,7 +431,7 @@ const fetchData = async (showRefreshing = false) => {
       {/* Detection Mode Dropdown */}
       <select
         value={detectionMode}
-        onChange={(e) => setDetectionMode(e.target.value as any)}
+        onChange={(e) => handleModeChange(e.target.value as any)}
         className="px-4 py-2 rounded-lg bg-dark-bg border-2 border-dark-border text-dark-text font-semibold cursor-pointer hover:border-cyan-500 transition-colors"
       >
         <option value="production">Production Mode</option>

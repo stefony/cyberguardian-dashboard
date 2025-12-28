@@ -2003,6 +2003,25 @@ export const processMonitorApi = {
   }>> => {
     return client.delete<any>('/api/process-monitor/threats')
   },
+
+  /**
+   * Set detection mode
+   */
+  setDetectionMode: async (mode: 'production' | 'demo' | 'testing'): Promise<ApiResponse<{
+    mode: string
+    message: string
+  }>> => {
+    return client.post<any>(`/api/process-monitor/set-mode?mode=${mode}`, {})
+  },
+
+  /**
+   * Get current detection mode
+   */
+  getDetectionMode: async (): Promise<ApiResponse<{
+    mode: string
+  }>> => {
+    return client.get<any>('/api/process-monitor/get-mode')
+  },
 }
 
 // ============================================
