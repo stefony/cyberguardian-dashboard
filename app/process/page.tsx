@@ -128,6 +128,12 @@ const fetchData = async (showRefreshing = false) => {
     
     if (processesRes.success && processesRes.data) setProcesses(processesRes.data.processes);
     if (threatsRes.success && threatsRes.data) setThreats(threatsRes.data.threats);
+    
+    // Load detection mode from backend
+    const modeRes = await processMonitorApi.getDetectionMode();
+    if (modeRes.success && modeRes.data?.mode) {
+      setDetectionMode(modeRes.data.mode as any);
+    }
 
   } catch (error) {
     console.error('Error fetching process data:', error);
