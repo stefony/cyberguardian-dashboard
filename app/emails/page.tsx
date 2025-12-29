@@ -6,6 +6,7 @@ import CountUp from "react-countup";
 import { Mail, Shield, AlertTriangle, RefreshCw, Trash2, Settings } from "lucide-react";
 import { emailsApi } from "@/lib/api";
 import Link from "next/link";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function EmailsPage() {
   const [emailAccounts, setEmailAccounts] = useState<any[]>([]);
@@ -100,6 +101,7 @@ export default function EmailsPage() {
   // Loading skeleton
   if (loading) {
     return (
+      <ProtectedRoute>
       <main className="pb-12">
         <div className="page-container page-hero pt-12 md:pt-16">
           <div className="animate-pulse space-y-8">
@@ -113,10 +115,12 @@ export default function EmailsPage() {
           </div>
         </div>
       </main>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute> 
     <motion.main
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -568,5 +572,6 @@ export default function EmailsPage() {
         </AnimatePresence>
       </div>
     </motion.main>
+    </ProtectedRoute>
   );
 }

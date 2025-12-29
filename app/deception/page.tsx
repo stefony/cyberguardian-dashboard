@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Shield, Activity, AlertTriangle, Eye, Power, PowerOff, Filter } from "lucide-react";
 import { deceptionApi } from "@/lib/api";
 import type { HoneypotResponse } from "@/lib/types";
-
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 
 export default function DeceptionPage() {
@@ -135,6 +135,7 @@ const toggleHoneypot = async (honeypot: HoneypotResponse) => {
   };
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -377,5 +378,6 @@ const toggleHoneypot = async (honeypot: HoneypotResponse) => {
         </div>
       </div>
     </main>
+    </ProtectedRoute>
   );
 }

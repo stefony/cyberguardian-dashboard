@@ -6,6 +6,7 @@ import CountUp from 'react-countup'
 import { RefreshCw, Activity, AlertTriangle, Shield, Globe, MapPin, Clock } from 'lucide-react'
 import { honeypotApi } from '@/lib/api'
 import HoneypotMap from '@/components/HoneypotMap'
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface HoneypotStatus {
   name: string
@@ -145,6 +146,7 @@ const getHoneypotBg = (type: string) => {
   // Loading skeleton
   if (loading) {
     return (
+        <ProtectedRoute>
       <div className="min-h-screen bg-dark-bg p-8">
         <div className="animate-pulse space-y-8">
           <div className="h-10 w-64 bg-muted/30 rounded"></div>
@@ -160,10 +162,12 @@ const getHoneypotBg = (type: string) => {
           </div>
         </div>
       </div>
+      </ProtectedRoute>
     )
   }
 
   return (
+    <ProtectedRoute>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -574,5 +578,6 @@ className={`px-3 py-1 rounded-full text-xs font-semibold ${
         </motion.div>
       )}
     </motion.div>
+    </ProtectedRoute>
   )
 }

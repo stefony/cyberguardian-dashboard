@@ -16,6 +16,7 @@ import {
 import FileScanner from '@/components/FileScanner'
 import { scansApi } from "@/lib/api";
 import ScanProfiles from '@/components/ScanProfiles'
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ScansPage() {
   const [schedules, setSchedules] = useState<any[]>([]);
@@ -175,15 +176,18 @@ const loadHistory = async () => {
 
   if (loading) {
     return (
+      <ProtectedRoute>
       <main className="pb-12">
         <div className="flex items-center justify-center h-screen">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
         </div>
       </main>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -550,5 +554,6 @@ const loadHistory = async () => {
   </div>
 )}
     </main>
+    </ProtectedRoute>
   );
 }

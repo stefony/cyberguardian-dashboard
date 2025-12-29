@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { quarantineApi } from "@/lib/api";
 import AutoPurgeSettings from "@/components/AutoPurgeSettings";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function QuarantinePage() {
   const [files, setFiles] = useState<any[]>([]);
@@ -135,6 +136,7 @@ export default function QuarantinePage() {
   // Loading Skeletons
   if (loading) {
     return (
+      <ProtectedRoute>
       <main className="pb-12">
         <div className="page-container page-hero pt-12 md:pt-16">
           <div className="animate-pulse space-y-8">
@@ -169,10 +171,12 @@ export default function QuarantinePage() {
           </div>
         </div>
       </main>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute>
     <motion.main
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -440,5 +444,6 @@ export default function QuarantinePage() {
         </div>
       </motion.div>
     </motion.main>
+    </ProtectedRoute>
   );
 }
