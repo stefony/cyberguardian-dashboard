@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Shield, Target, Info } from "lucide-react";
 import MITREMatrix from "@/components/threats/MITREMatrix";
 import MITREStats from "@/components/threats/MITREStats";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface Technique {
   id: number;
@@ -84,6 +85,7 @@ export default function MITREPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -196,5 +198,6 @@ export default function MITREPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   );
 }

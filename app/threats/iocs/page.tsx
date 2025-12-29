@@ -5,6 +5,7 @@ import { Shield, Database, AlertTriangle, TrendingUp } from "lucide-react";
 import IOCTable from "@/components/threats/IOCTable";
 import IOCFilters from "@/components/threats/IOCFilters";
 import IOCStats from "@/components/threats/IOCStats";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface IOC {
   id: number;
@@ -86,6 +87,7 @@ export default function IOCsPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -125,5 +127,6 @@ export default function IOCsPage() {
       {/* IOC Table */}
       <IOCTable iocs={iocs} loading={loading} />
     </div>
+    </ProtectedRoute>
   );
 }

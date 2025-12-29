@@ -3,6 +3,7 @@
 import { useState, ChangeEvent, useEffect, useCallback } from "react";
 import { Shield, Activity, Search, Upload, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
 import { detectionApi } from "@/lib/api";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Types
 type Scan = {
@@ -168,6 +169,7 @@ export default function DetectionPageV2() {
   };
 
   return (
+      <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -549,5 +551,6 @@ export default function DetectionPageV2() {
         </div>
       </div>
     </main>
+      </ProtectedRoute>
   );
 }

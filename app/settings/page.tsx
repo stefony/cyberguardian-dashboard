@@ -5,6 +5,7 @@ import { Settings as SettingsIcon, Bell, Palette, Shield, Info, Key, Save, Rotat
 import { settingsApi, emailsApi } from "@/lib/api"; 
 import ExportImportConfig from "@/components/ExportImportConfig";
 import { FileJson } from "lucide-react";
+import ProtectedRoute from '@/components/ProtectedRoute';
  
 
 // Types
@@ -304,10 +305,12 @@ const fetchEmailAccounts = async () => {
 
   if (isLoading) {
     return (
+      <ProtectedRoute>
       <main className="section text-center py-12">
         <SettingsIcon className="h-8 w-8 animate-spin mx-auto text-purple-500" />
         <p className="mt-4 text-muted-foreground">Loading settings...</p>
       </main>
+      </ProtectedRoute>
     );
   }
 
@@ -321,6 +324,7 @@ const fetchEmailAccounts = async () => {
   }
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -834,5 +838,6 @@ const fetchEmailAccounts = async () => {
         <ExportImportConfig />
       </div>
     </main>
+    </ProtectedRoute>
   );
 }

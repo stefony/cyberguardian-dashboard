@@ -5,6 +5,7 @@ import { threatsApi } from "@/lib/api";
 import type { ThreatResponse, ThreatStats } from "@/lib/types";
 import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
 import { useEffect, useState, useCallback } from "react";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // ✅ Add here
 function normalizeThreatList(resp: any): ThreatResponse[] {
@@ -325,6 +326,7 @@ export default function ThreatsPage() {
   };
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -752,5 +754,6 @@ export default function ThreatsPage() {
         </div>
       </div>
     </main>
+    </ProtectedRoute>
   );
 }

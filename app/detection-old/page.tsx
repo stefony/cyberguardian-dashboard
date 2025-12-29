@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback,useRef } from "react";
 import { Shield, Activity, Search, Upload, AlertTriangle, XCircle, ExternalLink } from "lucide-react";
 import { detectionApi } from "@/lib/api";
+import ProtectedRoute from '@/components/ProtectedRoute';
  
 
 // Types
@@ -178,6 +179,7 @@ const fileInputRef = useRef<HTMLInputElement>(null);
   };
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -486,5 +488,6 @@ const fileInputRef = useRef<HTMLInputElement>(null);
         </div>
       </div>
     </main>
+    </ProtectedRoute>
   );
 }

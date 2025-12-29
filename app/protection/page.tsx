@@ -16,6 +16,7 @@ import {
 import { protectionApi } from "@/lib/api";
 import ExclusionsManager from '@/components/ExclusionsManager'
 import SensitivityProfiles from '@/components/SensitivityProfiles'
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ProtectionPage() {
   const [enabled, setEnabled] = useState(false);
@@ -216,15 +217,18 @@ export default function ProtectionPage() {
 
   if (loading) {
     return (
+      <ProtectedRoute>
       <main className="pb-12">
         <div className="flex items-center justify-center h-screen">
           <RefreshCw className="h-8 w-8 animate-spin text-primary" />
         </div>
       </main>
+        </ProtectedRoute>
     );
   }
 
   return (
+      <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -559,5 +563,6 @@ export default function ProtectionPage() {
         <SensitivityProfiles />
       </div>
     </main>
+    </ProtectedRoute>
   );
 }

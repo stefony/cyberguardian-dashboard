@@ -12,6 +12,7 @@ import {
   Key,
   Sparkles,
 } from "lucide-react";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface Feed {
   id: number;
@@ -117,6 +118,7 @@ export default function ThreatFeedsPage() {
 
   if (loading) {
     return (
+      <ProtectedRoute>
       <div className="p-6 space-y-6">
         <div className="animate-pulse space-y-6">
           <div className="h-12 bg-gray-800/50 rounded w-64" />
@@ -127,10 +129,12 @@ export default function ThreatFeedsPage() {
           </div>
         </div>
       </div>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute>
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -417,5 +421,6 @@ export default function ThreatFeedsPage() {
         </div>
       )}
     </div>
+      </ProtectedRoute>
   );
 }

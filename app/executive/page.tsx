@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import { api } from "@/lib/api"
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Types
 type KPIs = {
@@ -140,6 +141,7 @@ export default function ExecutiveDashboardPage() {
   }
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -398,5 +400,6 @@ export default function ExecutiveDashboardPage() {
         </div>
       </div>
     </main>
+      </ProtectedRoute>
   )
 }
