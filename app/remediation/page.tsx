@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Activity
 } from "lucide-react"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function RemediationPage() {
   const router = useRouter()
@@ -133,6 +134,7 @@ export default function RemediationPage() {
   }
 
   return (
+    <ProtectedRoute>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -323,5 +325,6 @@ export default function RemediationPage() {
         </Card>
       </motion.div>
     </motion.div>
+    </ProtectedRoute>
   )
 }

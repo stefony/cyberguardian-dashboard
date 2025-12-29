@@ -5,6 +5,7 @@ import { BarChart3, TrendingUp, Shield, Activity, RefreshCw, Calendar } from "lu
 import WhatIfPanel from '@/components/WhatIfPanel'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { analyticsApi } from "@/lib/api"; 
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Types
 type OverviewStats = {
@@ -116,6 +117,7 @@ export default function AnalyticsPage() {
   };
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -312,5 +314,6 @@ export default function AnalyticsPage() {
         </>
       )}
     </main>
+      </ProtectedRoute>
   );
 }

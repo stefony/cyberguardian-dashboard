@@ -15,6 +15,7 @@ import {
   SparklesIcon,
   UserCircleIcon
 } from '@heroicons/react/24/outline';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -162,6 +163,7 @@ export default function UsersPage() {
 
   if (loading) {
     return (
+      <ProtectedRoute>
       <div className="flex items-center justify-center h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
         <div className="text-center">
           <div className="relative">
@@ -171,10 +173,12 @@ export default function UsersPage() {
           <p className="mt-6 text-green-300 text-lg font-semibold">Loading users...</p>
         </div>
       </div>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-6">
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -470,5 +474,6 @@ export default function UsersPage() {
         }
       `}</style>
     </div>
+      </ProtectedRoute>
   );
 }

@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { remediationApi } from "@/lib/api"
 import { useToast } from "@/hooks/use-toast"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface Service {
   id: string
@@ -231,6 +232,7 @@ export default function ServicesCleanupPage() {
   })
 
   return (
+    <ProtectedRoute>
     <div className="container mx-auto p-6 space-y-6">
       {/* Header with Gradient */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 via-pink-600 to-cyan-600 p-8">
@@ -502,5 +504,6 @@ export default function ServicesCleanupPage() {
         </AlertDescription>
       </Alert>
     </div>
+    </ProtectedRoute>
   )
 }

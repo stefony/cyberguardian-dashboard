@@ -31,6 +31,7 @@ import {
 } from "lucide-react";
 import { remediationApi } from "@/lib/api";
 import { toast } from "sonner";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface RegistryEntry {
   id: string;
@@ -246,6 +247,7 @@ export default function RegistryCleanupPage() {
   });
 
   return (
+    <ProtectedRoute>
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -606,5 +608,6 @@ export default function RegistryCleanupPage() {
         </Alert>
       </motion.div>
     </motion.div>
+      </ProtectedRoute>
   );
 }

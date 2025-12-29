@@ -28,6 +28,7 @@ import {
 } from "lucide-react"
 import { remediationApi } from "@/lib/api"
 import { toast } from "sonner"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface AnalysisResult {
   analysis_id: string
@@ -224,6 +225,7 @@ export default function DeepQuarantinePage() {
   }
 
   return (
+      <ProtectedRoute>
     <div className="container mx-auto p-6 space-y-6">
       {/* Header with Gradient */}
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 via-pink-600 to-purple-600 p-8">
@@ -569,5 +571,6 @@ export default function DeepQuarantinePage() {
         </AlertDescription>
       </Alert>
     </div>
+    </ProtectedRoute>
   )
 }
