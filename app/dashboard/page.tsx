@@ -16,9 +16,7 @@ import {
   CartesianGrid,
   Tooltip,
 } from "recharts";
-
-
-
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 
 /* ===== CountUp: анимира „изкачване" на числата ===== */
@@ -312,17 +310,20 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
+       <ProtectedRoute>
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
           <p className="text-slate-400">Loading dashboard...</p>
         </div>
       </div>
+      </ProtectedRoute>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <ProtectedRoute> 
+        <div className="p-6 space-y-6">
 {/* Hero Section - CYBER COMMAND CENTER */}
 <div className="relative overflow-hidden rounded-2xl p-1 group">
   {/* Animated border gradient */}
@@ -940,5 +941,6 @@ export default function DashboardPage() {
         onClose={() => setCurrentThreat(null)}
       />
     </div>
+    </ProtectedRoute> 
   );
 }

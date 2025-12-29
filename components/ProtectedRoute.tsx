@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/contexts/AuthContext';
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) { 
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [checkedAuth, setCheckedAuth] = useState(false);
