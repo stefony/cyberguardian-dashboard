@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Activity
 } from "lucide-react";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface IntegrityStats {
   total_checks: number;
@@ -246,6 +247,7 @@ export default function IntegrityMonitoringPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -536,5 +538,6 @@ export default function IntegrityMonitoringPage() {
 
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

@@ -5,6 +5,7 @@ import { Brain, TrendingUp, AlertCircle, Lightbulb, Activity, Shield, FileText }
 import { aiApi } from "@/lib/api";
 import LiveThreatFeed from "@/components/LiveThreatFeed";
 import ReportGenerator from "@/components/ReportGenerator";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Types
 type Prediction = {
@@ -99,6 +100,7 @@ export default function AIInsightsPage() {
   };
 
   return (
+    <ProtectedRoute>
     <main className="pb-12">
       {/* Hero */}
       <div className="page-container page-hero pt-12 md:pt-16">
@@ -303,5 +305,6 @@ export default function AIInsightsPage() {
         onClose={() => setIsReportModalOpen(false)} 
       />
     </main>
+    </ProtectedRoute>
   );
 }

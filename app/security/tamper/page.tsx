@@ -21,6 +21,7 @@ import {
   TrendingUp,
   Server
 } from "lucide-react";
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 interface ProtectionStatus {
   overall_status: string;
@@ -349,6 +350,7 @@ export default function TamperProtectionPage() {
   };
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-slate-900 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
@@ -729,5 +731,6 @@ export default function TamperProtectionPage() {
 
       </div>
     </div>
+    </ProtectedRoute>
   );
 }

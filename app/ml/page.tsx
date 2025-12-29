@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import CountUp from 'react-countup'
 import { RefreshCw, Brain, TrendingUp, CheckCircle, Zap, Activity, AlertTriangle } from 'lucide-react'
 import { mlApi } from '@/lib/api'
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 // ==== Types ====
 interface ModelStatus {
@@ -199,6 +200,7 @@ export default function MLPage() {
   // Loading skeleton
   if (loading) {
     return (
+      <ProtectedRoute>
       <div className="min-h-screen bg-dark-bg p-8">
         <div className="animate-pulse space-y-8">
           <div className="h-10 w-64 bg-muted/30 rounded"></div>
@@ -210,6 +212,7 @@ export default function MLPage() {
           <div className="h-64 bg-muted/20 rounded-xl"></div>
         </div>
       </div>
+      </ProtectedRoute>
     )
   }
 

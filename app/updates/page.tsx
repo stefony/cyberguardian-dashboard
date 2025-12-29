@@ -20,6 +20,7 @@ import {
   XCircleIcon,
   ClockIcon as ClockSolid
 } from '@heroicons/react/24/solid';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -203,6 +204,7 @@ export default function UpdatesPage() {
   // Loading skeleton
   if (loading) {
     return (
+      <ProtectedRoute>
       <div className="min-h-screen bg-dark-bg p-8">
         <div className="max-w-7xl mx-auto animate-pulse space-y-8">
           <div className="h-10 w-64 bg-muted/30 rounded"></div>
@@ -210,6 +212,7 @@ export default function UpdatesPage() {
           <div className="h-48 bg-muted/20 rounded-xl"></div>
         </div>
       </div>
+      </ProtectedRoute>
     );
   }
 
