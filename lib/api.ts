@@ -106,6 +106,9 @@ private async fetch<T>(
       });
     }
 
+   // 🔍 DEBUG: Log headers before fetch
+    console.log('🔍 FETCH:', endpoint, 'Token:', token ? 'EXISTS' : 'NULL', 'Headers:', headers);
+    
     const response = await fetch(`${this.baseUrl}${endpoint}`, {
       ...options,
       headers,
