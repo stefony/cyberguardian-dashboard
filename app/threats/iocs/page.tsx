@@ -6,7 +6,25 @@ import IOCTable from "@/components/threats/IOCTable";
 import IOCFilters from "@/components/threats/IOCFilters";
 import IOCStats from "@/components/threats/IOCStats";
 import ProtectedRoute from '@/components/ProtectedRoute';
-import api from '@/lib/api';
+
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
+  return response.json();
+};
 
 interface IOC {
   id: number;
@@ -54,8 +72,7 @@ export default function IOCsPage() {
       if (selectedSeverity !== "all") url += `&severity=${selectedSeverity}`;
       if (selectedSource !== "all") url += `&source=${selectedSource}`;
 
-      const response = await api.get<any>(url);
-      const data = response.data;
+      const data = await fetchWithAuth(url);
       
       if (data.success) {
         setIocs(data.iocs || []);
@@ -69,8 +86,7 @@ export default function IOCsPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get<any>('/api/threat-intel/statistics');
-      const data = response.data;
+      const data = await fetchWithAuth('/api/threat-intel/statistics');
       
       if (data.success) {
         setStats(data.statistics);
