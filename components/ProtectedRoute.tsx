@@ -13,10 +13,9 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     // Check localStorage directly as fallback
     const checkAuth = () => {
       const token = localStorage.getItem('access_token');
-      const user = localStorage.getItem('user');
       
       // If we have token in localStorage, consider authenticated
-      if (token && user) {
+      if (token) {  // ← ПРЕМАХНАТО: && user
         setCheckedAuth(true);
         return true;
       }
