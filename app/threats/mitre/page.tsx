@@ -6,6 +6,25 @@ import MITREMatrix from "@/components/threats/MITREMatrix";
 import MITREStats from "@/components/threats/MITREStats";
 import ProtectedRoute from '@/components/ProtectedRoute';
 
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, { headers });
+  return response.json();
+};
+
 interface Technique {
   id: number;
   technique_id: string;
@@ -49,10 +68,7 @@ export default function MITREPage() {
   const fetchMatrix = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/mitre/matrix`
-      );
-      const data = await response.json();
+      const data = await fetchWithAuth('/api/mitre/matrix');
 
       if (data.success) {
         setMatrixData(data.matrix || []);
@@ -66,10 +82,7 @@ export default function MITREPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/mitre/statistics`
-      );
-      const data = await response.json();
+      const data = await fetchWithAuth('/api/mitre/statistics');
 
       if (data.success) {
         setStats(data.statistics);
