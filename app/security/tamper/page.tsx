@@ -78,6 +78,35 @@ interface Privileges {
   can_protect: boolean;
   username: string;
 }
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
+};
 
 export default function TamperProtectionPage() {
   const [protectionStatus, setProtectionStatus] = useState<ProtectionStatus | null>(null);
@@ -89,7 +118,7 @@ export default function TamperProtectionPage() {
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+   
 
   useEffect(() => {
     fetchData();
@@ -100,43 +129,40 @@ export default function TamperProtectionPage() {
   const fetchData = async () => {
     try {
       // Fetch protection status
-      const protectionRes = await fetch(`${API_URL}/api/watchdog/protection/status`);
-      const protectionData = await protectionRes.json();
+      // Fetch protection status
+    const protectionData = await fetchWithAuth('/api/watchdog/protection/status');
+
       if (protectionData.success) {
         setProtectionStatus(protectionData.protection);
       }
 
       // Fetch watchdog status
-      const watchdogRes = await fetch(`${API_URL}/api/watchdog/status`);
-      const watchdogData = await watchdogRes.json();
+      const watchdogData = await fetchWithAuth('/api/watchdog/status');
       if (watchdogData.success) {
         setWatchdogStatus(watchdogData.watchdog);
       }
 
       // Fetch tamper alerts
-      const alertsRes = await fetch(`${API_URL}/api/watchdog/tamper/alerts?resolved=false`);
-      const alertsData = await alertsRes.json();
+      const alertsData = await fetchWithAuth('/api/watchdog/tamper/alerts?resolved=false');
       if (alertsData.success) {
         setAlerts(alertsData.alerts);
       }
 
       // Fetch restart history
-      const restartsRes = await fetch(`${API_URL}/api/watchdog/restarts?limit=10`);
-      const restartsData = await restartsRes.json();
+     const restartsData = await fetchWithAuth('/api/watchdog/restarts?limit=10');
       if (restartsData.success) {
         setRestarts(restartsData.restarts);
       }
 
       // Fetch process protection status
-      const processProtectionRes = await fetch(`${API_URL}/api/process-protection/status`);
-      const processProtectionData = await processProtectionRes.json();
+      const processProtectionData = await fetchWithAuth('/api/process-protection/status');
       if (processProtectionData.success) {
         setProcessProtection(processProtectionData.protection);
       }
 
       // Fetch privileges
-      const privilegesRes = await fetch(`${API_URL}/api/process-protection/privileges`);
-      const privilegesData = await privilegesRes.json();
+      // Fetch privileges
+    const privilegesData = await fetchWithAuth('/api/process-protection/privileges');
       if (privilegesData.success) {
         setPrivileges(privilegesData.privileges);
       }
@@ -148,10 +174,9 @@ export default function TamperProtectionPage() {
   const startWatchdog = async () => {
     setActionLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/watchdog/start`, {
-        method: "POST",
-      });
-      const data = await res.json();
+      const data = await fetchWithAuth('/api/watchdog/start', {
+      method: "POST",
+    });
 
       if (data.success) {
         toast.success("Watchdog Started", {
@@ -174,10 +199,9 @@ export default function TamperProtectionPage() {
   const stopWatchdog = async () => {
     setActionLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/watchdog/stop`, {
-        method: "POST",
-      });
-      const data = await res.json();
+      const data = await fetchWithAuth('/api/watchdog/stop', {
+      method: "POST",
+    });
 
       if (data.success) {
         toast.success("Watchdog Stopped", {
@@ -200,10 +224,9 @@ export default function TamperProtectionPage() {
   const verifyConfig = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/watchdog/config/verify`, {
-        method: "POST",
-      });
-      const data = await res.json();
+     const data = await fetchWithAuth('/api/watchdog/config/verify', {
+      method: "POST",
+    });
 
       if (data.success) {
         if (data.is_valid) {
@@ -228,10 +251,9 @@ export default function TamperProtectionPage() {
   const enableAntiTermination = async () => {
     setActionLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/process-protection/enable-anti-termination`, {
-        method: "POST",
-      });
-      const data = await res.json();
+       const data = await fetchWithAuth('/api/process-protection/enable-anti-termination', {
+      method: "POST",
+    });
 
       if (data.success) {
         toast.success("Anti-Termination Enabled", {
@@ -254,10 +276,9 @@ export default function TamperProtectionPage() {
   const enableMaxProtection = async () => {
     setActionLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/process-protection/enable-maximum-protection`, {
-        method: "POST",
-      });
-      const data = await res.json();
+      const data = await fetchWithAuth('/api/process-protection/enable-maximum-protection', {
+      method: "POST",
+    });
 
       if (data.success) {
         toast.success("Maximum Protection Enabled", {
@@ -281,10 +302,9 @@ export default function TamperProtectionPage() {
   const installService = async () => {
     setActionLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/process-protection/install-service`, {
-        method: "POST",
-      });
-      const data = await res.json();
+      const data = await fetchWithAuth('/api/process-protection/install-service', {
+      method: "POST",
+    });
 
       if (data.success) {
         toast.success("Service Installed", {
