@@ -20,6 +20,31 @@ import {
 } from "lucide-react";
 import ProtectedRoute from '@/components/ProtectedRoute';
 
+// API configuration
+const API_URL = process.env.NEXT_PUBLIC_API_URL ||'http://localhost:8000';
+
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  return response.json();
+};
+
 interface IntegrityStats {
   total_checks: number;
   status_counts: {
@@ -71,7 +96,6 @@ export default function IntegrityMonitoringPage() {
   const [generating, setGenerating] = useState(false);
   const [overallHealth, setOverallHealth] = useState<"HEALTHY" | "WARNING" | "CRITICAL">("HEALTHY");
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => {
     fetchData();
@@ -94,105 +118,95 @@ export default function IntegrityMonitoringPage() {
   }, [stats]);
 
   const fetchData = async () => {
-    try {
-      const [statsRes, manifestRes, logsRes, alertsRes] = await Promise.all([
-        fetch(`${API_URL}/api/integrity/statistics`),
-        fetch(`${API_URL}/api/integrity/manifest/latest`),
-        fetch(`${API_URL}/api/integrity/logs?limit=20`),
-        fetch(`${API_URL}/api/integrity/alerts?resolved=false`)
-      ]);
+  try {
+    const [statsData, manifestData, logsData, alertsData] = await Promise.all([
+      fetchWithAuth('/api/integrity/statistics'),
+      fetchWithAuth('/api/integrity/manifest/latest'),
+      fetchWithAuth('/api/integrity/logs?limit=20'),
+      fetchWithAuth('/api/integrity/alerts?resolved=false')
+    ]);
 
-      const statsData = await statsRes.json();
-      if (statsData.success) setStats(statsData.statistics);
-
-      const manifestData = await manifestRes.json();
-      if (manifestData.success && manifestData.manifest) setManifest(manifestData.manifest);
-
-      const logsData = await logsRes.json();
-      if (logsData.success) setLogs(logsData.logs);
-
-      const alertsData = await alertsRes.json();
-      if (alertsData.success) setAlerts(alertsData.alerts);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-  };
+    if (statsData.success) setStats(statsData.statistics);
+    if (manifestData.success && manifestData.manifest) setManifest(manifestData.manifest);
+    if (logsData.success) setLogs(logsData.logs);
+    if (alertsData.success) setAlerts(alertsData.alerts);
+  } catch (error) {
+    console.error("Error fetching data:", error);
+  }
+};
 
   const generateManifest = async () => {
-    setGenerating(true);
-    try {
-      const res = await fetch(`${API_URL}/api/integrity/manifest/generate`, {
-        method: "POST",
-      });
-      const data = await res.json();
+  setGenerating(true);
+  try {
+    const data = await fetchWithAuth('/api/integrity/manifest/generate', {
+      method: "POST",
+    });
 
-      if (data.success) {
-        toast.success("✅ Manifest Generated", {
-          description: `Checksums created for ${data.manifest.total_files} files`,
-        });
-        fetchData();
-      } else {
-        toast.error("Failed to generate manifest");
-      }
-    } catch (error) {
-      console.error("Error generating manifest:", error);
+    if (data.success) {
+      toast.success("✅ Manifest Generated", {
+        description: `Checksums created for ${data.manifest.total_files} files`,
+      });
+      fetchData();
+    } else {
       toast.error("Failed to generate manifest");
-    } finally {
-      setGenerating(false);
     }
-  };
+  } catch (error) {
+    console.error("Error generating manifest:", error);
+    toast.error("Failed to generate manifest");
+  } finally {
+    setGenerating(false);
+  }
+};
 
   const verifyAllFiles = async () => {
-    setVerifying(true);
-    toast.info("🔍 Scanning files...", { description: "This may take a moment" });
-    
-    try {
-      const res = await fetch(`${API_URL}/api/integrity/verify/all`, {
-        method: "POST",
-      });
-      const data = await res.json();
+  setVerifying(true);
+  toast.info("🔍 Scanning files...", { description: "This may take a moment" });
+  
+  try {
+    const data = await fetchWithAuth('/api/integrity/verify/all', {
+      method: "POST",
+    });
 
-      if (data.success) {
-        const report = data.report;
-        
-        if (report.overall_status === "HEALTHY") {
-          toast.success("✅ Integrity Verified", {
-            description: `All ${report.ok} files are intact and unmodified`,
-          });
-        } else {
-          toast.error("🚨 Integrity Compromised", {
-            description: `${report.modified} modified • ${report.missing} missing files`,
-          });
-        }
-        
-        fetchData();
+    if (data.success) {
+      const report = data.report;
+      
+      if (report.overall_status === "HEALTHY") {
+        toast.success("✅ Integrity Verified", {
+          description: `All ${report.ok} files are intact and unmodified`,
+        });
       } else {
-        toast.error("Verification failed");
+        toast.error("🚨 Integrity Compromised", {
+          description: `${report.modified} modified • ${report.missing} missing files`,
+        });
       }
-    } catch (error) {
-      console.error("Error verifying files:", error);
-      toast.error("Failed to verify files");
-    } finally {
-      setVerifying(false);
+      
+      fetchData();
+    } else {
+      toast.error("Verification failed");
     }
-  };
+  } catch (error) {
+    console.error("Error verifying files:", error);
+    toast.error("Failed to verify files");
+  } finally {
+    setVerifying(false);
+  }
+};
 
   const resolveAlert = async (alertId: number) => {
-    try {
-      const res = await fetch(`${API_URL}/api/integrity/alerts/${alertId}/resolve`, {
-        method: "POST",
-      });
-      const data = await res.json();
+  try {
+    const data = await fetchWithAuth(`/api/integrity/alerts/${alertId}/resolve`, {
+      method: "POST",
+    });
 
-      if (data.success) {
-        toast.success("Alert resolved");
-        fetchData();
-      }
-    } catch (error) {
-      console.error("Error resolving alert:", error);
-      toast.error("Failed to resolve alert");
+    if (data.success) {
+      toast.success("Alert resolved");
+      fetchData();
     }
-  };
+  } catch (error) {
+    console.error("Error resolving alert:", error);
+    toast.error("Failed to resolve alert");
+  }
+};
 
   const getStatusColor = (status: string) => {
     switch (status) {
