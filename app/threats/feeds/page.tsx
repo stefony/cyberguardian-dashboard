@@ -14,6 +14,31 @@ import {
 } from "lucide-react";
 import ProtectedRoute from '@/components/ProtectedRoute';
 
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  return response.json();
+};
+
 interface Feed {
   id: number;
   name: string;
@@ -47,10 +72,7 @@ export default function ThreatFeedsPage() {
   const fetchFeeds = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/threat-intel/feeds`
-      );
-      const data = await response.json();
+      const data = await fetchWithAuth('/api/threat-intel/feeds');
 
       if (data.success) {
         setFeeds(data.feeds);
@@ -65,11 +87,9 @@ export default function ThreatFeedsPage() {
 
   const toggleFeed = async (feedId: number) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/threat-intel/feeds/${feedId}/toggle`,
-        { method: "POST" }
-      );
-      const data = await response.json();
+      const data = await fetchWithAuth(`/api/threat-intel/feeds/${feedId}/toggle`, {
+  method: "POST"
+});
 
       if (data.success) {
         await fetchFeeds();
@@ -82,11 +102,9 @@ export default function ThreatFeedsPage() {
   const refreshFeed = async (feedId: number) => {
     setRefreshingId(feedId);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/threat-intel/feeds/${feedId}/refresh`,
-        { method: "POST" }
-      );
-      const data = await response.json();
+      const data = await fetchWithAuth(`/api/threat-intel/feeds/${feedId}/refresh`, {
+  method: "POST"
+});
 
       if (data.success) {
         await fetchFeeds();
