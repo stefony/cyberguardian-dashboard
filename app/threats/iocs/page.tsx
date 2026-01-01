@@ -6,6 +6,7 @@ import IOCTable from "@/components/threats/IOCTable";
 import IOCFilters from "@/components/threats/IOCFilters";
 import IOCStats from "@/components/threats/IOCStats";
 import ProtectedRoute from '@/components/ProtectedRoute';
+import api from '@/lib/api';
 
 interface IOC {
   id: number;
@@ -47,14 +48,14 @@ export default function IOCsPage() {
   const fetchIOCs = async () => {
     setLoading(true);
     try {
-      let url = `${process.env.NEXT_PUBLIC_API_URL}/api/threat-intel/iocs?limit=100`;
+      let url = `/api/threat-intel/iocs?limit=100`;
       
       if (selectedType !== "all") url += `&ioc_type=${selectedType}`;
       if (selectedSeverity !== "all") url += `&severity=${selectedSeverity}`;
       if (selectedSource !== "all") url += `&source=${selectedSource}`;
 
-      const response = await fetch(url);
-      const data = await response.json();
+      const response = await api.get<any>(url);
+      const data = response.data;
       
       if (data.success) {
         setIocs(data.iocs || []);
@@ -68,10 +69,8 @@ export default function IOCsPage() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/threat-intel/statistics`
-      );
-      const data = await response.json();
+      const response = await api.get<any>('/api/threat-intel/statistics');
+      const data = response.data;
       
       if (data.success) {
         setStats(data.statistics);
