@@ -19,6 +19,32 @@ import {
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
+};
 
 interface SystemHealth {
   health_score: number;
@@ -88,17 +114,12 @@ export default function PerformancePage() {
     if (showRefreshing) setRefreshing(true);
     
     try {
-      const [healthRes, summaryRes, bottlenecksRes, recsRes] = await Promise.all([
-        fetch(`${API_URL}/api/performance/health`),
-        fetch(`${API_URL}/api/performance/report/summary`),
-        fetch(`${API_URL}/api/performance/bottlenecks`),
-        fetch(`${API_URL}/api/performance/recommendations`)
-      ]);
-
-      const healthData = await healthRes.json();
-      const summaryData = await summaryRes.json();
-      const bottlenecksData = await bottlenecksRes.json();
-      const recsData = await recsRes.json();
+      const [healthData, summaryData, bottlenecksData, recsData] = await Promise.all([
+  fetchWithAuth('/api/performance/health'),
+  fetchWithAuth('/api/performance/report/summary'),
+  fetchWithAuth('/api/performance/bottlenecks'),
+  fetchWithAuth('/api/performance/recommendations')
+    ]);
 
       if (healthData.success) setHealth(healthData.health);
       if (summaryData.success) setSummary(summaryData.summary);
