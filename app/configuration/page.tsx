@@ -19,6 +19,33 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response;
+};
+
 interface ConfigBackup {
   filename: string;
   path: string;
@@ -46,9 +73,9 @@ export default function ConfigurationPage() {
   const [lastExport, setLastExport] = useState<ExportConfig | null>(null);
 
   const fetchBackups = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/configuration/backups`);
-      const data = await response.json();
+  try {
+    const response = await fetchWithAuth('/api/configuration/backups');
+    const data = await response.json();
       if (data.success) {
         setBackups(data.backups);
       }
@@ -58,10 +85,10 @@ export default function ConfigurationPage() {
   };
 
   const exportConfiguration = async () => {
-    setExporting(true);
-    try {
-      const response = await fetch(`${API_URL}/api/configuration/export`);
-      const data = await response.json();
+  setExporting(true);
+  try {
+    const response = await fetchWithAuth('/api/configuration/export');
+    const data = await response.json();
       
       if (data.success) {
         setLastExport(data.config);
@@ -92,11 +119,10 @@ export default function ConfigurationPage() {
       const text = await file.text();
       const config = JSON.parse(text);
       
-      const validateResponse = await fetch(`${API_URL}/api/configuration/validate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
-      });
+      const validateResponse = await fetchWithAuth('/api/configuration/validate', {
+  method: 'POST',
+  body: JSON.stringify(config)
+});
       
       const validateData = await validateResponse.json();
       
@@ -105,11 +131,10 @@ export default function ConfigurationPage() {
         return;
       }
       
-      const importResponse = await fetch(`${API_URL}/api/configuration/import`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
-      });
+      const importResponse = await fetchWithAuth('/api/configuration/import', {
+  method: 'POST',
+  body: JSON.stringify(config)
+});
       
       const importData = await importResponse.json();
       
@@ -128,9 +153,9 @@ export default function ConfigurationPage() {
   };
 
   const downloadBackup = async (filename: string) => {
-    try {
-      const response = await fetch(`${API_URL}/api/configuration/backups/${filename}/download`);
-      const blob = await response.blob();
+  try {
+    const response = await fetchWithAuth(`/api/configuration/backups/${filename}/download`);
+    const blob = await response.blob();
       
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -152,9 +177,9 @@ export default function ConfigurationPage() {
     }
     
     try {
-      const response = await fetch(`${API_URL}/api/configuration/backups/${filename}/restore`, {
-        method: 'POST'
-      });
+      const response = await fetchWithAuth(`/api/configuration/backups/${filename}/restore`, {
+  method: 'POST'
+});
       
       const data = await response.json();
       
