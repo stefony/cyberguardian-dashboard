@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { Activity, MapPin, Clock, AlertCircle, Shield, Wifi } from "lucide-react";
-import { aiApi } from "@/lib/api";
+
 
 // Types
 interface ThreatEvent {
@@ -30,6 +30,31 @@ interface LiveFeedResponse {
   last_updated: string;
 }
 
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
+    headers,
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
+
+
 export default function LiveThreatFeed() {
   const [events, setEvents] = useState<ThreatEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,12 +76,9 @@ export default function LiveThreatFeed() {
   }, [isLive]);
 
   const fetchLiveFeed = async () => {
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/ai/live-feed?limit=50`
-      );
-      const data: LiveFeedResponse = await response.json();
-
+  try {
+    const data: LiveFeedResponse = await fetchWithAuth('/api/ai/live-feed?limit=50');
+    
       if (data.success && data.events) {
         // Detect new events
         const prevIds = new Set(prevEventsRef.current.map((e) => e.id));
