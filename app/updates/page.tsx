@@ -24,6 +24,33 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  const response = await fetch(`${API_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response.json();
+};
+
 interface VersionInfo {
   version: string;
   major: number;
@@ -67,9 +94,9 @@ export default function UpdatesPage() {
   const [downloading, setDownloading] = useState(false);
 
   const fetchVersion = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/updates/version`);
-      const data = await response.json();
+  try {
+    const data = await fetchWithAuth('/api/updates/version');
+
       if (data.success) {
         setVersionInfo(data.version);
       }
@@ -79,10 +106,10 @@ export default function UpdatesPage() {
   };
 
   const checkForUpdates = async (force: boolean = false) => {
-    setChecking(true);
-    try {
-      const response = await fetch(`${API_URL}/api/updates/check?force=${force}`);
-      const data = await response.json();
+  setChecking(true);
+  try {
+    const data = await fetchWithAuth(`/api/updates/check?force=${force}`);
+
       if (data.success) {
         setUpdateInfo(data);
       }
@@ -94,9 +121,9 @@ export default function UpdatesPage() {
   };
 
   const fetchHistory = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/updates/history?limit=10`);
-      const data = await response.json();
+  try {
+    const data = await fetchWithAuth('/api/updates/history?limit=10');
+
       if (data.success) {
         setUpdateHistory(data.history);
       }
@@ -106,12 +133,11 @@ export default function UpdatesPage() {
   };
 
   const downloadUpdate = async () => {
-    setDownloading(true);
-    try {
-      const response = await fetch(`${API_URL}/api/updates/download`, {
-        method: 'POST'
-      });
-      const data = await response.json();
+  setDownloading(true);
+  try {
+    const data = await fetchWithAuth('/api/updates/download', {
+      method: 'POST'
+    });
       
       if (data.success) {
         alert('Update downloaded successfully!');
