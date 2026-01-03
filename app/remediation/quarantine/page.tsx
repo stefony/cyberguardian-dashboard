@@ -30,6 +30,38 @@ import { remediationApi } from "@/lib/api"
 import { toast } from "sonner"
 import ProtectedRoute from '@/components/ProtectedRoute';
 
+// Helper to make authenticated requests
+const fetchWithAuth = async (endpoint: string, options?: RequestInit) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const headers: Record<string, string> = {};
+  
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  
+  // Don't set Content-Type for FormData - browser will set it with boundary
+  if (options?.body && !(options.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+  
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://cyberguardian-backend-production.up.railway.app';
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      ...headers,
+      ...(options?.headers || {}),
+    }
+  });
+  
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  
+  return response;
+};
+
 interface AnalysisResult {
   analysis_id: string
   target_path: string
@@ -105,26 +137,22 @@ export default function DeepQuarantinePage() {
         formData.append("file", selectedFile)
 
         // Call upload endpoint
-        const uploadResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'https://cyberguardian-backend-production.up.railway.app'}/api/remediation/deep-quarantine/upload`,
-          {
-            method: "POST",
-            body: formData,
-          }
-        )
+const uploadResponse = await fetchWithAuth(
+  '/api/remediation/deep-quarantine/upload',
+  {
+    method: "POST",
+    body: formData,
+  }
+)
 
-        console.log("📥 Upload response status:", uploadResponse.status)
+console.log("📥 Upload response status:", uploadResponse.status)
 
-        if (!uploadResponse.ok) {
-          const errorText = await uploadResponse.text()
-          console.error("❌ Upload failed:", errorText)
-          throw new Error(`Upload failed: ${uploadResponse.status}`)
-        }
-
-        const data = await uploadResponse.json()
+const data = await uploadResponse.json()
         console.log("✅ Analysis result:", data)
         response = { success: true, data }
       } else {
+
+        
         // Use path-based analysis
         console.log("📂 Analyzing path:", targetPath)
         response = await remediationApi.analyzeDeep({ file_path: targetPath })
