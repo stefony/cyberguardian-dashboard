@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shield, Activity, AlertTriangle, Eye, Wifi, WifiOff } from "lucide-react";
-import { dashboardApi, threatsApi, analyticsApi } from "@/lib/api";
+import { dashboardApi, threatsApi, analyticsApi, honeypotApi } from "@/lib/api";
 import type { HealthData } from "@/lib/types";
 import { useWebSocketContext } from "@/lib/contexts/WebSocketContext";
 import { LiveThreatNotification } from "@/components/LiveThreatNotification";
@@ -200,19 +200,17 @@ export default function DashboardPage() {
   };
 
   // Fetch real honeypot count
-  const fetchHoneypotsCount = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/honeypots/statistics`);
-      const data = await response.json();
-      if (data && data.active_honeypots !== undefined) {
-        setHoneypotCount(data.active_honeypots);
-      }
-    } catch (err) {
-      console.error("Error fetching honeypot count:", err);
-      // Fallback to default
-      setHoneypotCount(0);
+const fetchHoneypotsCount = async () => {
+  try {
+    const response = await honeypotApi.getStatistics();
+    if (response.success && response.data) {
+      setHoneypotCount(response.data.active_honeypots || 0);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching honeypot count:", err);
+    setHoneypotCount(0);
+  }
+};
 
   // Fetch security posture score
   const fetchSecurityPosture = async () => {
