@@ -40,28 +40,31 @@ export default function ProtectionPage() {
     loadStats();
   }, []);
 
-  const loadStatus = async () => {
-    try {
-      const res = await protectionApi.getStatus();
-      console.log("🟣 STATUS RESPONSE:", res);
+const loadStatus = async () => {
+  try {
+    const res = await protectionApi.getStatus();
+    console.log("🟣 STATUS RESPONSE:", res);
 
-      const ok =
-        (typeof res?.success === "boolean" ? res.success : true) && (res?.data || res);
-      const data = res?.data ?? res;
+    const ok =
+      (typeof res?.success === "boolean" ? res.success : true) && (res?.data || res);
+    const data = res?.data ?? res;
 
-      if (ok && data) {
-        setEnabled(!!data.enabled);
-        const pathStr = Array.isArray(data.paths) ? data.paths.join("; ") : (data.paths || "");
-        setPaths(pathStr);
-        setAutoQuarantine(!!(data.auto_quarantine ?? data.autoQuarantine));
-        setThreatThreshold(Number(data.threat_threshold ?? data.threatThreshold ?? 80));
-      }
-    } catch (err) {
-      console.error("❌ Error loading status:", err);
-    } finally {
-      setLoading(false);
+    if (ok && data) {
+      console.log("🔵 BEFORE setEnabled:", enabled);
+      setEnabled(!!data.enabled);
+      console.log("🔵 AFTER setEnabled, new value:", !!data.enabled);
+      
+      const pathStr = Array.isArray(data.paths) ? data.paths.join("; ") : (data.paths || "");
+      setPaths(pathStr);
+      setAutoQuarantine(!!(data.auto_quarantine ?? data.autoQuarantine));
+      setThreatThreshold(Number(data.threat_threshold ?? data.threatThreshold ?? 80));
     }
-  };
+  } catch (err) {
+    console.error("❌ Error loading status:", err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const loadEvents = async (limit = 100) => {
     try {
