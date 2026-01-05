@@ -127,7 +127,7 @@ const saveSettings = async (newAutoQuarantine?: boolean, newThreshold?: number) 
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
-  const toggle = async () => {
+ const toggle = async () => {
   console.log("🔵 TOGGLE CLICKED!", {
     enabled,
     paths,
@@ -145,38 +145,32 @@ const saveSettings = async (newAutoQuarantine?: boolean, newThreshold?: number) 
 
     console.log("🔵 PATH LIST:", pathList);
 
-    // If paths field is empty, send empty array (backend will use saved paths)
+    // Toggle protection
     const res = await protectionApi.toggle(
       !enabled,
-      pathList.length > 0 ? pathList : [],  // ← Empty array if no paths entered
+      pathList.length > 0 ? pathList : [],
       autoQuarantine,
       threatThreshold
     );
 
     console.log("🔵 API RESPONSE:", res);
 
-    const data = res?.data ?? res;
-    if (data && typeof data.enabled === "boolean") {
-      setEnabled(data.enabled);
-      
-      // Update paths from response
-      if (data.paths && Array.isArray(data.paths) && data.paths.length > 0) {
-        setPaths(data.paths.join("; "));
-      }
-      
-      if (data.enabled) {
-        setTimeout(() => {
-          refresh();
-        }, 2000);
-      } else {
-        // Reset stats when disabled
-        setStats({
-          files_scanned: 0,
-          threats_detected: 0,
-          uptime_seconds: 0,
-          last_scan: null,
-        });
-      }
+    // ← НОВ КОД: Refresh status from backend instead of using response
+    await loadStatus();
+    
+    // Refresh stats if enabled
+    if (!enabled) {  // If we just enabled it (was false, now true)
+      setTimeout(() => {
+        refresh();
+      }, 2000);
+    } else {
+      // Reset stats when disabled
+      setStats({
+        files_scanned: 0,
+        threats_detected: 0,
+        uptime_seconds: 0,
+        last_scan: null,
+      });
     }
   } catch (err) {
     console.error("❌ Error toggling protection:", err);
