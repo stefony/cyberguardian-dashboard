@@ -128,54 +128,62 @@ const saveSettings = async (newAutoQuarantine?: boolean, newThreshold?: number) 
   };
 
   const toggle = async () => {
-    console.log("🔵 TOGGLE CLICKED!", {
-      enabled,
-      paths,
+  console.log("🔵 TOGGLE CLICKED!", {
+    enabled,
+    paths,
+    autoQuarantine,
+    threatThreshold,
+  });
+
+  setToggling(true);
+  try {
+    // Parse paths from input field
+    const pathList = paths
+      .split(";")
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    console.log("🔵 PATH LIST:", pathList);
+
+    // If paths field is empty, send empty array (backend will use saved paths)
+    const res = await protectionApi.toggle(
+      !enabled,
+      pathList.length > 0 ? pathList : [],  // ← Empty array if no paths entered
       autoQuarantine,
-      threatThreshold,
-    });
+      threatThreshold
+    );
 
-    setToggling(true);
-    try {
-      const pathList = paths
-        .split(";")
-        .map((s) => s.trim())
-        .filter(Boolean);
+    console.log("🔵 API RESPONSE:", res);
 
-      console.log("🔵 PATH LIST:", pathList);
-
-      const res = await protectionApi.toggle(
-        !enabled,
-        pathList,
-        autoQuarantine,
-        threatThreshold
-      );
-
-      console.log("🔵 API RESPONSE:", res);
-
-      const data = res?.data ?? res;
-      if (data && typeof data.enabled === "boolean") {
-        setEnabled(data.enabled);
-        if (data.enabled) {
-          setTimeout(() => {
-            refresh();
-          }, 2000);
-        } else {
-          // Reset stats when disabled
-          setStats({
-            files_scanned: 0,
-            threats_detected: 0,
-            uptime_seconds: 0,
-            last_scan: null,
-          });
-        }
+    const data = res?.data ?? res;
+    if (data && typeof data.enabled === "boolean") {
+      setEnabled(data.enabled);
+      
+      // Update paths from response
+      if (data.paths && Array.isArray(data.paths) && data.paths.length > 0) {
+        setPaths(data.paths.join("; "));
       }
-    } catch (err) {
-      console.error("❌ Error toggling protection:", err);
-    } finally {
-      setToggling(false);
+      
+      if (data.enabled) {
+        setTimeout(() => {
+          refresh();
+        }, 2000);
+      } else {
+        // Reset stats when disabled
+        setStats({
+          files_scanned: 0,
+          threats_detected: 0,
+          uptime_seconds: 0,
+          last_scan: null,
+        });
+      }
     }
-  };
+  } catch (err) {
+    console.error("❌ Error toggling protection:", err);
+  } finally {
+    setToggling(false);
+  }
+};
 
   const getSeverityColor = (level: string) => {
     switch (level?.toLowerCase()) {
