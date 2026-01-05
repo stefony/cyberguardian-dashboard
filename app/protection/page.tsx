@@ -92,31 +92,23 @@ export default function ProtectionPage() {
     }
   };
 
-  const saveSettings = async (newAutoQuarantine?: boolean, newThreshold?: number) => {
-    try {
-      const pathList = paths
-        .split(";")
-        .map((s) => s.trim())
-        .filter(Boolean);
+const saveSettings = async (newAutoQuarantine?: boolean, newThreshold?: number) => {
+  try {
+    console.log("💾 Saving settings:", {
+      autoQuarantine: newAutoQuarantine ?? autoQuarantine,
+      threatThreshold: newThreshold ?? threatThreshold,
+    });
 
-      console.log("💾 Saving settings:", {
-        enabled,
-        autoQuarantine: newAutoQuarantine ?? autoQuarantine,
-        threatThreshold: newThreshold ?? threatThreshold,
-      });
+    const res = await protectionApi.updateSettings(
+      newAutoQuarantine ?? autoQuarantine,
+      newThreshold ?? threatThreshold
+    );
 
-      const res = await protectionApi.toggle(
-        enabled,  // Keep current enabled state
-        pathList,
-        newAutoQuarantine ?? autoQuarantine,
-        newThreshold ?? threatThreshold
-      );
-
-      console.log("✅ Settings saved:", res);
-    } catch (err) {
-      console.error("❌ Error saving settings:", err);
-    }
-  };
+    console.log("✅ Settings saved:", res);
+  } catch (err) {
+    console.error("❌ Error saving settings:", err);
+  }
+};
 
   const refresh = async () => {
     console.log("🔄 REFRESH CLICKED");

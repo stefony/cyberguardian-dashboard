@@ -1044,7 +1044,7 @@ export const settingsApi = {
 }
 
 
-// ============================================
+/// ============================================
 // PROTECTION API
 // ============================================
 
@@ -1074,6 +1074,19 @@ export const protectionApi = {
   },
 
   /**
+   * Update protection settings (without toggling)
+   */
+  updateSettings: async (
+    autoQuarantine?: boolean,
+    threatThreshold?: number
+  ): Promise<ApiResponse<any>> => {
+    return client.post<any>('/api/protection/settings', {
+      auto_quarantine: autoQuarantine,
+      threat_threshold: threatThreshold,
+    })
+  },
+
+  /**
    * Get file system events
    */
   getEvents: async (limit?: number): Promise<ApiResponse<any[]>> => {
@@ -1089,7 +1102,6 @@ export const protectionApi = {
     return client.get<any>('/api/protection/stats')
   },
 }
-
 
 // ============================================
 // SCANS API
